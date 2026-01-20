@@ -9,6 +9,7 @@ RUN cargo chef prepare --recipe-path recipe.json
 FROM chef AS builder
 
 ENV OPENSSL_STATIC=1
+ENV SQLX_OFFLINE=true
 
 COPY --from=planner /usr/src/recipe.json recipe.json
 
@@ -29,7 +30,7 @@ RUN --mount=type=cache,id=cargo-registry,target=/usr/local/cargo/registry \
 FROM debian:trixie-slim
 
 RUN apt-get update \
-	&& apt-get install -y --no-install-recommends ca-certificates  \
+	&& apt-get install -y --no-install-recommends ca-certificates curl \
 	&& rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
