@@ -11,11 +11,20 @@ FROM chef AS builder
 ENV OPENSSL_STATIC=1
 
 COPY --from=planner /usr/src/recipe.json recipe.json
-RUN cargo chef cook --release --recipe-path recipe.json --bin antifraud-monolyth
+
+RUN --mount=type=cache,id=cargo-registry,target=/usr/local/cargo/registry \
+    --mount=type=cache,id=cargo-git,target=/usr/local/cargo/git \
+    --mount=type=cache,id=target,target=/usr/src/target \
+    cargo chef cook --release \
+        --recipe-path recipe.json \
+        --bin antifraud-monolyth
 
 COPY ./solution .
-RUN SQLX_OFFLINE=true cargo build --release --bin antifraud-monolyth
 
+RUN --mount=type=cache,id=cargo-registry,target=/usr/local/cargo/registry \
+    --mount=type=cache,id=cargo-git,target=/usr/local/cargo/git \
+    --mount=type=cache,id=target,target=/usr/src/target \
+    cargo build --release --bin antifraud-monolyth
 
 FROM debian:trixie-slim
 
@@ -30,4 +39,4 @@ USER app
 
 COPY --from=builder /usr/src/target/release/antifraud-monolyth app
 
-CMD ["/app"]
+CMD ["/app/app"]
