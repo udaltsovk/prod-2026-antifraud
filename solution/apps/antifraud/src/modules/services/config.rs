@@ -1,0 +1,28 @@
+use std::sync::Arc;
+
+use fromenv::FromEnv;
+use infrastructure::services::token::jwt::{
+    DecodingKey, EncodingKey, JwtService,
+};
+
+#[derive(FromEnv)]
+pub struct ServicesConfig {
+    #[env(nested)]
+    pub jwt: JwtConfig,
+}
+
+#[derive(FromEnv)]
+pub struct JwtConfig {
+    #[env(rename = "RANDOM_SECRET")]
+    pub secret: String,
+}
+
+impl From<&JwtConfig> for Arc<JwtService> {
+    fn from(config: &JwtConfig) -> Self {
+        let secret = config.secret.as_bytes();
+        Self::new(JwtService::new(
+            EncodingKey::from_secret(secret),
+            DecodingKey::from_secret(secret),
+        ))
+    }
+}

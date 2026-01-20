@@ -1,0 +1,16 @@
+[package]
+name = "antifraud-presentation"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+
+[features]
+api = ["dep:api"]
+api-rest = ["api", "api/rest"]
+
+
+[dependencies]
+api = { path = "./api", package = "antifraud-presentation-api", optional = true }
+
+[lints]
+workspace = true

@@ -1,0 +1,22 @@
+[package]
+name = "antifraud-presentation-api-rest"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+lib = { workspace = true, features = ["presentation-api-rest"] }
+domain = { path = "../../../domain", package = "antifraud-domain" }
+application = { path = "../../../application", package = "antifraud-application" }
+
+axum = { workspace = true, features = ["macros"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+axum-extra = { version = "0.12", features = ["typed-header"] }
+derive_more = { version = "2.1", features = ["from"] }
+
+[lints]
+workspace = true

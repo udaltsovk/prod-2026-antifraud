@@ -1,0 +1,372 @@
+[workspace]
+resolver = "3"
+members = ["packages/dsl-parser", "apps/antifraud"]
+
+[workspace.package]
+authors = ["Kirill Udaltsov <me@udaltsovk.ru>"]
+edition = "2024"
+
+[workspace.dependencies]
+# lib = { path = "../../../../../../github/udaltsovk/rust-backend-template/packages/lib-backend" }
+lib = { git = "https://github.com/udaltsovk/rust-backend-template" }
+
+axum = "0.8"
+bon = "3.7"
+chrono = "0.4"
+derive-where = "1.6"
+fromenv = "0.1"
+metrics = "0.24"
+mobc = "0.9"
+mobc-redis = "0.9"
+mobc-sqlx = "2.0"
+opentelemetry = "0.30"
+pastey = "0.2"
+rstest = "0.26"
+serde = "1.0"
+serde_json = "1.0"
+tap = "1.0"
+tikv-jemallocator = "0.6"
+thiserror = "2.0"
+tokio = "1.47"
+tower = "0.5"
+tower-http = "0.6"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+uuid = "1.18"
+
+
+[patch.crates-io]
+fromenv = { git = "https://github.com/NikSneMC/fromenv", branch = "main" }
+mobc = { git = "https://github.com/NikSneMC/mobc", branch = "useful" }
+mobc-redis = { git = "https://github.com/NikSneMC/mobc", branch = "useful" }
+
+
+[profile.release]
+lto = "fat"
+strip = true
+opt-level = 3
+panic = "unwind"
+codegen-units = 1
+
+[workspace.lints.rust]
+# unknown_lints = "allow"
+
+# Arithmetic
+arithmetic_overflow = "deny"
+
+# Unsafe code detection
+unnecessary_transmutes = "deny"
+
+[workspace.lints.clippy]
+# Allow attributes and lint configuration
+allow_attributes = "deny"
+allow_attributes_without_reason = "deny"
+
+# Arithmetic operations
+checked_conversions = "deny"
+cast_possible_truncation = "deny"
+cast_sign_loss = "deny"
+cast_possible_wrap = "deny"
+cast_precision_loss = "deny"
+integer_division = "deny"
+arithmetic_side_effects = "deny"
+unchecked_time_subtraction = "deny"
+cast_lossless = "warn"
+imprecise_flops = "warn"
+suboptimal_flops = "warn"
+float_cmp = "warn"
+float_cmp_const = "warn"
+while_float = "warn"
+unused_rounding = "warn"
+
+# Array indexing and collections
+indexing_slicing = "deny"
+collection_is_never_read = "warn"
+get_unwrap = "warn"
+iter_on_empty_collections = "warn"
+iter_on_single_items = "warn"
+linkedlist = "warn"
+map_unwrap_or = "warn"
+needless_collect = "warn"
+zero_sized_map_values = "warn"
+
+# Code quality and style
+branches_sharing_code = "warn"
+clear_with_drain = "warn"
+cognitive_complexity = "warn"
+comparison_chain = "warn"
+default_trait_access = "warn"
+derive_partial_eq_without_eq = "warn"
+empty_enums = "warn"
+empty_drop = "warn"
+empty_enum_variants_with_brackets = "warn"
+empty_structs_with_brackets = "warn"
+equatable_if_let = "warn"
+inconsistent_struct_constructor = "warn"
+items_after_statements = "warn"
+many_single_char_names = "warn"
+match_same_arms = "warn"
+must_use_candidate = "warn"
+needless_continue = "warn"
+needless_pass_by_value = "warn"
+semicolon_if_nothing_returned = "warn"
+similar_names = "warn"
+struct_excessive_bools = "warn"
+struct_field_names = "warn"
+too_many_lines = "warn"
+trivially_copy_pass_by_ref = "warn"
+use_self = "warn"
+
+# Documentation
+doc_broken_link = "deny"
+doc_link_with_quotes = "deny"
+doc_markdown = "deny"
+doc_comment_double_space_linebreaks = "warn"
+doc_include_without_cfg = "warn"
+# doc_paragraphs_missing_punctuation = "warn" # FIXME: idk why but clippy doesn't recognize this lint
+too_long_first_doc_paragraph = "warn"
+# missing_errors_doc = "warn"
+# missing_panics_doc = "warn"
+# missing_docs_in_private_items = "warn"
+
+# Error handling and panics
+fallible_impl_from = "warn"
+panic_in_result_fn = "warn"
+unwrap_used = "deny"
+panicking_unwrap = "deny"
+option_env_unwrap = "deny"
+unwrap_in_result = "warn"
+let_underscore_must_use = "warn"
+should_panic_without_expect = "warn"
+missing_assert_message = "warn"
+missing_asserts_for_indexing = "warn"
+
+# File and I/O operations
+create_dir = "warn"
+filetype_is_file = "warn"
+large_include_file = "warn"
+mem_forget = "warn"
+print_stderr = "warn"
+print_stdout = "warn"
+verbose_file_reads = "warn"
+
+# Imports and visibility
+enum_glob_use = "forbid"
+macro_use_imports = "warn"
+pub_underscore_fields = "warn"
+pub_without_shorthand = "warn"
+wildcard_imports = "forbid"
+unnecessary_self_imports = "warn"
+
+# Iterator operations
+copy_iterator = "warn"
+explicit_deref_methods = "warn"
+explicit_into_iter_loop = "warn"
+explicit_iter_loop = "warn"
+filter_map_next = "warn"
+flat_map_option = "warn"
+from_iter_instead_of_collect = "warn"
+into_iter_without_iter = "warn"
+iter_filter_is_ok = "warn"
+iter_filter_is_some = "warn"
+iter_not_returning_iterator = "warn"
+iter_with_drain = "warn"
+iter_without_into_iter = "warn"
+maybe_infinite_iter = "warn"
+needless_for_each = "warn"
+unused_peekable = "warn"
+iter_over_hash_type = "warn"
+
+# Lifetime and reference management
+cloned_instead_of_copied = "warn"
+elidable_lifetime_names = "warn"
+implicit_clone = "warn"
+needless_pass_by_ref_mut = "warn"
+redundant_clone = "warn"
+ref_binding_to_reference = "warn"
+ref_option = "warn"
+ref_option_ref = "warn"
+unnecessary_box_returns = "warn"
+assigning_clones = "warn"
+
+# Memory and performance
+large_futures = "warn"
+large_stack_arrays = "warn"
+large_stack_frames = "warn"
+large_types_passed_by_value = "warn"
+rc_buffer = "warn"
+rc_mutex = "warn"
+
+# Method and function signatures
+fn_params_excessive_bools = "deny"
+invalid_upcast_comparisons = "warn"
+mismatching_type_param_order = "warn"
+return_self_not_must_use = "warn"
+self_only_used_in_recursion = "warn"
+trait_duplication_in_bounds = "warn"
+type_repetition_in_bounds = "warn"
+unnecessary_wraps = "warn"
+
+# Path handling
+join_absolute_paths = "deny"
+path_buf_push_overwrite = "warn"
+pathbuf_init_then_push = "warn"
+
+# Pattern matching and control flow
+if_not_else = "warn"
+if_then_some_else_none = "warn"
+ignored_unit_patterns = "warn"
+index_refutable_slice = "warn"
+manual_let_else = "warn"
+rest_pat_in_fully_bound_structs = "warn"
+same_functions_in_if_condition = "warn"
+single_option_map = "warn"
+unnested_or_patterns = "warn"
+unneeded_field_pattern = "warn"
+useless_let_if_seq = "warn"
+
+# Serialization and external APIs
+serde_api_misuse = "deny"
+
+# String operations and formatting
+case_sensitive_file_extension_comparisons = "warn"
+format_collect = "warn"
+format_push_string = "warn"
+inefficient_to_string = "warn"
+literal_string_with_formatting_args = "warn"
+manual_string_new = "warn"
+single_char_pattern = "warn"
+str_split_at_newline = "warn"
+string_add_assign = "warn"
+string_add = "warn"
+string_lit_as_bytes = "warn"
+string_slice = "warn"
+uninlined_format_args = "warn"
+unnecessary_join = "warn"
+
+# Testing
+cfg_not_test = "warn"
+redundant_test_prefix = "warn"
+tests_outside_test_module = "warn"
+
+# Types and traits
+coerce_container_to_any = "warn"
+error_impl_error = "warn"
+expl_impl_clone_on_copy = "warn"
+impl_trait_in_params = "warn"
+option_as_ref_cloned = "warn"
+
+# Unsafe operations
+uninit_vec = "deny"
+transmute_ptr_to_ref = "deny"
+transmute_undefined_repr = "deny"
+
+# Variable usage and naming
+bool_to_int_with_if = "warn"
+debug_assert_with_mut_call = "deny"
+let_underscore_untyped = "warn"
+mut_mut = "warn"
+no_effect_underscore_binding = "warn"
+shadow_unrelated = "warn"
+unused_async = "warn"
+unused_self = "warn"
+used_underscore_binding = "warn"
+used_underscore_items = "warn"
+unused_result_ok = "warn"
+unused_trait_names = "warn"
+
+# Async and concurrency
+future_not_send = "warn"
+non_send_fields_in_send_ty = "warn"
+
+# Bit operations and numeric literals
+decimal_literal_representation = "warn"
+default_numeric_fallback = "warn"
+large_digit_groups = "warn"
+lossy_float_literal = "warn"
+needless_bitwise_bool = "warn"
+precedence_bits = "warn"
+suspicious_xor_used_as_pow = "warn"
+unreadable_literal = "warn"
+unseparated_literal_suffix = "warn"
+verbose_bit_mask = "warn"
+
+# Code organization and redundancy
+redundant_closure_for_method_calls = "warn"
+redundant_else = "warn"
+redundant_pub_crate = "warn"
+redundant_type_annotations = "warn"
+unnecessary_debug_formatting = "warn"
+unnecessary_literal_bound = "warn"
+unnecessary_semicolon = "warn"
+unnecessary_struct_initialization = "warn"
+
+# Concurrency primitives
+mutex_atomic = "warn"
+mutex_integer = "warn"
+non_std_lazy_statics = "warn"
+
+# Constants and manual implementations
+ip_constant = "warn"
+manual_assert = "warn"
+manual_instant_elapsed = "warn"
+manual_is_power_of_two = "warn"
+manual_is_variant_and = "warn"
+manual_midpoint = "warn"
+missing_const_for_fn = "warn"
+non_zero_suggestions = "warn"
+
+# Control flow and operators
+deref_by_slicing = "warn"
+fn_to_numeric_cast_any = "warn"
+infinite_loop = "warn"
+mixed_read_write_in_expression = "warn"
+option_if_let_else = "warn"
+or_fun_call = "warn"
+range_minus_one = "warn"
+range_plus_one = "warn"
+try_err = "warn"
+unreachable = "warn"
+
+# Debug and formatting
+missing_fields_in_debug = "warn"
+pointer_format = "warn"
+
+# External crates and optimization
+clone_on_ref_ptr = "warn"
+naive_bytecount = "warn"
+
+# Function and method conventions
+renamed_function_params = "warn"
+same_name_method = "warn"
+
+# Lint attributes and configuration
+disallowed_script_idents = "warn"
+ignore_without_reason = "warn"
+
+# Macro and syntax conventions
+nonstandard_macro_braces = "warn"
+semicolon_inside_block = "warn"
+
+# Pattern matching and data structures
+set_contains_or_insert = "warn"
+significant_drop_in_scrutinee = "warn"
+tuple_array_conversions = "warn"
+
+# Process and system operations
+exit = "warn"
+
+# Range and iteration patterns
+map_with_unused_argument_over_ranges = "warn"
+
+# Regex and text processing
+needless_raw_string_hashes = "warn"
+needless_raw_strings = "warn"
+trivial_regex = "warn"
+
+# Sorting and algorithms
+stable_sort_primitive = "warn"
+suspicious_operation_groupings = "warn"
+
+# Vector and buffer operations
+read_zero_byte_vec = "warn"

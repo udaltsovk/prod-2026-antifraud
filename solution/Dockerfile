@@ -1,14 +1,34 @@
-FROM python:3.12.1-alpine3.19
+FROM lukemathwalker/cargo-chef:latest-rust-1.92-trixie AS chef
+COPY rust-toolchain.toml rust-toolchain.toml
+WORKDIR /usr/src
+
+FROM chef AS planner
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
+
+FROM chef AS builder
+
+ENV OPENSSL_STATIC=1
+
+COPY --from=planner /usr/src/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json --bin antifraud-monolyth
+
+COPY . .
+COPY .git .git
+RUN SQLX_OFFLINE=true cargo build --release --bin antifraud-monolyth
+
+
+FROM debian:trixie-slim
+
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends ca-certificates  \
+	&& rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-RUN apk add --no-cache curl
+RUN useradd -MN app
+USER app
 
-COPY solution/requirements.txt requirements.txt
-RUN pip3 install --no-cache-dir -r requirements.txt
+COPY --from=builder /usr/src/target/release/antifraud-monolyth app
 
-COPY ./solution .
-
-ENV SERVER_PORT=8080
-
-CMD ["sh", "-c", "exec python3 -m flask run --host=0.0.0.0 --port=$SERVER_PORT"]
+CMD ["/app"]

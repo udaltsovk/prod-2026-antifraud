@@ -1,0 +1,11 @@
+parallel-compiler = true
+
+[build]
+rustflags = [
+  "--cfg",
+  "tokio_unstable",
+  "-C",
+  "target-cpu=native",
+  "-Z",
+  "macro-backtrace",
+]

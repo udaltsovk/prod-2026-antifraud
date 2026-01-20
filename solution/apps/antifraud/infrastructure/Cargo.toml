@@ -1,0 +1,26 @@
+[package]
+name = "antifraud-infrastructure"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+
+[features]
+persistence = ["dep:persistence"]
+persistence-postgres = ["persistence", "persistence/postgres"]
+
+persistence-redis = ["persistence", "persistence/redis"]
+
+
+services = ["dep:services"]
+services-hasher = ["services", "services/hasher"]
+services-hasher-argon2 = ["services-hasher", "services/hasher-argon2"]
+
+services-token = ["services", "services/token"]
+services-token-jwt = ["services-token", "services/token-jwt"]
+
+[dependencies]
+persistence = { path = "./persistence", package = "antifraud-infrastructure-persistence", optional = true }
+services = { path = "./services", package = "antifraud-infrastructure-services", optional = true }
+
+[lints]
+workspace = true

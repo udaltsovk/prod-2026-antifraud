@@ -1,0 +1,45 @@
+[package]
+name = "antifraud"
+version = "0.1.0"
+edition.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "antifraud-monolyth"
+path = "./src/bin/monolyth.rs"
+
+[[bin]]
+name = "antifraud-metadata"
+path = "./src/bin/metadata.rs"
+
+[dependencies]
+lib = { workspace = true, features = [
+  "bootstrap-redis",
+  "bootstrap-sqlx",
+  "bootstrap-instrumentation-stdout",
+  "infrastructure-persistence-postgres",
+] }
+domain = { path = "./domain", package = "antifraud-domain" }
+application = { path = "./application", package = "antifraud-application" }
+infrastructure = { path = "./infrastructure", package = "antifraud-infrastructure", features = [
+  "persistence-postgres",
+  "persistence-redis",
+  "services-hasher-argon2",
+  "services-token-jwt",
+] }
+presentation = { path = "./presentation", package = "antifraud-presentation", features = [
+  "api-rest",
+] }
+
+fromenv.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+tikv-jemallocator = { workspace = true, features = [
+  "profiling",
+  "unprefixed_malloc_on_supported_platforms",
+] }
+
+[lints]
+workspace = true

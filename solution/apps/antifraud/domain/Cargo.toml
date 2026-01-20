@@ -1,0 +1,17 @@
+[package]
+name = "antifraud-domain"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+lib = { workspace = true, features = ["domain", "macros-proc"] }
+
+thiserror.workspace = true
+serde.workspace = true
+
+rust_iso3166 = "0.1"
+url = "2.5"
+
+[lints]
+workspace = true

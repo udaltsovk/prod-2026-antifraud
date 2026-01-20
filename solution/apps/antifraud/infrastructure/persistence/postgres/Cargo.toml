@@ -1,0 +1,20 @@
+[package]
+name = "antifraud-infrastructure-persistence-postgres"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+lib = { workspace = true, features = ["infrastructure-persistence-postgres"] }
+domain = { path = "../../../domain", package = "antifraud-domain" }
+application = { path = "../../../application", package = "antifraud-application" }
+
+derive-where.workspace = true
+mobc-sqlx = { workspace = true, features = ["postgres", "uuid"] }
+thiserror.workspace = true
+tracing.workspace = true
+
+sqlx = { version = "0.8", features = ["runtime-tokio", "postgres", "uuid"] }
+
+[lints]
+workspace = true

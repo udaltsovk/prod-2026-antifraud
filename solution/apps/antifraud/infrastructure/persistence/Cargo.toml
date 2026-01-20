@@ -1,0 +1,16 @@
+[package]
+name = "antifraud-infrastructure-persistence"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+
+[features]
+postgres = ["dep:postgres"]
+redis = ["dep:redis"]
+
+[dependencies]
+postgres = { path = "./postgres", package = "antifraud-infrastructure-persistence-postgres", optional = true }
+redis = { path = "./redis", package = "antifraud-infrastructure-persistence-redis", optional = true }
+
+[lints]
+workspace = true
