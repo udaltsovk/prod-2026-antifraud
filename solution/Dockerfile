@@ -1,9 +1,9 @@
 FROM lukemathwalker/cargo-chef:latest-rust-1.92-trixie AS chef
-COPY rust-toolchain.toml rust-toolchain.toml
+COPY ./solution/rust-toolchain.toml rust-toolchain.toml
 WORKDIR /usr/src
 
 FROM chef AS planner
-COPY . .
+COPY ./solution .
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder
@@ -13,8 +13,7 @@ ENV OPENSSL_STATIC=1
 COPY --from=planner /usr/src/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json --bin antifraud-monolyth
 
-COPY . .
-COPY .git .git
+COPY ./solution .
 RUN SQLX_OFFLINE=true cargo build --release --bin antifraud-monolyth
 
 
