@@ -19,6 +19,7 @@ pub struct PostgresConfig {
     pub host: String,
     #[env(default = "5432")]
     pub port: u16,
+    #[env(rename = "name")]
     pub database: String,
 }
 

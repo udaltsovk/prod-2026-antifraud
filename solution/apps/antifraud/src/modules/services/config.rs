@@ -13,7 +13,7 @@ pub struct ServicesConfig {
 
 #[derive(FromEnv)]
 pub struct JwtConfig {
-    #[env(rename = "RANDOM_SECRET")]
+    #[env(rename = "random_secret")]
     pub secret: String,
 }
 
