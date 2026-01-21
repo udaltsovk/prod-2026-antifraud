@@ -7,6 +7,7 @@ use serde::Serialize;
 
 use crate::errors::ApiError;
 
+pub mod api_version;
 pub mod session;
 
 extractor!(FromRequest, Json, ApiError);

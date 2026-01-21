@@ -16,7 +16,7 @@ use crate::{
 pub async fn get_user_by_id<M: ModulesExt>(
     modules: State<M>,
     user_session: UserSession,
-    Path(id): Path<Uuid>,
+    Path((_api_version, id)): Path<((), Uuid)>,
 ) -> Result<impl IntoResponse, ApiError> {
     modules
         .user_usecase()
