@@ -1,7 +1,7 @@
 use application::repository::user::UserRepository;
 use domain::{
     email::Email,
-    user::{CreateUser, User, region::UserRegion},
+    user::{CreateUser, User, region::UserRegion, role::UserRole},
 };
 use lib::{
     async_trait,
@@ -10,7 +10,7 @@ use lib::{
     instrument_all,
     tap::{Conv as _, Pipe as _},
 };
-use sqlx::{Acquire as _, query_file_as};
+use sqlx::query_file_as;
 
 use crate::{
     entity::user::{
@@ -32,7 +32,6 @@ impl UserRepository for PostgresRepositoryImpl<User> {
         password_hash: String,
     ) -> Result<User, Self::AdapterError> {
         let mut connection = self.pool.get().await?;
-        let mut transaction = connection.begin().await?;
 
         let id = id.value;
         let email = source.email.into_inner();
@@ -52,16 +51,14 @@ impl UserRepository for PostgresRepositoryImpl<User> {
             full_name,
             password_hash,
             age,
-            gender as Option<StoredUserGender>,
-            martial_status as Option<StoredUserMartialStatus>,
+            gender as _,
+            martial_status as _,
             region,
-            role as StoredUserRole,
+            role as _,
         )
-        .fetch_one(&mut *transaction)
+        .fetch_one(&mut *connection)
         .await?
         .conv::<User>();
-
-        transaction.commit().await?;
 
         Ok(user)
     }
@@ -90,5 +87,37 @@ impl UserRepository for PostgresRepositoryImpl<User> {
             .await?
             .map(User::from)
             .pipe(Ok)
+    }
+
+    async fn list(
+        &self,
+        limit: i64,
+        offset: i64,
+        roles: Option<&[UserRole]>,
+        is_active: Option<bool>,
+    ) -> Result<Vec<User>, Self::AdapterError> {
+        let mut connection = self.pool.get().await?;
+
+        let roles = roles.map(|roles| {
+            roles
+                .iter()
+                .map(|role| StoredUserRole::from(*role))
+                .collect::<Vec<_>>()
+        });
+
+        query_file_as!(
+            StoredUser,
+            "sql/user/list.sql",
+            roles as _,
+            is_active,
+            limit,
+            offset,
+        )
+        .fetch_all(&mut *connection)
+        .await?
+        .into_iter()
+        .map(User::from)
+        .collect::<Vec<_>>()
+        .pipe(Ok)
     }
 }

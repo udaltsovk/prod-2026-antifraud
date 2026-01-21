@@ -3,7 +3,7 @@ use application::{
     usecase::user::error::UserUseCaseError,
 };
 use axum::http::StatusCode;
-use serde_json::json;
+use serde_json::{Value, json};
 
 use crate::ApiError;
 
@@ -37,6 +37,10 @@ where
                     from_auth, ..
                 } if from_auth => Self::invalid_credentials(error),
 
+                E::UserDeactivated => {
+                    (C::LOCKED, "USER_INACTIVE", error.to_string(), Value::Null)
+                },
+
                 E::NotFoundByEmail {
                     ref email, ..
                 } => (
@@ -47,6 +51,7 @@ where
                         "email": email.to_string()
                     }),
                 ),
+
                 E::NotFoundById(id) => (
                     C::NOT_FOUND,
                     "NOT_FOUND",

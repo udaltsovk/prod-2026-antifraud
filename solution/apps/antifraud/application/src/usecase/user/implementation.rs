@@ -1,6 +1,8 @@
+use std::num::NonZeroU8;
+
 use domain::{
     session::CreateSession,
-    user::{CreateUser, User},
+    user::{CreateUser, User, role::UserRole},
 };
 use lib::{async_trait, domain::Id, instrument_all, tap::Pipe as _};
 
@@ -75,6 +77,10 @@ where
             .verify(source.password.as_bytes(), &user.password_hash.0)
             .map_err(|_| UserUseCaseError::InvalidPassword)?;
 
+        if !user.is_active {
+            return UserUseCaseError::UserDeactivated.pipe(Err);
+        }
+
         Ok(user)
     }
 
@@ -95,5 +101,24 @@ where
         self.find_by_id(id)
             .await?
             .ok_or(UserUseCaseError::NotFoundById(id))
+    }
+
+    async fn list(
+        &self,
+        limit: Option<NonZeroU8>,
+        offset: Option<i64>,
+        roles: Option<&[UserRole]>,
+        is_active: Option<bool>,
+    ) -> UserUseCaseResult<R, S, Vec<User>> {
+        let limit = limit.map_or(20, |limit| limit.get().into());
+        let offset = offset.unwrap_or(0);
+
+        self.repositories
+            .user_repository()
+            .list(limit, offset, roles, is_active)
+            .await
+            .map_err(R::Error::from)
+            .map_err(UserUseCaseError::Repository)?
+            .pipe(Ok)
     }
 }

@@ -4,10 +4,10 @@ SELECT
     full_name,
     password_hash,
     age,
-    gender AS "gender: StoredUserGender",
-    martial_status AS "martial_status: StoredUserMartialStatus",
+    gender AS "gender: _",
+    martial_status AS "martial_status: _",
     region,
-    role AS "role: StoredUserRole",
+    role AS "role: _",
     is_active,
     created_at,
     updated_at

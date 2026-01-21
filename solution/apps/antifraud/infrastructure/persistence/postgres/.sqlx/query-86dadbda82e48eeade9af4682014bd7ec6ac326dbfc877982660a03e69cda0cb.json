@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT\n    id,\n    email,\n    full_name,\n    password_hash,\n    age,\n    gender AS \"gender: StoredUserGender\",\n    martial_status AS \"martial_status: StoredUserMartialStatus\",\n    region,\n    role AS \"role: StoredUserRole\",\n    is_active,\n    created_at,\n    updated_at\nFROM users\nWHERE id = $1\n",
+  "query": "SELECT\n    id,\n    email,\n    full_name,\n    password_hash,\n    age,\n    gender AS \"gender: _\",\n    martial_status AS \"martial_status: _\",\n    region,\n    role AS \"role: _\",\n    is_active,\n    created_at,\n    updated_at\nFROM users\nWHERE\n    ($1::user_role[] IS NULL OR role = ANY($1)) AND ($2::bool IS NULL OR is_active = $2)\nORDER BY id\nLIMIT $3\nOFFSET $4;\n",
   "describe": {
     "columns": [
       {
@@ -30,7 +30,7 @@
       },
       {
         "ordinal": 5,
-        "name": "gender: StoredUserGender",
+        "name": "gender: _",
         "type_info": {
           "Custom": {
             "name": "user_gender",
@@ -45,7 +45,7 @@
       },
       {
         "ordinal": 6,
-        "name": "martial_status: StoredUserMartialStatus",
+        "name": "martial_status: _",
         "type_info": {
           "Custom": {
             "name": "user_martial_status",
@@ -67,7 +67,7 @@
       },
       {
         "ordinal": 8,
-        "name": "role: StoredUserRole",
+        "name": "role: _",
         "type_info": {
           "Custom": {
             "name": "user_role",
@@ -98,7 +98,27 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid"
+        {
+          "Custom": {
+            "name": "user_role[]",
+            "kind": {
+              "Array": {
+                "Custom": {
+                  "name": "user_role",
+                  "kind": {
+                    "Enum": [
+                      "admin",
+                      "user"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "Bool",
+        "Int8",
+        "Int8"
       ]
     },
     "nullable": [
@@ -116,5 +136,5 @@
       false
     ]
   },
-  "hash": "aa5e91262184b131ef4e8236efbe6790c0f5ff9952e3d2dc161e33baa6ceca96"
+  "hash": "86dadbda82e48eeade9af4682014bd7ec6ac326dbfc877982660a03e69cda0cb"
 }

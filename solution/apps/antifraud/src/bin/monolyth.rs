@@ -1,4 +1,6 @@
-use antifraud::{AppConfig, Modules};
+use antifraud::{
+    AppConfig, Modules, bootstrappers::initial_state::InitialState,
+};
 use lib::{
     bootstrap::{
         ConfigExt as _, bootstrap, configure_jemalloc, instrumentation::stdout,
@@ -14,7 +16,7 @@ async fn main() {
 
     stdout::wrap(bootstrap!(
         antifraud,
-        [RestApi(&config.server)],
+        [InitialState(&config.initial_state), RestApi(&config.server)],
         Modules::init(&config.modules)
     ))
     .await;

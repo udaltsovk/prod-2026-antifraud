@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO users (\n   id,\n   email,\n   full_name,\n   password_hash,\n   age,\n   gender,\n   martial_status,\n   region,\n   role,\n   is_active,\n   created_at,\n   updated_at\n)\nVALUES (\n        $1,\n        $2,\n        $3,\n        $4,\n        $5,\n        $6,\n        $7,\n        $8,\n        $9,\n        true,\n        now(),\n        now()\n)\nRETURNING\n    id,\n    email,\n    full_name,\n    password_hash,\n    age,\n    gender AS \"gender: StoredUserGender\",\n    martial_status AS \"martial_status: StoredUserMartialStatus\",\n    region,\n    role AS \"role: StoredUserRole\",\n    is_active,\n    created_at,\n    updated_at\n",
+  "query": "SELECT\n    id,\n    email,\n    full_name,\n    password_hash,\n    age,\n    gender AS \"gender: _\",\n    martial_status AS \"martial_status: _\",\n    region,\n    role AS \"role: _\",\n    is_active,\n    created_at,\n    updated_at\nFROM users\nWHERE id = $1\n",
   "describe": {
     "columns": [
       {
@@ -30,7 +30,7 @@
       },
       {
         "ordinal": 5,
-        "name": "gender: StoredUserGender",
+        "name": "gender: _",
         "type_info": {
           "Custom": {
             "name": "user_gender",
@@ -45,7 +45,7 @@
       },
       {
         "ordinal": 6,
-        "name": "martial_status: StoredUserMartialStatus",
+        "name": "martial_status: _",
         "type_info": {
           "Custom": {
             "name": "user_martial_status",
@@ -67,7 +67,7 @@
       },
       {
         "ordinal": 8,
-        "name": "role: StoredUserRole",
+        "name": "role: _",
         "type_info": {
           "Custom": {
             "name": "user_role",
@@ -98,47 +98,7 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid",
-        "Text",
-        "Text",
-        "Text",
-        "Int2",
-        {
-          "Custom": {
-            "name": "user_gender",
-            "kind": {
-              "Enum": [
-                "male",
-                "female"
-              ]
-            }
-          }
-        },
-        {
-          "Custom": {
-            "name": "user_martial_status",
-            "kind": {
-              "Enum": [
-                "single",
-                "married",
-                "divorced",
-                "widowed"
-              ]
-            }
-          }
-        },
-        "Text",
-        {
-          "Custom": {
-            "name": "user_role",
-            "kind": {
-              "Enum": [
-                "admin",
-                "user"
-              ]
-            }
-          }
-        }
+        "Uuid"
       ]
     },
     "nullable": [
@@ -156,5 +116,5 @@
       false
     ]
   },
-  "hash": "9b4504d815d7cf2de73f2d88f64777e6636d9f722f9c607a9a9da2bf11e6ea53"
+  "hash": "89826cef91e632eaf93255a41b17ad31acbf1b4ea902f38bd277f34e20fe8fd6"
 }

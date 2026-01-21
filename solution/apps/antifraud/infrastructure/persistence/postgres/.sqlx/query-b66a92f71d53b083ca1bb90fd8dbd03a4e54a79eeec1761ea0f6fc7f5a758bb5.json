@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT\n    id,\n    email,\n    full_name,\n    password_hash,\n    age,\n    gender AS \"gender: StoredUserGender\",\n    martial_status AS \"martial_status: StoredUserMartialStatus\",\n    region,\n    role AS \"role: StoredUserRole\",\n    is_active,\n    created_at,\n    updated_at\nFROM users\nWHERE email = $1\n",
+  "query": "SELECT\n    id,\n    email,\n    full_name,\n    password_hash,\n    age,\n    gender AS \"gender: _\",\n    martial_status AS \"martial_status: _\",\n    region,\n    role AS \"role: _\",\n    is_active,\n    created_at,\n    updated_at\nFROM users\nWHERE email = $1\n",
   "describe": {
     "columns": [
       {
@@ -30,7 +30,7 @@
       },
       {
         "ordinal": 5,
-        "name": "gender: StoredUserGender",
+        "name": "gender: _",
         "type_info": {
           "Custom": {
             "name": "user_gender",
@@ -45,7 +45,7 @@
       },
       {
         "ordinal": 6,
-        "name": "martial_status: StoredUserMartialStatus",
+        "name": "martial_status: _",
         "type_info": {
           "Custom": {
             "name": "user_martial_status",
@@ -67,7 +67,7 @@
       },
       {
         "ordinal": 8,
-        "name": "role: StoredUserRole",
+        "name": "role: _",
         "type_info": {
           "Custom": {
             "name": "user_role",
@@ -116,5 +116,5 @@
       false
     ]
   },
-  "hash": "a96fedbd06af38518c2827f115e1d56c44b0fce676541c3d09db85647b91d6fa"
+  "hash": "b66a92f71d53b083ca1bb90fd8dbd03a4e54a79eeec1761ea0f6fc7f5a758bb5"
 }

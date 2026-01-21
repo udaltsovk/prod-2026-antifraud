@@ -18,10 +18,13 @@ where
     #[error("Пользователь с таким email уже существует")]
     EmailAlreadyUsed(Email),
 
-    #[error("user with the specified email does not exist")]
+    #[error("Пользователь не найден")]
     NotFoundByEmail { email: Email, from_auth: bool },
 
-    #[error("user with the specified id does not exist")]
+    #[error("Пользователь деактивирован")]
+    UserDeactivated,
+
+    #[error("Пользователь не найден")]
     NotFoundById(Id<User>),
 
     #[error("invalid password")]

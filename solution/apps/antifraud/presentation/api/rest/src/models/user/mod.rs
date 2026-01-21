@@ -92,11 +92,11 @@ impl ParseableJson<CreateUser> for CreateJsonUser {
             email: email.validated(ok),
             full_name: full_name.validated(ok),
             password: password.validated(ok),
+            role: UserRole::User,
             age: age.validated(ok),
             gender: self.gender.map(UserGender::from),
             martial_status: self.martial_status.map(UserMartialStatus::from),
             region: region.validated(ok),
-            role: UserRole::User,
         })
     }
 }

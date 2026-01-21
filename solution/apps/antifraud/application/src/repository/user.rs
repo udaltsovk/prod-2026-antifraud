@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use domain::{
     email::Email,
-    user::{CreateUser, User},
+    user::{CreateUser, User, role::UserRole},
 };
 use lib::{async_trait, domain::Id};
 
@@ -26,4 +26,12 @@ pub trait UserRepository {
         &self,
         email: &Email,
     ) -> Result<Option<User>, Self::AdapterError>;
+
+    async fn list(
+        &self,
+        limit: i64,
+        offset: i64,
+        roles: Option<&[UserRole]>,
+        is_active: Option<bool>,
+    ) -> Result<Vec<User>, Self::AdapterError>;
 }

@@ -1,4 +1,6 @@
+use domain::user::{CreateUser, role::UserRole};
 use fromenv::FromEnv;
+use lib::domain::{into_validators, validation::error::ValidationErrors};
 
 #[derive(FromEnv)]
 pub struct InitialStateConfig {
@@ -12,4 +14,27 @@ pub struct InitialStateAdminConfig {
     pub email: String,
     pub fullname: String,
     pub password: String,
+}
+
+impl TryFrom<&InitialStateAdminConfig> for CreateUser {
+    type Error = ValidationErrors;
+
+    fn try_from(config: &InitialStateAdminConfig) -> Result<Self, Self::Error> {
+        let (errors, (email, full_name, password)) = into_validators!(
+            config.email.clone(),
+            config.fullname.clone(),
+            config.password.clone()
+        );
+
+        errors.into_result(|ok| Self {
+            email: email.validated(ok),
+            full_name: full_name.validated(ok),
+            password: password.validated(ok),
+            role: UserRole::Admin,
+            age: None,
+            gender: None,
+            martial_status: None,
+            region: None,
+        })
+    }
 }

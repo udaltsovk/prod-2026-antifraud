@@ -1,6 +1,8 @@
+use std::num::NonZeroU8;
+
 use domain::{
     session::CreateSession,
-    user::{CreateUser, User},
+    user::{CreateUser, User, role::UserRole},
 };
 use lib::{async_trait, domain::Id};
 
@@ -32,4 +34,12 @@ where
     ) -> UserUseCaseResult<R, S, Option<User>>;
 
     async fn get_by_id(&self, id: Id<User>) -> UserUseCaseResult<R, S, User>;
+
+    async fn list(
+        &self,
+        limit: Option<NonZeroU8>,
+        offset: Option<i64>,
+        roles: Option<&[UserRole]>,
+        is_active: Option<bool>,
+    ) -> UserUseCaseResult<R, S, Vec<User>>;
 }

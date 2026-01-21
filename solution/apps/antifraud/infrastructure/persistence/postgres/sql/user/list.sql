@@ -12,4 +12,8 @@ SELECT
     created_at,
     updated_at
 FROM users
-WHERE email = $1
+WHERE
+    ($1::user_role[] IS NULL OR role = ANY($1)) AND ($2::bool IS NULL OR is_active = $2)
+ORDER BY id
+LIMIT $3
+OFFSET $4;
