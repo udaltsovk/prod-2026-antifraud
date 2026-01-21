@@ -7,7 +7,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::user::JsonUser;
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize)]
+#[cfg_attr(debug_assertions, derive(Debug))]
 #[serde(rename_all = "camelCase")]
 pub struct JsonUserSession {
     access_token: String,
@@ -27,7 +28,8 @@ impl From<(String, JsonUser)> for JsonUserSession {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
+#[cfg_attr(debug_assertions, derive(Debug))]
 pub struct CreateJsonSession {
     email: String,
     password: String,

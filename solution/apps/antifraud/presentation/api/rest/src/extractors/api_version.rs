@@ -12,7 +12,7 @@ use crate::AppError;
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ApiVersion {
-    V0,
+    V1,
 }
 
 impl<S> FromRequestParts<S> for ApiVersion
@@ -34,7 +34,7 @@ where
         })?;
 
         match version.as_str() {
-            "v0" => Ok(Self::V0),
+            "v1" => Ok(Self::V1),
             _ => Err(AppError::UnknownApiVerRejection(version.clone())),
         }
     }

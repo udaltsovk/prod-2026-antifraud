@@ -15,7 +15,8 @@ pub mod gender;
 pub mod martial_status;
 pub mod role;
 
-#[derive(Mapper, FromRow, Debug)]
+#[derive(Mapper, FromRow)]
+#[cfg_attr(debug_assertions, derive(Debug))]
 #[mapper(derive(ty = User, into))]
 pub struct StoredUser {
     pub id: Uuid,

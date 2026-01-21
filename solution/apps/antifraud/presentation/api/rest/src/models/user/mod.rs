@@ -23,7 +23,8 @@ pub mod gender;
 pub mod martial_status;
 pub mod role;
 
-#[derive(Mapper, Serialize, Debug)]
+#[derive(Mapper, Serialize)]
+#[cfg_attr(debug_assertions, derive(Debug))]
 #[mapper(ty = User, from, ignore_extra)]
 #[serde(rename_all = "camelCase")]
 pub struct JsonUser {
@@ -58,7 +59,8 @@ pub struct JsonUser {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
+#[cfg_attr(debug_assertions, derive(Debug))]
 #[serde(rename_all = "camelCase")]
 pub struct CreateJsonUser {
     pub email: String,
