@@ -9,11 +9,9 @@ lib = { workspace = true, features = ["domain", "macros-proc"] }
 
 chrono.workspace = true
 derive_more = { workspace = true, features = ["from"] }
-thiserror.workspace = true
 serde.workspace = true
-
-rust_iso3166 = "0.1"
-url = "2.5"
+strum = { workspace = true, features = ["derive"] }
+thiserror.workspace = true
 
 [lints]
 workspace = true

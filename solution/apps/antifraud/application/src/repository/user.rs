@@ -34,4 +34,10 @@ pub trait UserRepository {
         roles: Option<&[UserRole]>,
         is_active: Option<bool>,
     ) -> Result<Vec<User>, Self::AdapterError>;
+
+    async fn count(
+        &self,
+        roles: Option<&[UserRole]>,
+        is_active: Option<bool>,
+    ) -> Result<i64, Self::AdapterError>;
 }

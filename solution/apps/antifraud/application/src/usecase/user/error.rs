@@ -1,5 +1,8 @@
 use domain::{email::Email, user::User};
-use lib::{application::usecase_result, domain::Id};
+use lib::{
+    application::usecase_result, domain::Id,
+    presentation::api::rest::ValidationErrors,
+};
 
 use crate::{repository::RepositoriesModuleExt, service::ServicesModuleExt};
 
@@ -15,6 +18,9 @@ where
     #[error(transparent)]
     Service(S::Error),
 
+    #[error(transparent)]
+    Validation(ValidationErrors),
+
     #[error("Пользователь с таким email уже существует")]
     EmailAlreadyUsed(Email),
 
@@ -29,6 +35,9 @@ where
 
     #[error("invalid password")]
     InvalidPassword,
+
+    #[error("Недостаточно прав для выполнения операции")]
+    MissingPermissions,
 }
 
 usecase_result!(User);

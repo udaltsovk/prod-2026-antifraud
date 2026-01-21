@@ -1,7 +1,7 @@
 use domain::session::CreateSession;
 use lib::{
-    domain::{into_validators, validation::error::ValidationErrors},
-    presentation::api::rest::model::ParseableJson,
+    domain::{into_validators, validation::error::ValidationResult},
+    presentation::api::rest::model::Parseable,
 };
 use serde::{Deserialize, Serialize};
 
@@ -35,8 +35,10 @@ pub struct CreateJsonSession {
     password: String,
 }
 
-impl ParseableJson<CreateSession> for CreateJsonSession {
-    fn parse(self) -> Result<CreateSession, ValidationErrors> {
+impl Parseable<CreateSession> for CreateJsonSession {
+    const FIELD: &str = "credentials";
+
+    fn parse(self) -> ValidationResult<CreateSession> {
         let (errors, (email, password)) =
             into_validators!(self.email, self.password);
 

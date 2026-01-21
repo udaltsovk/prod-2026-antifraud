@@ -1,10 +1,12 @@
-use std::num::NonZeroU8;
-
 use domain::{
+    pagination::Pagination,
     session::CreateSession,
     user::{CreateUser, User, role::UserRole},
 };
-use lib::{async_trait, domain::Id};
+use lib::{
+    async_trait,
+    domain::{Id, validation::error::ValidationResult},
+};
 
 use crate::{
     repository::RepositoriesModuleExt, service::ServicesModuleExt,
@@ -20,8 +22,11 @@ where
     R: RepositoriesModuleExt,
     S: ServicesModuleExt,
 {
-    async fn create(&self, source: CreateUser)
-    -> UserUseCaseResult<R, S, User>;
+    async fn create(
+        &self,
+        creator_role: Option<UserRole>,
+        source: ValidationResult<CreateUser>,
+    ) -> UserUseCaseResult<R, S, User>;
 
     async fn authorize(
         &self,
@@ -30,16 +35,23 @@ where
 
     async fn find_by_id(
         &self,
+        requester_id: Id<User>,
+        requester_role: UserRole,
         id: Id<User>,
     ) -> UserUseCaseResult<R, S, Option<User>>;
 
-    async fn get_by_id(&self, id: Id<User>) -> UserUseCaseResult<R, S, User>;
+    async fn get_by_id(
+        &self,
+        requester_id: Id<User>,
+        requester_role: UserRole,
+        id: Id<User>,
+    ) -> UserUseCaseResult<R, S, User>;
 
     async fn list(
         &self,
-        limit: Option<NonZeroU8>,
-        offset: Option<i64>,
+        requester_role: Option<UserRole>,
+        pagination: ValidationResult<Pagination>,
         roles: Option<&[UserRole]>,
         is_active: Option<bool>,
-    ) -> UserUseCaseResult<R, S, Vec<User>>;
+    ) -> UserUseCaseResult<R, S, (Vec<User>, u64)>;
 }

@@ -2,7 +2,13 @@ use std::sync::LazyLock;
 
 use lib::{
     DomainType,
-    domain::validation::{Constraints, constraints, error::ValidationErrors},
+    domain::{
+        try_from_option,
+        validation::{
+            Constraints, constraints,
+            error::{ValidationErrors, ValidationResult},
+        },
+    },
 };
 
 #[derive(DomainType)]
@@ -10,7 +16,7 @@ use lib::{
 pub struct UserFullName(String);
 
 static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
-    Constraints::builder("full_name")
+    Constraints::builder("fullName")
         .add_constraint(constraints::length::Min(2))
         .add_constraint(constraints::length::Max(200))
         .build()
@@ -19,7 +25,13 @@ static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
 impl TryFrom<String> for UserFullName {
     type Error = ValidationErrors;
 
-    fn try_from(value: String) -> Result<Self, ValidationErrors> {
+    fn try_from(value: String) -> ValidationResult<Self> {
         CONSTRAINTS.check(&value).into_result(|_| Self(value))
     }
 }
+
+try_from_option!(
+    domain_type = UserFullName,
+    from_ty = String,
+    constraints = CONSTRAINTS
+);

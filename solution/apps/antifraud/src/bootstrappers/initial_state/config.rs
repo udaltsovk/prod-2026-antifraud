@@ -33,7 +33,7 @@ impl TryFrom<&InitialStateAdminConfig> for CreateUser {
             role: UserRole::Admin,
             age: None,
             gender: None,
-            martial_status: None,
+            marital_status: None,
             region: None,
         })
     }

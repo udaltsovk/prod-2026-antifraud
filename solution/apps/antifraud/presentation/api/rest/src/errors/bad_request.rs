@@ -1,4 +1,4 @@
-use axum::extract::rejection::{JsonRejection, PathRejection};
+use axum::extract::rejection::{JsonRejection, PathRejection, QueryRejection};
 use lib::presentation::api::rest::generic_error_response;
 
 generic_error_response!(
@@ -24,4 +24,8 @@ macro_rules! from_axum_rejections {
     };
 }
 
-from_axum_rejections![(JsonRejection, "JSON"), (PathRejection, "Path")];
+from_axum_rejections![
+    (JsonRejection, "JSON"),
+    (PathRejection, "Path"),
+    (QueryRejection, "Query")
+];

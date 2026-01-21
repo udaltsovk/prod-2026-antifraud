@@ -3,7 +3,13 @@ use std::sync::LazyLock;
 use derive_more::From;
 use lib::{
     DomainType,
-    domain::validation::{Constraints, error::ValidationErrors},
+    domain::{
+        try_from_option,
+        validation::{
+            Constraints,
+            error::{ValidationErrors, ValidationResult},
+        },
+    },
 };
 
 use crate::constraints::PASSWORD_CONSTRAINTS;
@@ -19,10 +25,16 @@ static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
 impl TryFrom<String> for Password {
     type Error = ValidationErrors;
 
-    fn try_from(value: String) -> Result<Self, ValidationErrors> {
+    fn try_from(value: String) -> ValidationResult<Self> {
         CONSTRAINTS.check(&value).into_result(|_| Self(value))
     }
 }
+
+try_from_option!(
+    domain_type = Password,
+    from_ty = String,
+    constraints = CONSTRAINTS
+);
 
 impl Password {
     #[must_use]

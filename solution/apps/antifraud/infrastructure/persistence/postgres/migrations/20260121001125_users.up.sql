@@ -8,8 +8,8 @@ $$
             );
         END IF;
 
-        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_martial_status') THEN
-            CREATE TYPE user_martial_status AS ENUM (
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_marital_status') THEN
+            CREATE TYPE user_marital_status AS ENUM (
                 'single',
                 'married',
                 'divorced',
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS users
     password_hash  text        NOT NULL,
     age            smallint,
     gender         user_gender,
-    martial_status user_martial_status,
+    marital_status user_marital_status,
     region         text,
     role           user_role   NOT NULL,
     is_active      bool        NOT NULL,

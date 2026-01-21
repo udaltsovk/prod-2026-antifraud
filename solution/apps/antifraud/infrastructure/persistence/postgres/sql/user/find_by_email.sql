@@ -5,7 +5,7 @@ SELECT
     password_hash,
     age,
     gender AS "gender: _",
-    martial_status AS "martial_status: _",
+    marital_status AS "marital_status: _",
     region,
     role AS "role: _",
     is_active,

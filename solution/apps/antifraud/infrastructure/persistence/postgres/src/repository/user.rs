@@ -10,12 +10,12 @@ use lib::{
     instrument_all,
     tap::{Conv as _, Pipe as _},
 };
-use sqlx::query_file_as;
+use sqlx::{query_file_as, query_file_scalar};
 
 use crate::{
     entity::user::{
         StoredUser, gender::StoredUserGender,
-        martial_status::StoredUserMartialStatus, role::StoredUserRole,
+        marital_status::StoredUserMaritalStatus, role::StoredUserRole,
     },
     repository::PostgresRepositoryImpl,
 };
@@ -38,8 +38,8 @@ impl UserRepository for PostgresRepositoryImpl<User> {
         let full_name = source.full_name.into_inner();
         let age: Option<i16> = source.age.map(|age| age.into_inner().into());
         let gender = source.gender.map(StoredUserGender::from);
-        let martial_status =
-            source.martial_status.map(StoredUserMartialStatus::from);
+        let marital_status =
+            source.marital_status.map(StoredUserMaritalStatus::from);
         let region = source.region.map(UserRegion::into_inner);
         let role: StoredUserRole = source.role.into();
 
@@ -52,7 +52,7 @@ impl UserRepository for PostgresRepositoryImpl<User> {
             password_hash,
             age,
             gender as _,
-            martial_status as _,
+            marital_status as _,
             region,
             role as _,
         )
@@ -119,5 +119,26 @@ impl UserRepository for PostgresRepositoryImpl<User> {
         .map(User::from)
         .collect::<Vec<_>>()
         .pipe(Ok)
+    }
+
+    async fn count(
+        &self,
+        roles: Option<&[UserRole]>,
+        is_active: Option<bool>,
+    ) -> Result<i64, Self::AdapterError> {
+        let mut connection = self.pool.get().await?;
+
+        let roles = roles.map(|roles| {
+            roles
+                .iter()
+                .map(|role| StoredUserRole::from(*role))
+                .collect::<Vec<_>>()
+        });
+
+        query_file_scalar!("sql/user/count.sql", roles as _, is_active)
+            .fetch_one(&mut *connection)
+            .await?
+            .unwrap_or_default()
+            .pipe(Ok)
     }
 }

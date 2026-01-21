@@ -17,6 +17,7 @@ thiserror.workspace = true
 tracing.workspace = true
 
 axum-extra = { version = "0.12", features = ["typed-header"] }
+serde_with = "3.16"
 
 [lints]
 workspace = true

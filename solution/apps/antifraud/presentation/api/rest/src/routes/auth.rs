@@ -7,7 +7,7 @@ use axum::{
 };
 use lib::{
     presentation::api::rest::{
-        model::ParseableJson as _, response::ResponseExt as _,
+        model::Parseable as _, response::ResponseExt as _,
     },
     tap::Pipe as _,
 };
@@ -31,9 +31,9 @@ pub async fn register<M: ModulesExt>(
     modules: State<M>,
     Json(source): Json<CreateJsonUser>,
 ) -> Result<impl IntoResponse, ApiError> {
-    let user = source.parse()?;
+    let user = source.parse();
 
-    let user = modules.user_usecase().create(user).await?;
+    let user = modules.user_usecase().create(None, user).await?;
 
     let token = modules.session_usecase().create(user.id, user.role)?;
 

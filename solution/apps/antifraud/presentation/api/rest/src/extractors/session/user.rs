@@ -20,7 +20,6 @@ use crate::{ApiError, ModulesExt, errors::AuthError};
 
 #[derive(Mapper)]
 #[mapper(ty = Session, from)]
-#[expect(dead_code, reason = "I haven't implemented user routes yet")]
 pub struct UserSession {
     pub user_id: Id<User>,
     pub user_role: UserRole,
@@ -43,7 +42,8 @@ where
 
         state
             .session_usecase()
-            .get_from_token(bearer.token())?
+            .get_from_token(bearer.token())
+            .map_err(|_| AuthError::InvalidToken)?
             .conv::<Self>()
             .pipe(Ok)
     }

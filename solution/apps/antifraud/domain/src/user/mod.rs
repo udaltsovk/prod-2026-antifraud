@@ -6,14 +6,14 @@ use crate::{
     password::{Password, PasswordHash},
     user::{
         age::UserAge, full_name::UserFullName, gender::UserGender,
-        martial_status::UserMartialStatus, region::UserRegion, role::UserRole,
+        marital_status::UserMaritalStatus, region::UserRegion, role::UserRole,
     },
 };
 
 pub mod age;
 pub mod full_name;
 pub mod gender;
-pub mod martial_status;
+pub mod marital_status;
 pub mod region;
 pub mod role;
 
@@ -25,7 +25,7 @@ pub struct User {
     pub password_hash: PasswordHash,
     pub age: Option<UserAge>,
     pub gender: Option<UserGender>,
-    pub martial_status: Option<UserMartialStatus>,
+    pub marital_status: Option<UserMaritalStatus>,
     pub region: Option<UserRegion>,
     pub role: UserRole,
     pub is_active: bool,
@@ -40,7 +40,18 @@ pub struct CreateUser {
     pub password: Password,
     pub age: Option<UserAge>,
     pub gender: Option<UserGender>,
-    pub martial_status: Option<UserMartialStatus>,
+    pub marital_status: Option<UserMaritalStatus>,
     pub region: Option<UserRegion>,
     pub role: UserRole,
+}
+
+#[cfg_attr(debug_assertions, derive(Debug))]
+pub struct UpdateUser {
+    pub full_name: UserFullName,
+    pub age: Option<UserAge>,
+    pub gender: Option<UserGender>,
+    pub marital_status: Option<UserMaritalStatus>,
+    pub region: Option<UserRegion>,
+    pub is_active: Option<bool>,
+    pub role: Option<UserRole>,
 }

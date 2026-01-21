@@ -2,7 +2,10 @@ use std::sync::LazyLock;
 
 use lib::{
     DomainType,
-    domain::validation::{Constraints, constraints, error::ValidationErrors},
+    domain::validation::{
+        Constraints, constraints,
+        error::{ValidationErrors, ValidationResult},
+    },
 };
 
 #[derive(DomainType)]
@@ -18,7 +21,7 @@ static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
 impl TryFrom<String> for UserRegion {
     type Error = ValidationErrors;
 
-    fn try_from(value: String) -> Result<Self, ValidationErrors> {
+    fn try_from(value: String) -> ValidationResult<Self> {
         CONSTRAINTS.check(&value).into_result(|_| Self(value))
     }
 }

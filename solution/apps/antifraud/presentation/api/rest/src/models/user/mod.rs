@@ -1,26 +1,23 @@
 use chrono::{DateTime, Utc};
-use domain::user::{
-    CreateUser, User, gender::UserGender, martial_status::UserMartialStatus,
-    role::UserRole,
-};
+use domain::user::{CreateUser, User, role::UserRole};
 use lib::{
     domain::{
         into_option_validators, into_validators,
-        validation::error::ValidationErrors,
+        validation::error::ValidationResult,
     },
     model_mapper::Mapper,
-    presentation::api::rest::model::ParseableJson,
+    presentation::api::rest::{into_nested_validators, model::Parseable},
     uuid::Uuid,
 };
 use serde::{Deserialize, Serialize};
 
 use crate::models::user::{
-    gender::JsonUserGender, martial_status::JsonUserMartialStatus,
+    gender::JsonUserGender, marital_status::JsonUserMaritalStatus,
     role::JsonUserRole,
 };
 
 pub mod gender;
-pub mod martial_status;
+pub mod marital_status;
 pub mod role;
 
 #[derive(Mapper, Serialize)]
@@ -44,7 +41,7 @@ pub struct JsonUser {
 
     #[mapper(opt)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub martial_status: Option<JsonUserMartialStatus>,
+    pub marital_status: Option<JsonUserMaritalStatus>,
 
     #[mapper(opt)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -63,28 +60,34 @@ pub struct JsonUser {
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[serde(rename_all = "camelCase")]
 pub struct CreateJsonUser {
-    pub email: String,
+    pub email: Option<String>,
 
-    pub full_name: String,
+    pub full_name: Option<String>,
 
-    pub password: String,
+    pub password: Option<String>,
 
     pub age: Option<i64>,
 
-    pub gender: Option<JsonUserGender>,
+    pub gender: Option<String>,
 
-    pub martial_status: Option<JsonUserMartialStatus>,
+    pub marital_status: Option<String>,
 
     pub region: Option<String>,
 }
 
-impl ParseableJson<CreateUser> for CreateJsonUser {
-    fn parse(self) -> Result<CreateUser, ValidationErrors> {
+impl Parseable<CreateUser> for CreateJsonUser {
+    const FIELD: &str = "user";
+
+    fn parse(self) -> ValidationResult<CreateUser> {
         let (mut errors, (email, full_name, password)) =
             into_validators!(self.email, self.full_name, self.password);
 
-        let (option_errors, (age, region)) =
-            into_option_validators!(self.age, self.region);
+        let (option_errors, (age, gender, marital_status, region)) = into_option_validators!(
+            self.age,
+            self.gender,
+            self.marital_status,
+            self.region
+        );
 
         errors.extend(option_errors);
 
@@ -94,9 +97,35 @@ impl ParseableJson<CreateUser> for CreateJsonUser {
             password: password.validated(ok),
             role: UserRole::User,
             age: age.validated(ok),
-            gender: self.gender.map(UserGender::from),
-            martial_status: self.martial_status.map(UserMartialStatus::from),
+            gender: gender.validated(ok),
+            marital_status: marital_status.validated(ok),
             region: region.validated(ok),
+        })
+    }
+}
+
+#[derive(Deserialize)]
+#[cfg_attr(debug_assertions, derive(Debug))]
+#[serde(rename_all = "camelCase")]
+pub struct CreateJsonUserWithRole {
+    #[serde(flatten)]
+    pub inner: CreateJsonUser,
+
+    pub role: String,
+}
+
+impl Parseable<CreateUser> for CreateJsonUserWithRole {
+    const FIELD: &str = "user";
+
+    fn parse(self) -> ValidationResult<CreateUser> {
+        let (mut errors, role) = into_validators!(self.role);
+        let (nested_errors, inner) = into_nested_validators!(self.inner);
+
+        errors.extend(nested_errors);
+
+        errors.into_result(|ok| CreateUser {
+            role: role.validated(ok),
+            ..inner.validated(ok)
         })
     }
 }

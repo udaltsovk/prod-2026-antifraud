@@ -2,7 +2,14 @@ use std::{fmt, sync::LazyLock};
 
 use lib::{
     DomainType,
-    domain::validation::{Constraints, error::ValidationErrors},
+    domain::{
+        try_from_option,
+        validation::{
+            Constraints,
+            error::{ValidationErrors, ValidationResult},
+        },
+    },
+    tap::Pipe as _,
 };
 
 use crate::constraints::EMAIL_CONSTRAINTS;
@@ -17,12 +24,18 @@ static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
 impl TryFrom<String> for Email {
     type Error = ValidationErrors;
 
-    fn try_from(value: String) -> Result<Self, ValidationErrors> {
+    fn try_from(value: String) -> ValidationResult<Self> {
         CONSTRAINTS
             .check(&value)
-            .into_result(|_| Self(value.to_lowercase()))
+            .into_result(|_| value.to_lowercase().pipe(Self))
     }
 }
+
+try_from_option!(
+    domain_type = Email,
+    from_ty = String,
+    constraints = CONSTRAINTS
+);
 
 impl fmt::Display for Email {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT\n    count(*)\nFROM users\nWHERE\n    ($1::user_role[] IS NULL OR role = ANY($1)) AND ($2::bool IS NULL OR is_active = $2)\n",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "count",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "user_role[]",
+            "kind": {
+              "Array": {
+                "Custom": {
+                  "name": "user_role",
+                  "kind": {
+                    "Enum": [
+                      "admin",
+                      "user"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "Bool"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "0339778a493f133888c3d48a2bc389c7180c5b6b25e3f041f21c310f9c67935d"
+}

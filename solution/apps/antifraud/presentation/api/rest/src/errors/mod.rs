@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use axum::{
-    extract::rejection::{JsonRejection, PathRejection},
+    extract::rejection::{JsonRejection, PathRejection, QueryRejection},
     http::StatusCode,
     response::{IntoResponse, Response},
 };
@@ -32,7 +32,10 @@ pub enum ApiError {
     JsonRejection(#[from] JsonRejection),
 
     #[error(transparent)]
-    ApiPathRejection(#[from] PathRejection),
+    PathRejection(#[from] PathRejection),
+
+    #[error(transparent)]
+    QueryRejection(#[from] QueryRejection),
 
     #[error("{0}")]
     UnknownApiVerRejection(String),
@@ -78,7 +81,8 @@ impl ApiError {
         match self {
             Self::Validation(_)
             | Self::JsonRejection(_)
-            | Self::ApiPathRejection(_)
+            | Self::PathRejection(_)
+            | Self::QueryRejection(_)
             | Self::UnknownApiVerRejection(_) => warn!("{self:?}"),
 
             Self::UseCase {
@@ -106,7 +110,10 @@ impl IntoResponse for ApiError {
             Self::JsonRejection(rejection) => {
                 BadRequestResponse::from(rejection).into()
             },
-            Self::ApiPathRejection(rejection) => {
+            Self::PathRejection(rejection) => {
+                BadRequestResponse::from(rejection).into()
+            },
+            Self::QueryRejection(rejection) => {
                 BadRequestResponse::from(rejection).into()
             },
             Self::UnknownApiVerRejection(version) => JsonError::new(

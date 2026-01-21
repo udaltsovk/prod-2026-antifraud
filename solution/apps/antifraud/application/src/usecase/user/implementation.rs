@@ -1,10 +1,14 @@
-use std::num::NonZeroU8;
-
 use domain::{
+    pagination::Pagination,
     session::CreateSession,
     user::{CreateUser, User, role::UserRole},
 };
-use lib::{async_trait, domain::Id, instrument_all, tap::Pipe as _};
+use lib::{
+    async_trait,
+    domain::{Id, validation::error::ValidationResult},
+    instrument_all,
+    tap::Pipe as _,
+};
 
 use crate::{
     repository::{RepositoriesModuleExt, user::UserRepository as _},
@@ -27,8 +31,17 @@ where
 {
     async fn create(
         &self,
-        source: CreateUser,
+        creator_role: Option<UserRole>,
+        source: ValidationResult<CreateUser>,
     ) -> UserUseCaseResult<R, S, User> {
+        if let Some(role) = creator_role
+            && role != UserRole::Admin
+        {
+            return UserUseCaseError::MissingPermissions.pipe(Err);
+        }
+
+        let source = source.map_err(UserUseCaseError::Validation)?;
+
         if self
             .repositories
             .user_repository()
@@ -86,8 +99,14 @@ where
 
     async fn find_by_id(
         &self,
+        requester_id: Id<User>,
+        requester_role: UserRole,
         id: Id<User>,
     ) -> UserUseCaseResult<R, S, Option<User>> {
+        if requester_role != UserRole::Admin && requester_id != id {
+            return UserUseCaseError::MissingPermissions.pipe(Err);
+        }
+
         self.repositories
             .user_repository()
             .find_by_id(id)
@@ -97,28 +116,50 @@ where
             .pipe(Ok)
     }
 
-    async fn get_by_id(&self, id: Id<User>) -> UserUseCaseResult<R, S, User> {
-        self.find_by_id(id)
+    async fn get_by_id(
+        &self,
+        requester_id: Id<User>,
+        requester_role: UserRole,
+        id: Id<User>,
+    ) -> UserUseCaseResult<R, S, User> {
+        self.find_by_id(requester_id, requester_role, id)
             .await?
             .ok_or(UserUseCaseError::NotFoundById(id))
     }
 
     async fn list(
         &self,
-        limit: Option<NonZeroU8>,
-        offset: Option<i64>,
+        requester_role: Option<UserRole>,
+        pagination: ValidationResult<Pagination>,
         roles: Option<&[UserRole]>,
         is_active: Option<bool>,
-    ) -> UserUseCaseResult<R, S, Vec<User>> {
-        let limit = limit.map_or(20, |limit| limit.get().into());
-        let offset = offset.unwrap_or(0);
+    ) -> UserUseCaseResult<R, S, (Vec<User>, u64)> {
+        if let Some(role) = requester_role
+            && role != UserRole::Admin
+        {
+            return UserUseCaseError::MissingPermissions.pipe(Err);
+        }
 
-        self.repositories
+        let (limit, offset) = pagination
+            .map_err(UserUseCaseError::Validation)?
+            .into_limit_offset();
+
+        let items = self
+            .repositories
             .user_repository()
             .list(limit, offset, roles, is_active)
             .await
             .map_err(R::Error::from)
-            .map_err(UserUseCaseError::Repository)?
-            .pipe(Ok)
+            .map_err(UserUseCaseError::Repository)?;
+
+        let total = self
+            .repositories
+            .user_repository()
+            .count(roles, is_active)
+            .await
+            .map_err(R::Error::from)
+            .map_err(UserUseCaseError::Repository)?;
+
+        Ok((items, total.try_into().unwrap_or(u64::MIN)))
     }
 }

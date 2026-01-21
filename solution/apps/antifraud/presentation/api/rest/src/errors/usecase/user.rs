@@ -21,6 +21,8 @@ where
                     Self::internal_server_error(error)
                 },
 
+                E::Validation(err) => return Self::from(err),
+
                 E::EmailAlreadyUsed(ref email) => (
                     C::CONFLICT,
                     "EMAIL_ALREADY_EXISTS",
@@ -60,6 +62,10 @@ where
                         "user_id": id.to_string()
                     }),
                 ),
+
+                E::MissingPermissions => {
+                    (C::FORBIDDEN, "FORBIDDEN", error.to_string(), Value::Null)
+                },
             }
         };
 

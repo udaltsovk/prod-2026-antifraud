@@ -7,12 +7,12 @@ use lib::{
 use sqlx::FromRow;
 
 use crate::entity::user::{
-    gender::StoredUserGender, martial_status::StoredUserMartialStatus,
+    gender::StoredUserGender, marital_status::StoredUserMaritalStatus,
     role::StoredUserRole,
 };
 
 pub mod gender;
-pub mod martial_status;
+pub mod marital_status;
 pub mod role;
 
 #[derive(Mapper, FromRow)]
@@ -42,7 +42,7 @@ pub struct StoredUser {
     pub gender: Option<StoredUserGender>,
 
     #[mapper(opt)]
-    pub martial_status: Option<StoredUserMartialStatus>,
+    pub marital_status: Option<StoredUserMaritalStatus>,
 
     #[mapper(
         when(ty = User, opt(into_with = DomainTypeFromDb::into_domain)),
