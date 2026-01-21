@@ -19,9 +19,9 @@ use serde::Serialize;
 
 #[derive(DomainType)]
 #[cfg_attr(debug_assertions, derive(Debug))]
-pub struct UserTargetSettingsAge(u8);
+pub struct UserAge(u8);
 
-impl UserTargetSettingsAge {
+impl UserAge {
     fn constraints<T>() -> Constraints<T>
     where
         T: Num
@@ -38,7 +38,7 @@ impl UserTargetSettingsAge {
         Constraints::builder("age")
             .add_constraint(constraints::range::Min(T::zero()))
             .add_constraint(constraints::range::Max(
-                T::from_str_radix("100", 10).expect("a valid number"),
+                T::from_str_radix("120", 10).expect("a valid number"),
             ))
             .build()
     }
@@ -48,9 +48,9 @@ macro_rules! numeric_constraints {
     ($type: ty) => {
         paste! {
             static [<CONSTRAINTS_ $type:upper>]: LazyLock<Constraints<$type>> =
-                LazyLock::new(UserTargetSettingsAge::constraints);
+                LazyLock::new(UserAge::constraints);
 
-            impl TryFrom<$type> for UserTargetSettingsAge {
+            impl TryFrom<$type> for UserAge {
                 type Error = ValidationErrors;
 
                 fn try_from(value: $type) -> Result<Self, ValidationErrors> {
@@ -63,8 +63,8 @@ macro_rules! numeric_constraints {
             }
         }
 
-        impl From<UserTargetSettingsAge> for $type {
-            fn from(age: UserTargetSettingsAge) -> Self {
+        impl From<UserAge> for $type {
+            fn from(age: UserAge) -> Self {
                 age.0.into()
             }
         }

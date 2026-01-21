@@ -1,10 +1,15 @@
 SELECT
     id,
-    name,
-    surname,
     email,
+    full_name,
     password_hash,
-    avatar_url,
-    target_settings AS "target_settings: StoredUserTargetSettings"
+    age,
+    gender AS "gender: StoredUserGender",
+    martial_status AS "martial_status: StoredUserMartialStatus",
+    region,
+    role AS "role: StoredUserRole",
+    is_active,
+    created_at,
+    updated_at
 FROM users
 WHERE id = $1

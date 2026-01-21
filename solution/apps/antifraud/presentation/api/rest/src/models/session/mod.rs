@@ -1,4 +1,3 @@
-use derive_more::From;
 use domain::session::CreateSession;
 use lib::{
     domain::{into_validators, validation::error::ValidationErrors},
@@ -6,9 +5,26 @@ use lib::{
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(From, Serialize, Debug)]
+use crate::models::user::JsonUser;
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct JsonUserSession {
-    token: String,
+    access_token: String,
+
+    expires_in: usize,
+
+    user: JsonUser,
+}
+
+impl From<(String, JsonUser)> for JsonUserSession {
+    fn from((access_token, user): (String, JsonUser)) -> Self {
+        Self {
+            access_token,
+            expires_in: 3600,
+            user,
+        }
+    }
 }
 
 #[derive(Deserialize, Debug)]

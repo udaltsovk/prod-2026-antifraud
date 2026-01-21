@@ -7,16 +7,23 @@ use axum_extra::{
     headers::{Authorization, authorization::Bearer},
 };
 use domain::{
-    session::{Session, entity::SessionEntity},
-    user::User,
+    session::Session,
+    user::{User, role::UserRole},
 };
-use lib::{domain::Id, tap::Pipe as _};
+use lib::{
+    domain::Id,
+    model_mapper::Mapper,
+    tap::{Conv as _, Pipe as _},
+};
 
 use crate::{ApiError, ModulesExt, errors::AuthError};
 
+#[derive(Mapper)]
+#[mapper(ty = Session, from)]
+#[expect(dead_code, reason = "I haven't implemented user routes yet")]
 pub struct UserSession {
-    pub id: Id<Session>,
     pub user_id: Id<User>,
+    pub user_role: UserRole,
 }
 
 impl<M> FromRequestParts<M> for UserSession
@@ -34,24 +41,10 @@ where
             .await
             .map_err(|_| AuthError::InvalidToken)?;
 
-        let session = state
+        state
             .session_usecase()
-            .get_from_token(bearer.token())
-            .await?;
-
-        #[expect(
-            unreachable_patterns,
-            reason = "other session entities may be added in the future"
-        )]
-        match session.entity {
-            SessionEntity::User(user_id) => Self {
-                id: session.id,
-                user_id,
-            }
-            .pipe(Ok),
-            _ => AuthError::InvalidToken
-                .pipe(Err)
-                .map_err(Self::Rejection::from),
-        }
+            .get_from_token(bearer.token())?
+            .conv::<Self>()
+            .pipe(Ok)
     }
 }

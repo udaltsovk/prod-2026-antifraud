@@ -1,76 +1,100 @@
-use domain::user::{CreateUser, User};
+use chrono::{DateTime, Utc};
+use domain::user::{
+    CreateUser, User, gender::UserGender, martial_status::UserMartialStatus,
+    role::UserRole,
+};
 use lib::{
     domain::{
         into_option_validators, into_validators,
         validation::error::ValidationErrors,
     },
     model_mapper::Mapper,
-    presentation::api::rest::{into_nested_validators, model::ParseableJson},
+    presentation::api::rest::model::ParseableJson,
+    uuid::Uuid,
 };
 use serde::{Deserialize, Serialize};
 
-use crate::models::user::target_settings::JsonUserTargetSettings;
+use crate::models::user::{
+    gender::JsonUserGender, martial_status::JsonUserMartialStatus,
+    role::JsonUserRole,
+};
 
-mod target_settings;
+pub mod gender;
+pub mod martial_status;
+pub mod role;
 
 #[derive(Mapper, Serialize, Debug)]
 #[mapper(ty = User, from, ignore_extra)]
+#[serde(rename_all = "camelCase")]
 pub struct JsonUser {
-    name: String,
+    pub id: Uuid,
 
-    surname: String,
+    pub email: String,
 
-    email: String,
+    pub full_name: String,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
     #[mapper(opt)]
-    avatar_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub age: Option<u8>,
 
-    #[mapper(rename = target_settings)]
-    other: JsonUserTargetSettings,
+    #[mapper(opt)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gender: Option<JsonUserGender>,
+
+    #[mapper(opt)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub martial_status: Option<JsonUserMartialStatus>,
+
+    #[mapper(opt)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub region: Option<String>,
+
+    pub role: JsonUserRole,
+
+    pub is_active: bool,
+
+    pub created_at: DateTime<Utc>,
+
+    pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateJsonUser {
-    name: String,
+    pub email: String,
 
-    surname: String,
+    pub full_name: String,
 
-    email: String,
+    pub password: String,
 
-    password: String,
+    pub age: Option<i64>,
 
-    avatar_url: Option<String>,
+    pub gender: Option<JsonUserGender>,
 
-    other: JsonUserTargetSettings,
+    pub martial_status: Option<JsonUserMartialStatus>,
+
+    pub region: Option<String>,
 }
 
 impl ParseableJson<CreateUser> for CreateJsonUser {
     fn parse(self) -> Result<CreateUser, ValidationErrors> {
-        let (mut errors, (name, surname, email, password)) = into_validators!(
-            self.name,
-            self.surname,
-            self.email,
-            self.password
-        );
+        let (mut errors, (email, full_name, password)) =
+            into_validators!(self.email, self.full_name, self.password);
 
-        let (option_errors, avatar_url) =
-            into_option_validators!(self.avatar_url);
+        let (option_errors, (age, region)) =
+            into_option_validators!(self.age, self.region);
 
         errors.extend(option_errors);
 
-        let (nested_errors, target_settings) =
-            into_nested_validators!(self.other);
-
-        errors.extend(nested_errors);
-
         errors.into_result(|ok| CreateUser {
-            name: name.validated(ok),
-            surname: surname.validated(ok),
             email: email.validated(ok),
+            full_name: full_name.validated(ok),
             password: password.validated(ok),
-            avatar_url: avatar_url.validated(ok),
-            target_settings: target_settings.validated(ok),
+            age: age.validated(ok),
+            gender: self.gender.map(UserGender::from),
+            martial_status: self.martial_status.map(UserMartialStatus::from),
+            region: region.validated(ok),
+            role: UserRole::User,
         })
     }
 }

@@ -26,7 +26,8 @@ where
                     "EMAIL_ALREADY_EXISTS",
                     error.to_string(),
                     json!({
-                        "email": email.to_string()
+                        "field": "email",
+                        "value": email.to_string()
                     }),
                 ),
 

@@ -1,8 +1,7 @@
 use application::repository::RepositoriesModuleExt;
-use domain::{session::Session, user::User};
-use infrastructure::persistence::{
-    postgres::{POSTGRES_MIGRATOR, repository::PostgresRepositoryImpl},
-    redis::repository::RedisRepositoryImpl,
+use domain::user::User;
+use infrastructure::persistence::postgres::{
+    POSTGRES_MIGRATOR, repository::PostgresRepositoryImpl,
 };
 use lib::{
     infrastructure::persistence::{
@@ -28,20 +27,17 @@ mod config;
 #[derive(Clone)]
 pub struct RepositoriesModule {
     user_repository: PostgresRepositoryImpl<User>,
-    session_repository: RedisRepositoryImpl<Session>,
 }
 
 impl RepositoriesModule {
     pub(crate) async fn new(config: &RepositoriesConfig) -> Self {
         let postgres = Self::setup_postgres(&config.postgres).await;
-        let redis = Self::setup_redis(&config.redis);
+        let _redis = Self::setup_redis(&config.redis);
 
         let user_repository = PostgresRepositoryImpl::new(&postgres);
-        let session_repository = RedisRepositoryImpl::new(&redis);
 
         Self {
             user_repository,
-            session_repository,
         }
     }
 
@@ -74,14 +70,9 @@ pub enum RepositoryError {
 
 impl RepositoriesModuleExt for RepositoriesModule {
     type Error = RepositoryError;
-    type SessionRepo = RedisRepositoryImpl<Session>;
     type UserRepo = PostgresRepositoryImpl<User>;
 
     fn user_repository(&self) -> &Self::UserRepo {
         &self.user_repository
-    }
-
-    fn session_repository(&self) -> &Self::SessionRepo {
-        &self.session_repository
     }
 }

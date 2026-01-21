@@ -10,13 +10,13 @@ domain = { path = "../../../domain", package = "antifraud-domain" }
 application = { path = "../../../application", package = "antifraud-application" }
 
 axum = { workspace = true, features = ["macros"] }
+chrono.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 
 axum-extra = { version = "0.12", features = ["typed-header"] }
-derive_more = { version = "2.1", features = ["from"] }
 
 [lints]
 workspace = true

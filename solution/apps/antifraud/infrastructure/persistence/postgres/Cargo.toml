@@ -9,12 +9,18 @@ lib = { workspace = true, features = ["infrastructure-persistence-postgres"] }
 domain = { path = "../../../domain", package = "antifraud-domain" }
 application = { path = "../../../application", package = "antifraud-application" }
 
+chrono.workspace = true
 derive-where.workspace = true
-mobc-sqlx = { workspace = true, features = ["postgres", "uuid"] }
+mobc-sqlx.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 
-sqlx = { version = "0.8", features = ["runtime-tokio", "postgres", "uuid"] }
+sqlx = { version = "0.8", features = [
+  "runtime-tokio",
+  "postgres",
+  "chrono",
+  "uuid",
+] }
 
 [lints]
 workspace = true

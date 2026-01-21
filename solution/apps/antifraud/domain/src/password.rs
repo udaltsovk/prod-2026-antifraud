@@ -1,5 +1,6 @@
 use std::sync::LazyLock;
 
+use derive_more::From;
 use lib::{
     DomainType,
     domain::validation::{Constraints, error::ValidationErrors},
@@ -30,5 +31,6 @@ impl Password {
     }
 }
 
+#[derive(From)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 pub struct PasswordHash(pub String);

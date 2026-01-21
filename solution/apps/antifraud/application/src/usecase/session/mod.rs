@@ -1,5 +1,8 @@
-use domain::session::{Session, entity::SessionEntity};
-use lib::async_trait;
+use domain::{
+    session::Session,
+    user::{User, role::UserRole},
+};
+use lib::{async_trait, domain::Id};
 
 use crate::{
     repository::RepositoriesModuleExt, service::ServicesModuleExt,
@@ -15,12 +18,13 @@ where
     R: RepositoriesModuleExt,
     S: ServicesModuleExt,
 {
-    async fn create(
+    fn create(
         &self,
-        entity: SessionEntity,
+        user_id: Id<User>,
+        user_role: UserRole,
     ) -> SessionUseCaseResult<R, S, String>;
 
-    async fn get_from_token(
+    fn get_from_token(
         &self,
         token: &str,
     ) -> SessionUseCaseResult<R, S, Session>;

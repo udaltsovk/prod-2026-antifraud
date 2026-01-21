@@ -58,7 +58,7 @@ where
         &self,
         source: CreateSession,
     ) -> UserUseCaseResult<R, S, User> {
-        let (user, password_hash) = self
+        let user = self
             .repositories
             .user_repository()
             .find_by_email(&source.email)
@@ -72,7 +72,7 @@ where
 
         self.services
             .password_hasher_service()
-            .verify(source.password.as_bytes(), &password_hash.0)
+            .verify(source.password.as_bytes(), &user.password_hash.0)
             .map_err(|_| UserUseCaseError::InvalidPassword)?;
 
         Ok(user)
@@ -88,7 +88,6 @@ where
             .await
             .map_err(R::Error::from)
             .map_err(UserUseCaseError::Repository)?
-            .map(|(user, _)| user)
             .pipe(Ok)
     }
 

@@ -15,7 +15,7 @@ where
     #[error(transparent)]
     Service(S::Error),
 
-    #[error("user with the specified email already exists")]
+    #[error("Пользователь с таким email уже существует")]
     EmailAlreadyUsed(Email),
 
     #[error("user with the specified email does not exist")]

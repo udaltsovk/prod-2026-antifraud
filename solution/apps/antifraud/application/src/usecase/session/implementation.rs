@@ -1,8 +1,11 @@
-use domain::session::{Session, entity::SessionEntity};
-use lib::{async_trait, instrument_all};
+use domain::{
+    session::Session,
+    user::{User, role::UserRole},
+};
+use lib::{async_trait, domain::Id, instrument_all, tap::Pipe as _};
 
 use crate::{
-    repository::{RepositoriesModuleExt, session::SessionRepository as _},
+    repository::RepositoriesModuleExt,
     service::{ServicesModuleExt, token::TokenService as _},
     usecase::{
         UseCase,
@@ -20,24 +23,15 @@ where
     R: RepositoriesModuleExt,
     S: ServicesModuleExt,
 {
-    async fn create(
+    fn create(
         &self,
-        entity: SessionEntity,
+        user_id: Id<User>,
+        user_role: UserRole,
     ) -> SessionUseCaseResult<R, S, String> {
-        let session = {
-            use SessionEntity as SE;
-            match entity {
-                SE::User(id) => Session::new_for_user(id),
-            }
+        let session = Session {
+            user_id,
+            user_role,
         };
-
-        let session = self
-            .repositories
-            .session_repository()
-            .save(session)
-            .await
-            .map_err(R::Error::from)
-            .map_err(SessionUseCaseError::Repository)?;
 
         self.services
             .token_service()
@@ -46,26 +40,15 @@ where
             .map_err(SessionUseCaseError::Service)
     }
 
-    async fn get_from_token(
+    fn get_from_token(
         &self,
         token: &str,
     ) -> SessionUseCaseResult<R, S, Session> {
-        let session = self
-            .services
+        self.services
             .token_service()
             .parse(token)
             .map_err(S::Error::from)
-            .map_err(SessionUseCaseError::Service)?;
-
-        self.repositories
-            .session_repository()
-            .find_by_entity(session.entity)
-            .await
-            .map_err(R::Error::from)
-            .map_err(SessionUseCaseError::Repository)?
-            .is_some_and(|ses| session == ses)
-            .ok_or(SessionUseCaseError::NotFound(session.id))?;
-
-        Ok(session)
+            .map_err(SessionUseCaseError::Service)?
+            .pipe(Ok)
     }
 }

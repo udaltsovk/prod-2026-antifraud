@@ -2,7 +2,6 @@ use std::fmt::Debug;
 
 use domain::{
     email::Email,
-    password::PasswordHash,
     user::{CreateUser, User},
 };
 use lib::{async_trait, domain::Id};
@@ -21,10 +20,10 @@ pub trait UserRepository {
     async fn find_by_id(
         &self,
         id: Id<User>,
-    ) -> Result<Option<(User, PasswordHash)>, Self::AdapterError>;
+    ) -> Result<Option<User>, Self::AdapterError>;
 
     async fn find_by_email(
         &self,
         email: &Email,
-    ) -> Result<Option<(User, PasswordHash)>, Self::AdapterError>;
+    ) -> Result<Option<User>, Self::AdapterError>;
 }

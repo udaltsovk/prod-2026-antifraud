@@ -1,18 +1,41 @@
 INSERT INTO users (
-    id,
-    name,
-    surname,
-    email,
-    password_hash,
-    avatar_url,
-    target_settings
+   id,
+   email,
+   full_name,
+   password_hash,
+   age,
+   gender,
+   martial_status,
+   region,
+   role,
+   is_active,
+   created_at,
+   updated_at
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+VALUES (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7,
+        $8,
+        $9,
+        true,
+        now(),
+        now()
+)
 RETURNING
     id,
-    name,
-    surname,
     email,
+    full_name,
     password_hash,
-    avatar_url,
-    target_settings AS "target_settings: StoredUserTargetSettings"
+    age,
+    gender AS "gender: StoredUserGender",
+    martial_status AS "martial_status: StoredUserMartialStatus",
+    region,
+    role AS "role: StoredUserRole",
+    is_active,
+    created_at,
+    updated_at
