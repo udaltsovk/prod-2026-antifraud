@@ -1,7 +1,7 @@
 use domain::{
     pagination::Pagination,
     session::CreateSession,
-    user::{CreateUser, User, role::UserRole},
+    user::{CreateUser, User, UserUpdate, role::UserRole},
 };
 use lib::{
     async_trait,
@@ -37,14 +37,14 @@ where
         &self,
         requester_id: Id<User>,
         requester_role: UserRole,
-        id: Id<User>,
+        user_id: Id<User>,
     ) -> UserUseCaseResult<R, S, Option<User>>;
 
     async fn get_by_id(
         &self,
         requester_id: Id<User>,
         requester_role: UserRole,
-        id: Id<User>,
+        user_id: Id<User>,
     ) -> UserUseCaseResult<R, S, User>;
 
     async fn list(
@@ -54,4 +54,12 @@ where
         roles: Option<&[UserRole]>,
         is_active: Option<bool>,
     ) -> UserUseCaseResult<R, S, (Vec<User>, u64)>;
+
+    async fn update_by_id(
+        &self,
+        requester_id: Id<User>,
+        requester_role: UserRole,
+        user_id: Id<User>,
+        update: ValidationResult<UserUpdate>,
+    ) -> UserUseCaseResult<R, S, User>;
 }

@@ -3,13 +3,11 @@ use std::sync::LazyLock;
 use derive_more::From;
 use lib::{
     DomainType,
-    domain::{
-        try_from_option,
-        validation::{
-            Constraints,
-            error::{ValidationErrors, ValidationResult},
-        },
+    domain::validation::{
+        Constraints, ExternalInput,
+        error::{ValidationErrors, ValidationResult},
     },
+    tap::Pipe as _,
 };
 
 use crate::constraints::PASSWORD_CONSTRAINTS;
@@ -30,12 +28,18 @@ impl TryFrom<String> for Password {
     }
 }
 
-try_from_option!(
-    domain_type = Password,
-    from_ty = String,
-    constraints = CONSTRAINTS
-);
+impl TryFrom<ExternalInput<String>> for Password {
+    type Error = ValidationErrors;
 
+    fn try_from(input: ExternalInput<String>) -> ValidationResult<Self> {
+        input.map_or_else(
+            Self::try_from,
+            |input| CONSTRAINTS.type_mismatch_error(input).pipe(Err),
+            || CONSTRAINTS.none_error().pipe(Err),
+            || CONSTRAINTS.missing_error().pipe(Err),
+        )
+    }
+}
 impl Password {
     #[must_use]
     pub const fn as_bytes(&self) -> &[u8] {

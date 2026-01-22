@@ -2,6 +2,7 @@ use std::fmt::Debug;
 
 use domain::{
     email::Email,
+    password::PasswordHash,
     user::{CreateUser, User, role::UserRole},
 };
 use lib::{async_trait, domain::Id};
@@ -10,11 +11,13 @@ use lib::{async_trait, domain::Id};
 pub trait UserRepository {
     type AdapterError: Debug + Send + Sync;
 
+    async fn save(&self, source: User) -> Result<User, Self::AdapterError>;
+
     async fn create(
         &self,
         id: Id<User>,
         source: CreateUser,
-        password_hash: String,
+        password_hash: PasswordHash,
     ) -> Result<User, Self::AdapterError>;
 
     async fn find_by_id(

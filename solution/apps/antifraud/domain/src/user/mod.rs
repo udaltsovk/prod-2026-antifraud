@@ -46,7 +46,7 @@ pub struct CreateUser {
 }
 
 #[cfg_attr(debug_assertions, derive(Debug))]
-pub struct UpdateUser {
+pub struct UserUpdate {
     pub full_name: UserFullName,
     pub age: Option<UserAge>,
     pub gender: Option<UserGender>,
@@ -54,4 +54,45 @@ pub struct UpdateUser {
     pub region: Option<UserRegion>,
     pub is_active: Option<bool>,
     pub role: Option<UserRole>,
+}
+
+impl UserUpdate {
+    #[must_use]
+    pub fn apply_to(self, user: User) -> User {
+        let User {
+            id,
+            email,
+            password_hash,
+            role,
+            is_active,
+            created_at,
+            updated_at,
+            ..
+        } = user;
+
+        let Self {
+            full_name: full_name_update,
+            age: age_update,
+            gender: gender_update,
+            marital_status: marital_status_update,
+            region: region_update,
+            is_active: is_active_update,
+            role: role_update,
+        } = self;
+
+        User {
+            id,
+            email,
+            full_name: full_name_update,
+            password_hash,
+            age: age_update,
+            gender: gender_update,
+            marital_status: marital_status_update,
+            region: region_update,
+            role: role_update.unwrap_or(role),
+            is_active: is_active_update.unwrap_or(is_active),
+            created_at,
+            updated_at,
+        }
+    }
 }

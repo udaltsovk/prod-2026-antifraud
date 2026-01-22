@@ -2,15 +2,18 @@ use axum::{extract::State, response::IntoResponse};
 
 use crate::{
     ModulesExt,
-    errors::ApiError,
+    errors::ApiResult,
     extractors::{Path, session::UserSession},
-    routes::users::by_id::get_user_by_id,
+    routes::users::by_id,
 };
 
-pub async fn get_user_curent<M: ModulesExt>(
+pub async fn get_user_curent<M>(
     modules: State<M>,
     user_session: UserSession,
-) -> Result<impl IntoResponse, ApiError> {
+) -> ApiResult<impl IntoResponse>
+where
+    M: ModulesExt,
+{
     let user_id = Path(((), user_session.user_id.value));
-    get_user_by_id(modules, user_session, user_id).await
+    by_id::get_user_by_id(modules, user_session, user_id).await
 }

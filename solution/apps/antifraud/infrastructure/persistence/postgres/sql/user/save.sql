@@ -22,8 +22,8 @@ VALUES (
         $7,
         $8,
         $9,
-        true,
-        now(),
+        $10,
+        $11,
         now()
 )
 RETURNING

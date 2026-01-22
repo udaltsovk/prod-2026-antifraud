@@ -8,19 +8,25 @@ use lib::{
 
 use crate::{
     ModulesExt,
-    errors::ApiError,
+    errors::{ApiError, ApiResult},
     extractors::{Json, Path, session::UserSession},
     models::user::JsonUser,
 };
 
-pub async fn get_user_by_id<M: ModulesExt>(
+pub async fn get_user_by_id<M>(
     modules: State<M>,
-    user_session: UserSession,
-    Path((_api_version, id)): Path<((), Uuid)>,
-) -> Result<impl IntoResponse, ApiError> {
+    UserSession {
+        user_id: requester_id,
+        user_role: requester_role,
+    }: UserSession,
+    Path((_api_version, user_id)): Path<((), Uuid)>,
+) -> ApiResult<impl IntoResponse>
+where
+    M: ModulesExt,
+{
     modules
         .user_usecase()
-        .get_by_id(user_session.user_id, user_session.user_role, id.into())
+        .get_by_id(requester_id, requester_role, user_id.into())
         .await
         .map_err(ApiError::from)?
         .conv::<JsonUser>()

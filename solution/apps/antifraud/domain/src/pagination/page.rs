@@ -2,9 +2,12 @@ use std::{fmt::Debug, sync::LazyLock};
 
 use lib::{
     DomainType,
-    domain::validation::{
-        Constraints, constraints,
-        error::{ValidationErrors, ValidationResult},
+    domain::{
+        impl_try_from_external_input,
+        validation::{
+            Constraints, constraints,
+            error::{ValidationErrors, ValidationResult},
+        },
     },
 };
 
@@ -25,6 +28,12 @@ impl TryFrom<i64> for PaginationPage {
         CONSTRAINTS.check(&value).into_result(|_| Self(value))
     }
 }
+
+impl_try_from_external_input!(
+    domain_type = PaginationPage,
+    input_type = i64,
+    constraints = CONSTRAINTS
+);
 
 impl From<PaginationPage> for u64 {
     fn from(value: PaginationPage) -> Self {

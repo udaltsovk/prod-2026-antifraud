@@ -1,7 +1,7 @@
 use domain::{
     pagination::Pagination,
     session::CreateSession,
-    user::{CreateUser, User, role::UserRole},
+    user::{CreateUser, User, UserUpdate, role::UserRole},
 };
 use lib::{
     async_trait,
@@ -63,7 +63,7 @@ where
 
         self.repositories
             .user_repository()
-            .create(Id::generate(), source, password_hash)
+            .create(Id::generate(), source, password_hash.into())
             .await
             .map_err(R::Error::from)
             .map_err(UserUseCaseError::Repository)
@@ -101,15 +101,15 @@ where
         &self,
         requester_id: Id<User>,
         requester_role: UserRole,
-        id: Id<User>,
+        user_id: Id<User>,
     ) -> UserUseCaseResult<R, S, Option<User>> {
-        if requester_role != UserRole::Admin && requester_id != id {
+        if requester_role != UserRole::Admin && requester_id != user_id {
             return UserUseCaseError::MissingPermissions.pipe(Err);
         }
 
         self.repositories
             .user_repository()
-            .find_by_id(id)
+            .find_by_id(user_id)
             .await
             .map_err(R::Error::from)
             .map_err(UserUseCaseError::Repository)?
@@ -120,11 +120,11 @@ where
         &self,
         requester_id: Id<User>,
         requester_role: UserRole,
-        id: Id<User>,
+        user_id: Id<User>,
     ) -> UserUseCaseResult<R, S, User> {
-        self.find_by_id(requester_id, requester_role, id)
+        self.find_by_id(requester_id, requester_role, user_id)
             .await?
-            .ok_or(UserUseCaseError::NotFoundById(id))
+            .ok_or(UserUseCaseError::NotFoundById(user_id))
     }
 
     async fn list(
@@ -161,5 +161,34 @@ where
             .map_err(UserUseCaseError::Repository)?;
 
         Ok((items, total.try_into().unwrap_or(u64::MIN)))
+    }
+
+    async fn update_by_id(
+        &self,
+        requester_id: Id<User>,
+        requester_role: UserRole,
+        user_id: Id<User>,
+        update: ValidationResult<UserUpdate>,
+    ) -> UserUseCaseResult<R, S, User> {
+        if requester_role != UserRole::Admin
+            && let Ok(update) = &update
+            && (update.is_active.is_some() || update.role.is_some())
+        {
+            return UserUseCaseError::MissingPermissions.pipe(Err);
+        }
+
+        let user = self
+            .get_by_id(requester_id, requester_role, user_id)
+            .await?;
+
+        let updated_user =
+            update.map_err(UserUseCaseError::Validation)?.apply_to(user);
+
+        self.repositories
+            .user_repository()
+            .save(updated_user)
+            .await
+            .map_err(R::Error::from)
+            .map_err(UserUseCaseError::Repository)
     }
 }

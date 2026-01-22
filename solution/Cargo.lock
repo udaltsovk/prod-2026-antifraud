@@ -1317,7 +1317,7 @@ dependencies = [
 [[package]]
 name = "lib"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#ce3fd85ae2e0857595c22a144f30f54fa733afe8"
+source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
 dependencies = [
  "async-trait",
  "axum",
@@ -1331,7 +1331,6 @@ dependencies = [
  "mobc-redis",
  "mobc-sqlx",
  "model-mapper",
- "pastey",
  "tap",
  "tower",
  "tower-http",
@@ -1341,15 +1340,16 @@ dependencies = [
 [[package]]
 name = "lib-application"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#ce3fd85ae2e0857595c22a144f30f54fa733afe8"
+source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
 dependencies = [
  "derive-where",
+ "pastey",
 ]
 
 [[package]]
 name = "lib-bootstrap"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#ce3fd85ae2e0857595c22a144f30f54fa733afe8"
+source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
 dependencies = [
  "dotenvy",
  "fromenv",
@@ -1361,14 +1361,14 @@ dependencies = [
 [[package]]
 name = "lib-domain"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#ce3fd85ae2e0857595c22a144f30f54fa733afe8"
+source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
 dependencies = [
  "derive-where",
  "num-traits",
  "pastey",
  "regex",
  "serde",
- "serde_json",
+ "serde-value",
  "uuid",
  "validator-rs",
 ]
@@ -1376,7 +1376,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#ce3fd85ae2e0857595c22a144f30f54fa733afe8"
+source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
 dependencies = [
  "lib-infrastructure-persistence",
 ]
@@ -1384,7 +1384,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-instrumentation"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#ce3fd85ae2e0857595c22a144f30f54fa733afe8"
+source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
 dependencies = [
  "lib-infrastructure-instrumentation-stdout",
 ]
@@ -1392,7 +1392,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-instrumentation-stdout"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#ce3fd85ae2e0857595c22a144f30f54fa733afe8"
+source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
 dependencies = [
  "tracing",
  "tracing-subscriber",
@@ -1401,7 +1401,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-persistence"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#ce3fd85ae2e0857595c22a144f30f54fa733afe8"
+source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
 dependencies = [
  "derive-where",
  "lib-domain",
@@ -1414,7 +1414,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-persistence-postgres"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#ce3fd85ae2e0857595c22a144f30f54fa733afe8"
+source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
 dependencies = [
  "mobc-sqlx",
  "thiserror 2.0.17",
@@ -1423,7 +1423,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-persistence-redis"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#ce3fd85ae2e0857595c22a144f30f54fa733afe8"
+source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
 dependencies = [
  "mobc-redis",
  "thiserror 2.0.17",
@@ -1432,7 +1432,7 @@ dependencies = [
 [[package]]
 name = "lib-macros"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#ce3fd85ae2e0857595c22a144f30f54fa733afe8"
+source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
 dependencies = [
  "lib-macros-proc",
 ]
@@ -1440,7 +1440,7 @@ dependencies = [
 [[package]]
 name = "lib-macros-proc"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#ce3fd85ae2e0857595c22a144f30f54fa733afe8"
+source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1450,7 +1450,7 @@ dependencies = [
 [[package]]
 name = "lib-presentation"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#ce3fd85ae2e0857595c22a144f30f54fa733afe8"
+source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
 dependencies = [
  "lib-presentation-api",
 ]
@@ -1458,7 +1458,7 @@ dependencies = [
 [[package]]
 name = "lib-presentation-api"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#ce3fd85ae2e0857595c22a144f30f54fa733afe8"
+source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
 dependencies = [
  "lib-presentation-api-rest",
 ]
@@ -1466,13 +1466,15 @@ dependencies = [
 [[package]]
 name = "lib-presentation-api-rest"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#ce3fd85ae2e0857595c22a144f30f54fa733afe8"
+source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
 dependencies = [
  "axum",
  "chrono",
  "lib-domain",
+ "model-mapper",
  "opentelemetry",
  "serde",
+ "serde-value",
  "serde_json",
  "tap",
  "tokio",
@@ -1806,6 +1808,15 @@ dependencies = [
  "percent-encoding",
  "rand 0.9.2",
  "thiserror 2.0.17",
+]
+
+[[package]]
+name = "ordered-float"
+version = "2.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "68f19d67e5a2795c94e73e0bb1cc1a7edeb2e28efd39e2e1c9b7a40c1108b11c"
+dependencies = [
+ "num-traits",
 ]
 
 [[package]]
@@ -2243,6 +2254,16 @@ checksum = "9a8e94ea7f378bd32cbbd37198a4a91436180c5bb472411e48b5ec2e2124ae9e"
 dependencies = [
  "serde_core",
  "serde_derive",
+]
+
+[[package]]
+name = "serde-value"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f3a1a3341211875ef120e117ea7fd5228530ae7e7036a779fdc9117be6b3282c"
+dependencies = [
+ "ordered-float",
+ "serde",
 ]
 
 [[package]]

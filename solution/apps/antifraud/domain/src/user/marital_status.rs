@@ -1,4 +1,4 @@
-use lib::domain::try_from_string;
+use lib::domain::impl_try_from_string;
 use strum::{EnumString, VariantNames};
 
 #[derive(EnumString, VariantNames)]
@@ -11,7 +11,7 @@ pub enum UserMaritalStatus {
     Widowed,
 }
 
-try_from_string!(
+impl_try_from_string!(
     enum = UserMaritalStatus,
     field = "maritalStatus"
 );

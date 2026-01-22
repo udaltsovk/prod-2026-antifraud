@@ -67,6 +67,8 @@ impl ApiError {
     }
 }
 
+pub type ApiResult<T> = Result<T, ApiError>;
+
 impl From<DomainError> for ApiError {
     fn from(error: DomainError) -> Self {
         use DomainError as DE;

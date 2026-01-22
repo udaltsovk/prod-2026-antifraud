@@ -1,4 +1,4 @@
-use lib::domain::try_from_string;
+use lib::domain::impl_try_from_string;
 use strum::{EnumString, VariantNames};
 
 #[derive(EnumString, VariantNames, Clone, Copy, PartialEq, Eq)]
@@ -9,7 +9,7 @@ pub enum UserRole {
     User,
 }
 
-try_from_string!(
+impl_try_from_string!(
     enum = UserRole,
     field = "role"
 );

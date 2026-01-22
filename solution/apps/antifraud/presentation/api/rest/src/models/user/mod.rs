@@ -1,12 +1,11 @@
 use chrono::{DateTime, Utc};
 use domain::user::{CreateUser, User, role::UserRole};
 use lib::{
-    domain::{
-        into_option_validators, into_validators,
-        validation::error::ValidationResult,
-    },
+    domain::validation::error::ValidationResult,
     model_mapper::Mapper,
-    presentation::api::rest::{into_nested_validators, model::Parseable},
+    presentation::api::rest::{
+        UserInput, into_nested_validators, into_validators, model::Parseable,
+    },
     uuid::Uuid,
 };
 use serde::{Deserialize, Serialize};
@@ -60,36 +59,44 @@ pub struct JsonUser {
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[serde(rename_all = "camelCase")]
 pub struct CreateJsonUser {
-    pub email: Option<String>,
+    #[serde(default)]
+    pub email: UserInput<String>,
 
-    pub full_name: Option<String>,
+    #[serde(default)]
+    pub full_name: UserInput<String>,
 
-    pub password: Option<String>,
+    #[serde(default)]
+    pub password: UserInput<String>,
 
-    pub age: Option<i64>,
+    #[serde(default)]
+    pub age: UserInput<i64>,
 
-    pub gender: Option<String>,
+    #[serde(default)]
+    pub gender: UserInput<String>,
 
-    pub marital_status: Option<String>,
+    #[serde(default)]
+    pub marital_status: UserInput<String>,
 
-    pub region: Option<String>,
+    #[serde(default)]
+    pub region: UserInput<String>,
 }
 
 impl Parseable<CreateUser> for CreateJsonUser {
     const FIELD: &str = "user";
 
     fn parse(self) -> ValidationResult<CreateUser> {
-        let (mut errors, (email, full_name, password)) =
-            into_validators!(self.email, self.full_name, self.password);
-
-        let (option_errors, (age, gender, marital_status, region)) = into_option_validators!(
+        let (
+            errors,
+            (email, full_name, password, age, gender, marital_status, region),
+        ) = into_validators!(
+            self.email,
+            self.full_name,
+            self.password,
             self.age,
             self.gender,
             self.marital_status,
             self.region
         );
-
-        errors.extend(option_errors);
 
         errors.into_result(|ok| CreateUser {
             email: email.validated(ok),
@@ -111,7 +118,7 @@ pub struct CreateJsonUserWithRole {
     #[serde(flatten)]
     pub inner: CreateJsonUser,
 
-    pub role: String,
+    pub role: UserInput<String>,
 }
 
 impl Parseable<CreateUser> for CreateJsonUserWithRole {

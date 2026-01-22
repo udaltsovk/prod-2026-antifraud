@@ -1,6 +1,8 @@
 use application::repository::user::UserRepository;
+use chrono::{DateTime, Utc};
 use domain::{
     email::Email,
+    password::PasswordHash,
     user::{CreateUser, User, region::UserRegion, role::UserRole},
 };
 use lib::{
@@ -25,27 +27,25 @@ use crate::{
 impl UserRepository for PostgresRepositoryImpl<User> {
     type AdapterError = PostgresAdapterError;
 
-    async fn create(
-        &self,
-        id: Id<User>,
-        source: CreateUser,
-        password_hash: String,
-    ) -> Result<User, Self::AdapterError> {
+    async fn save(&self, source: User) -> Result<User, Self::AdapterError> {
         let mut connection = self.pool.get().await?;
 
-        let id = id.value;
+        let id = source.id.value;
         let email = source.email.into_inner();
         let full_name = source.full_name.into_inner();
+        let password_hash = source.password_hash.0;
         let age: Option<i16> = source.age.map(|age| age.into_inner().into());
         let gender = source.gender.map(StoredUserGender::from);
         let marital_status =
             source.marital_status.map(StoredUserMaritalStatus::from);
         let region = source.region.map(UserRegion::into_inner);
         let role: StoredUserRole = source.role.into();
+        let is_active = source.is_active;
+        let created_at = source.created_at;
 
         let user = query_file_as!(
             StoredUser,
-            "sql/user/create.sql",
+            "sql/user/save.sql",
             id,
             email,
             full_name,
@@ -55,12 +55,46 @@ impl UserRepository for PostgresRepositoryImpl<User> {
             marital_status as _,
             region,
             role as _,
+            is_active,
+            created_at,
         )
         .fetch_one(&mut *connection)
         .await?
         .conv::<User>();
 
         Ok(user)
+    }
+
+    async fn create(
+        &self,
+        id: Id<User>,
+        CreateUser {
+            email,
+            full_name,
+            age,
+            gender,
+            marital_status,
+            region,
+            role,
+            ..
+        }: CreateUser,
+        password_hash: PasswordHash,
+    ) -> Result<User, Self::AdapterError> {
+        self.save(User {
+            id,
+            email,
+            full_name,
+            password_hash,
+            age,
+            gender,
+            marital_status,
+            region,
+            role,
+            is_active: true,
+            created_at: Utc::now(),
+            updated_at: DateTime::UNIX_EPOCH,
+        })
+        .await
     }
 
     async fn find_by_id(

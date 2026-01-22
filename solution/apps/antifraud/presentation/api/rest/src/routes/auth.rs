@@ -13,7 +13,8 @@ use lib::{
 };
 
 use crate::{
-    ApiError, ModulesExt,
+    ModulesExt,
+    errors::ApiResult,
     extractors::Json,
     models::{
         session::{CreateJsonSession, JsonUserSession},
@@ -30,7 +31,7 @@ pub fn router<M: ModulesExt>() -> Router<M> {
 pub async fn register<M: ModulesExt>(
     modules: State<M>,
     Json(source): Json<CreateJsonUser>,
-) -> Result<impl IntoResponse, ApiError> {
+) -> ApiResult<impl IntoResponse> {
     let user = source.parse();
 
     let user = modules.user_usecase().create(None, user).await?;
@@ -47,7 +48,7 @@ pub async fn register<M: ModulesExt>(
 pub async fn login<M: ModulesExt>(
     modules: State<M>,
     Json(source): Json<CreateJsonSession>,
-) -> Result<impl IntoResponse, ApiError> {
+) -> ApiResult<impl IntoResponse> {
     let credentials = source.parse()?;
 
     let user = modules.user_usecase().authorize(credentials).await?;

@@ -15,7 +15,7 @@ use lib::{
 
 use crate::{
     ModulesExt,
-    errors::ApiError,
+    errors::ApiResult,
     extractors::{Json, Query, session::UserSession},
     models::{
         pagination::{Paginated, QueryPagination},
@@ -26,18 +26,24 @@ use crate::{
 pub mod by_id;
 pub mod me;
 
-pub fn router<M: ModulesExt>() -> Router<M> {
+pub fn router<M>() -> Router<M>
+where
+    M: ModulesExt,
+{
     Router::new()
         .route("/me", get(me::get_user_curent::<M>))
         .route("/{user_id}", get(by_id::get_user_by_id::<M>))
         .route("/", post(register_user::<M>).get(list_users::<M>))
 }
 
-pub async fn register_user<M: ModulesExt>(
+pub async fn register_user<M>(
     modules: State<M>,
     user_session: UserSession,
     Json(source): Json<CreateJsonUserWithRole>,
-) -> Result<impl IntoResponse, ApiError> {
+) -> ApiResult<impl IntoResponse>
+where
+    M: ModulesExt,
+{
     let source = source.parse();
 
     modules
@@ -51,18 +57,20 @@ pub async fn register_user<M: ModulesExt>(
         .pipe(Ok)
 }
 
-pub async fn list_users<M: ModulesExt>(
+pub async fn list_users<M>(
     modules: State<M>,
     user_session: UserSession,
     Query(pagination): Query<QueryPagination>,
-) -> Result<impl IntoResponse, ApiError> {
+) -> ApiResult<impl IntoResponse>
+where
+    M: ModulesExt,
+{
     let pagination = pagination.parse();
 
     let (users, count) = modules
         .user_usecase()
         .list(Some(user_session.user_role), pagination.clone(), None, None)
-        .await
-        .map_err(ApiError::from)?;
+        .await?;
 
     Paginated::<JsonUser>::from_pagination(pagination?, users, count)
         .pipe(Json)

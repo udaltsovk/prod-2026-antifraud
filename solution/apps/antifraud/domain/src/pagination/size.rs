@@ -3,7 +3,7 @@ use std::{fmt::Debug, num::NonZero, sync::LazyLock};
 use lib::{
     DomainType,
     domain::{
-        DomainType as _,
+        DomainType as _, impl_try_from_external_input,
         validation::{
             Constraints, constraints,
             error::{ValidationErrors, ValidationResult},
@@ -43,6 +43,12 @@ impl TryFrom<i64> for PaginationSize {
         })
     }
 }
+
+impl_try_from_external_input!(
+    domain_type = PaginationSize,
+    input_type = i64,
+    constraints = CONSTRAINTS
+);
 
 impl From<PaginationSize> for i64 {
     fn from(age: PaginationSize) -> Self {

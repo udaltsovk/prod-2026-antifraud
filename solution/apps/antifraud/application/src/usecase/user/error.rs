@@ -1,7 +1,7 @@
 use domain::{email::Email, user::User};
 use lib::{
-    application::usecase_result, domain::Id,
-    presentation::api::rest::ValidationErrors,
+    application::usecase_result,
+    domain::{Id, validation::error::ValidationErrors},
 };
 
 use crate::{repository::RepositoriesModuleExt, service::ServicesModuleExt};

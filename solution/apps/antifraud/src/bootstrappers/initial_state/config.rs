@@ -1,6 +1,9 @@
 use domain::user::{CreateUser, role::UserRole};
 use fromenv::FromEnv;
-use lib::domain::{into_validators, validation::error::ValidationErrors};
+use lib::{
+    domain::validation::error::ValidationErrors,
+    presentation::api::rest::into_validators,
+};
 
 #[derive(FromEnv)]
 pub struct InitialStateConfig {

@@ -2,8 +2,8 @@ use std::num::NonZero;
 
 use domain::pagination::Pagination;
 use lib::{
-    domain::{into_option_validators, validation::error::ValidationResult},
-    presentation::api::rest::model::Parseable,
+    domain::validation::error::ValidationResult,
+    presentation::api::rest::{UserInput, into_validators, model::Parseable},
 };
 use serde::{Deserialize, Serialize};
 
@@ -43,19 +43,18 @@ where
     }
 }
 
-#[derive(Deserialize, Clone, Copy, Default)]
+#[derive(Deserialize, Clone, Default)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 pub struct QueryPagination {
-    pub page: Option<i64>,
-    pub size: Option<i64>,
+    pub page: UserInput<i64>,
+    pub size: UserInput<i64>,
 }
 
 impl Parseable<Pagination> for QueryPagination {
     const FIELD: &str = "pagination";
 
     fn parse(self) -> ValidationResult<Pagination> {
-        let (errors, (page, size)) =
-            into_option_validators!(self.page, self.size);
+        let (errors, (page, size)) = into_validators!(self.page, self.size);
 
         errors.into_result(|ok| Pagination {
             page: page.validated(ok),

@@ -1,7 +1,7 @@
 use domain::session::CreateSession;
 use lib::{
-    domain::{into_validators, validation::error::ValidationResult},
-    presentation::api::rest::model::Parseable,
+    domain::validation::error::ValidationResult,
+    presentation::api::rest::{UserInput, into_validators, model::Parseable},
 };
 use serde::{Deserialize, Serialize};
 
@@ -31,8 +31,8 @@ impl From<(String, JsonUser)> for JsonUserSession {
 #[derive(Deserialize)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 pub struct CreateJsonSession {
-    email: String,
-    password: String,
+    email: UserInput<String>,
+    password: UserInput<String>,
 }
 
 impl Parseable<CreateSession> for CreateJsonSession {
