@@ -31,8 +31,14 @@ where
     M: ModulesExt,
 {
     Router::new()
-        .route("/me", get(me::get_user_curent::<M>))
-        .route("/{user_id}", get(by_id::get_user_by_id::<M>))
+        .route(
+            "/me",
+            get(me::get_current_user::<M>).put(me::update_current_user::<M>),
+        )
+        .route(
+            "/{user_id}",
+            get(by_id::get_user_by_id::<M>).put(by_id::update_user_by_id::<M>),
+        )
         .route("/", post(register_user::<M>).get(list_users::<M>))
 }
 

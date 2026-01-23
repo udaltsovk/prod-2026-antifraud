@@ -1,0 +1,159 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE\n    users\nSET\n    full_name = $2,\n    age = $3,\n    gender = $4,\n    marital_status = $5,\n    region = $6,\n    role = $7,\n    is_active = $8,\n    updated_at = NOW()\nWHERE\n    id = $1\nRETURNING\n    id,\n    email,\n    full_name,\n    password_hash,\n    age,\n    gender AS \"gender: _\",\n    marital_status AS \"marital_status: _\",\n    region,\n    role AS \"role: _\",\n    is_active,\n    created_at,\n    updated_at\n",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "email",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "full_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "password_hash",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "age",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 5,
+        "name": "gender: _",
+        "type_info": {
+          "Custom": {
+            "name": "user_gender",
+            "kind": {
+              "Enum": [
+                "MALE",
+                "FEMALE"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "marital_status: _",
+        "type_info": {
+          "Custom": {
+            "name": "user_marital_status",
+            "kind": {
+              "Enum": [
+                "SINGLE",
+                "MARRIED",
+                "DIVORCED",
+                "WIDOWED"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "region",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "role: _",
+        "type_info": {
+          "Custom": {
+            "name": "user_role",
+            "kind": {
+              "Enum": [
+                "ADMIN",
+                "USER"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "is_active",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 10,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 11,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Int2",
+        {
+          "Custom": {
+            "name": "user_gender",
+            "kind": {
+              "Enum": [
+                "MALE",
+                "FEMALE"
+              ]
+            }
+          }
+        },
+        {
+          "Custom": {
+            "name": "user_marital_status",
+            "kind": {
+              "Enum": [
+                "SINGLE",
+                "MARRIED",
+                "DIVORCED",
+                "WIDOWED"
+              ]
+            }
+          }
+        },
+        "Text",
+        {
+          "Custom": {
+            "name": "user_role",
+            "kind": {
+              "Enum": [
+                "ADMIN",
+                "USER"
+              ]
+            }
+          }
+        },
+        "Bool"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "c05f7fb51c1430f844f086c19c064fb9952d6674881b28929da4d643429f9913"
+}

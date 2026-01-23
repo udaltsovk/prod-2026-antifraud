@@ -1,5 +1,7 @@
 use chrono::{DateTime, Utc};
-use domain::user::{CreateUser, User, role::UserRole};
+use domain::user::{
+    CreateUser, RawUserAdminUpdate, User, UserCommonUpdate, role::UserRole,
+};
 use lib::{
     domain::{into_validators, validation::error::ValidationResult},
     model_mapper::Mapper,
@@ -139,28 +141,76 @@ impl Parseable<CreateUser> for CreateJsonUserWithRole {
     }
 }
 
-// #[derive(Deserialize)]
-// #[cfg_attr(debug_assertions, derive(Debug))]
-// #[serde(rename_all = "camelCase")]
-// pub struct JsonUserUpdate {
-//     #[serde(default)]
-//     pub age: UserInput<i64>,
+#[derive(Deserialize)]
+#[cfg_attr(debug_assertions, derive(Debug))]
+#[serde(rename_all = "camelCase")]
+pub struct JsonUserCommonUpdate {
+    #[serde(default)]
+    pub age: UserInput<i64>,
 
-//     #[serde(default)]
-//     pub full_name: UserInput<String>,
+    #[serde(default)]
+    pub full_name: UserInput<String>,
 
-//     #[serde(default)]
-//     pub gender: UserInput<String>,
+    #[serde(default)]
+    pub gender: UserInput<String>,
 
-//     #[serde(default)]
-//     pub marital_status: UserInput<String>,
+    #[serde(default)]
+    pub marital_status: UserInput<String>,
 
-//     #[serde(default)]
-//     pub region: UserInput<String>,
+    #[serde(default)]
+    pub region: UserInput<String>,
+}
 
-//     #[serde(default)]
-//     pub is_active: UserInput<bool>,
+#[derive(Deserialize)]
+#[cfg_attr(debug_assertions, derive(Debug))]
+#[serde(rename_all = "camelCase")]
+pub struct JsonUserUpdate {
+    #[serde(flatten)]
+    pub common: JsonUserCommonUpdate,
 
-//     #[serde(default)]
-//     pub role: UserInput<String>,
-// }
+    #[serde(default)]
+    pub is_active: UserInput<bool>,
+
+    #[serde(default)]
+    pub role: UserInput<String>,
+}
+
+impl From<JsonUserUpdate> for (JsonUserCommonUpdate, RawUserAdminUpdate) {
+    fn from(
+        JsonUserUpdate {
+            common: common_update,
+            is_active: status,
+            role,
+        }: JsonUserUpdate,
+    ) -> Self {
+        (
+            common_update,
+            RawUserAdminUpdate {
+                status: status.into(),
+                role: role.into(),
+            },
+        )
+    }
+}
+
+impl Parseable<UserCommonUpdate> for JsonUserCommonUpdate {
+    const FIELD: &str = "user";
+
+    fn parse(self) -> ValidationResult<UserCommonUpdate> {
+        let (errors, (age, full_name, gender, marital_status, region)) = into_validators!(
+            self.age,
+            self.full_name,
+            self.gender,
+            self.marital_status,
+            self.region
+        );
+
+        errors.into_result(|ok| UserCommonUpdate {
+            full_name: full_name.validated(ok),
+            age: age.validated(ok),
+            gender: gender.validated(ok),
+            marital_status: marital_status.validated(ok),
+            region: region.validated(ok),
+        })
+    }
+}

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT\n    id,\n    email,\n    full_name,\n    password_hash,\n    age,\n    gender AS \"gender: _\",\n    marital_status AS \"marital_status: _\",\n    region,\n    role AS \"role: _\",\n    is_active,\n    created_at,\n    updated_at\nFROM users\nWHERE\n    ($1::user_role[] IS NULL OR role = ANY($1)) AND ($2::bool IS NULL OR is_active = $2)\nORDER BY created_at\nLIMIT $3\nOFFSET $4;\n",
+  "query": "INSERT INTO\n    users (\n        id,\n        email,\n        full_name,\n        password_hash,\n        age,\n        gender,\n        marital_status,\n        region,\n        role,\n        is_active,\n        created_at,\n        updated_at\n    )\nVALUES\n    (\n        $1,\n        $2,\n        $3,\n        $4,\n        $5,\n        $6,\n        $7,\n        $8,\n        $9,\n        TRUE,\n        NOW(),\n        NOW()\n    )\nRETURNING\n    id,\n    email,\n    full_name,\n    password_hash,\n    age,\n    gender AS \"gender: _\",\n    marital_status AS \"marital_status: _\",\n    region,\n    role AS \"role: _\",\n    is_active,\n    created_at,\n    updated_at\n",
   "describe": {
     "columns": [
       {
@@ -36,8 +36,8 @@
             "name": "user_gender",
             "kind": {
               "Enum": [
-                "male",
-                "female"
+                "MALE",
+                "FEMALE"
               ]
             }
           }
@@ -51,10 +51,10 @@
             "name": "user_marital_status",
             "kind": {
               "Enum": [
-                "single",
-                "married",
-                "divorced",
-                "widowed"
+                "SINGLE",
+                "MARRIED",
+                "DIVORCED",
+                "WIDOWED"
               ]
             }
           }
@@ -73,8 +73,8 @@
             "name": "user_role",
             "kind": {
               "Enum": [
-                "admin",
-                "user"
+                "ADMIN",
+                "USER"
               ]
             }
           }
@@ -98,27 +98,47 @@
     ],
     "parameters": {
       "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "Int2",
         {
           "Custom": {
-            "name": "user_role[]",
+            "name": "user_gender",
             "kind": {
-              "Array": {
-                "Custom": {
-                  "name": "user_role",
-                  "kind": {
-                    "Enum": [
-                      "admin",
-                      "user"
-                    ]
-                  }
-                }
-              }
+              "Enum": [
+                "MALE",
+                "FEMALE"
+              ]
             }
           }
         },
-        "Bool",
-        "Int8",
-        "Int8"
+        {
+          "Custom": {
+            "name": "user_marital_status",
+            "kind": {
+              "Enum": [
+                "SINGLE",
+                "MARRIED",
+                "DIVORCED",
+                "WIDOWED"
+              ]
+            }
+          }
+        },
+        "Text",
+        {
+          "Custom": {
+            "name": "user_role",
+            "kind": {
+              "Enum": [
+                "ADMIN",
+                "USER"
+              ]
+            }
+          }
+        }
       ]
     },
     "nullable": [
@@ -136,5 +156,5 @@
       false
     ]
   },
-  "hash": "a2f1b32669cc50dd9b20c10d6ceafdf1564673d4b4dfb3fc8982272a38dd1c1b"
+  "hash": "f1f4147b471fbe011d95916f4eae71a8c1b65a5f36dad7e1ae607d5663aaa8e2"
 }

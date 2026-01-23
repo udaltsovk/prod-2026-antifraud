@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT\n    id,\n    email,\n    full_name,\n    password_hash,\n    age,\n    gender AS \"gender: _\",\n    marital_status AS \"marital_status: _\",\n    region,\n    role AS \"role: _\",\n    is_active,\n    created_at,\n    updated_at\nFROM users\nWHERE id = $1\n",
+  "query": "SELECT\n    id,\n    email,\n    full_name,\n    password_hash,\n    age,\n    gender AS \"gender: _\",\n    marital_status AS \"marital_status: _\",\n    region,\n    role AS \"role: _\",\n    is_active,\n    created_at,\n    updated_at\nFROM\n    users\nWHERE\n    (\n        $1::user_role [] IS NULL\n        OR role = ANY($1)\n    )\n    AND (\n        $2::bool IS NULL\n        OR is_active = $2\n    )\nORDER BY\n    created_at\nLIMIT\n    $3 OFFSET $4;\n",
   "describe": {
     "columns": [
       {
@@ -36,8 +36,8 @@
             "name": "user_gender",
             "kind": {
               "Enum": [
-                "male",
-                "female"
+                "MALE",
+                "FEMALE"
               ]
             }
           }
@@ -51,10 +51,10 @@
             "name": "user_marital_status",
             "kind": {
               "Enum": [
-                "single",
-                "married",
-                "divorced",
-                "widowed"
+                "SINGLE",
+                "MARRIED",
+                "DIVORCED",
+                "WIDOWED"
               ]
             }
           }
@@ -73,8 +73,8 @@
             "name": "user_role",
             "kind": {
               "Enum": [
-                "admin",
-                "user"
+                "ADMIN",
+                "USER"
               ]
             }
           }
@@ -98,7 +98,27 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid"
+        {
+          "Custom": {
+            "name": "user_role[]",
+            "kind": {
+              "Array": {
+                "Custom": {
+                  "name": "user_role",
+                  "kind": {
+                    "Enum": [
+                      "ADMIN",
+                      "USER"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "Bool",
+        "Int8",
+        "Int8"
       ]
     },
     "nullable": [
@@ -116,5 +136,5 @@
       false
     ]
   },
-  "hash": "becd8ef813928cc392ee1281f67f7fa5984a8f83cc43b152f991152ba4bf6072"
+  "hash": "6352bfcdd3102e16805f92a045ffd2bf75e23b4c8b3601b057e6161732361442"
 }

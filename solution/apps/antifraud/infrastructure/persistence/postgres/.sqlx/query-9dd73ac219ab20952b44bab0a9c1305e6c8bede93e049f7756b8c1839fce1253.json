@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO users (\n   id,\n   email,\n   full_name,\n   password_hash,\n   age,\n   gender,\n   marital_status,\n   region,\n   role,\n   is_active,\n   created_at,\n   updated_at\n)\nVALUES (\n        $1,\n        $2,\n        $3,\n        $4,\n        $5,\n        $6,\n        $7,\n        $8,\n        $9,\n        $10,\n        $11,\n        now()\n)\nRETURNING\n    id,\n    email,\n    full_name,\n    password_hash,\n    age,\n    gender AS \"gender: _\",\n    marital_status AS \"marital_status: _\",\n    region,\n    role AS \"role: _\",\n    is_active,\n    created_at,\n    updated_at\n",
+  "query": "SELECT\n    id,\n    email,\n    full_name,\n    password_hash,\n    age,\n    gender AS \"gender: _\",\n    marital_status AS \"marital_status: _\",\n    region,\n    role AS \"role: _\",\n    is_active,\n    created_at,\n    updated_at\nFROM\n    users\nWHERE\n    email = $1\n",
   "describe": {
     "columns": [
       {
@@ -36,8 +36,8 @@
             "name": "user_gender",
             "kind": {
               "Enum": [
-                "male",
-                "female"
+                "MALE",
+                "FEMALE"
               ]
             }
           }
@@ -51,10 +51,10 @@
             "name": "user_marital_status",
             "kind": {
               "Enum": [
-                "single",
-                "married",
-                "divorced",
-                "widowed"
+                "SINGLE",
+                "MARRIED",
+                "DIVORCED",
+                "WIDOWED"
               ]
             }
           }
@@ -73,8 +73,8 @@
             "name": "user_role",
             "kind": {
               "Enum": [
-                "admin",
-                "user"
+                "ADMIN",
+                "USER"
               ]
             }
           }
@@ -98,49 +98,7 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid",
-        "Text",
-        "Text",
-        "Text",
-        "Int2",
-        {
-          "Custom": {
-            "name": "user_gender",
-            "kind": {
-              "Enum": [
-                "male",
-                "female"
-              ]
-            }
-          }
-        },
-        {
-          "Custom": {
-            "name": "user_marital_status",
-            "kind": {
-              "Enum": [
-                "single",
-                "married",
-                "divorced",
-                "widowed"
-              ]
-            }
-          }
-        },
-        "Text",
-        {
-          "Custom": {
-            "name": "user_role",
-            "kind": {
-              "Enum": [
-                "admin",
-                "user"
-              ]
-            }
-          }
-        },
-        "Bool",
-        "Timestamptz"
+        "Text"
       ]
     },
     "nullable": [
@@ -158,5 +116,5 @@
       false
     ]
   },
-  "hash": "2a642316005ccc1f96e891ae20e4557e5cf7d2293b3de3cb806d0cd635c6e46f"
+  "hash": "9dd73ac219ab20952b44bab0a9c1305e6c8bede93e049f7756b8c1839fce1253"
 }

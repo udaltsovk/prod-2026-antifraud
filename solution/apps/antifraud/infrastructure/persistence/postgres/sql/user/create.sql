@@ -1,18 +1,20 @@
-INSERT INTO users (
-   id,
-   email,
-   full_name,
-   password_hash,
-   age,
-   gender,
-   marital_status,
-   region,
-   role,
-   is_active,
-   created_at,
-   updated_at
-)
-VALUES (
+INSERT INTO
+    users (
+        id,
+        email,
+        full_name,
+        password_hash,
+        age,
+        gender,
+        marital_status,
+        region,
+        role,
+        is_active,
+        created_at,
+        updated_at
+    )
+VALUES
+    (
         $1,
         $2,
         $3,
@@ -22,10 +24,10 @@ VALUES (
         $7,
         $8,
         $9,
-        $10,
-        $11,
-        now()
-)
+        TRUE,
+        NOW(),
+        NOW()
+    )
 RETURNING
     id,
     email,

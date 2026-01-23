@@ -1,4 +1,4 @@
-use std::{fmt::Debug, num::NonZero, sync::LazyLock};
+use std::{num::NonZero, sync::LazyLock};
 
 use lib::{
     DomainType,

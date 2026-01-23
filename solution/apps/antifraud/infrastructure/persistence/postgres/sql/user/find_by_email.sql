@@ -11,5 +11,7 @@ SELECT
     is_active,
     created_at,
     updated_at
-FROM users
-WHERE email = $1
+FROM
+    users
+WHERE
+    email = $1

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT\n    id,\n    email,\n    full_name,\n    password_hash,\n    age,\n    gender AS \"gender: _\",\n    marital_status AS \"marital_status: _\",\n    region,\n    role AS \"role: _\",\n    is_active,\n    created_at,\n    updated_at\nFROM users\nWHERE email = $1\n",
+  "query": "SELECT\n    id,\n    email,\n    full_name,\n    password_hash,\n    age,\n    gender AS \"gender: _\",\n    marital_status AS \"marital_status: _\",\n    region,\n    role AS \"role: _\",\n    is_active,\n    created_at,\n    updated_at\nFROM\n    users\nWHERE\n    id = $1\n",
   "describe": {
     "columns": [
       {
@@ -36,8 +36,8 @@
             "name": "user_gender",
             "kind": {
               "Enum": [
-                "male",
-                "female"
+                "MALE",
+                "FEMALE"
               ]
             }
           }
@@ -51,10 +51,10 @@
             "name": "user_marital_status",
             "kind": {
               "Enum": [
-                "single",
-                "married",
-                "divorced",
-                "widowed"
+                "SINGLE",
+                "MARRIED",
+                "DIVORCED",
+                "WIDOWED"
               ]
             }
           }
@@ -73,8 +73,8 @@
             "name": "user_role",
             "kind": {
               "Enum": [
-                "admin",
-                "user"
+                "ADMIN",
+                "USER"
               ]
             }
           }
@@ -98,7 +98,7 @@
     ],
     "parameters": {
       "Left": [
-        "Text"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -116,5 +116,5 @@
       false
     ]
   },
-  "hash": "acebb9d2956b5494b234c244864c4cb3bf9b5a0f5fe341a195cb7c78a1e82068"
+  "hash": "46f16b7c244be51e6805afd522856ece2153f787055fbc8c253d322a0a11f7d8"
 }

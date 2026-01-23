@@ -11,8 +11,6 @@ use lib::{async_trait, domain::Id};
 pub trait UserRepository {
     type AdapterError: Debug + Send + Sync;
 
-    async fn save(&self, source: User) -> Result<User, Self::AdapterError>;
-
     async fn create(
         &self,
         id: Id<User>,
@@ -43,4 +41,6 @@ pub trait UserRepository {
         roles: Option<&[UserRole]>,
         status: Option<UserStatus>,
     ) -> Result<i64, Self::AdapterError>;
+
+    async fn update(&self, source: User) -> Result<User, Self::AdapterError>;
 }

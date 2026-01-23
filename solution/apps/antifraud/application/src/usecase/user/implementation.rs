@@ -193,7 +193,7 @@ where
 
         self.repositories
             .user_repository()
-            .save(updated_user)
+            .update(updated_user)
             .await
             .map_err(R::Error::from)
             .map_err(UserUseCaseError::Repository)

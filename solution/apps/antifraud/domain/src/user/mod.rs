@@ -71,8 +71,8 @@ pub struct RawUserAdminUpdate {
 #[cfg_attr(debug_assertions, derive(Debug))]
 pub struct UserUpdate {
     pub common: UserCommonUpdate,
-    pub status: Optional<UserStatus>,
-    pub role: Optional<UserRole>,
+    pub status: UserStatus,
+    pub role: UserRole,
 }
 
 impl TryFrom<(ValidationResult<UserCommonUpdate>, RawUserAdminUpdate)>
@@ -111,8 +111,6 @@ impl UserUpdate {
             id,
             email,
             password_hash,
-            role,
-            status,
             created_at,
             updated_at,
             ..
@@ -140,8 +138,8 @@ impl UserUpdate {
             gender: gender_update.into(),
             marital_status: marital_status_update.into(),
             region: region_update.into(),
-            role: role_update.unwrap_or(role),
-            status: status_update.unwrap_or(status),
+            role: role_update,
+            status: status_update,
             created_at,
             updated_at,
         }
