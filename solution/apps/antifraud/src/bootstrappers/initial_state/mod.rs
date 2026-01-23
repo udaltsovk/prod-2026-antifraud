@@ -1,9 +1,6 @@
 use application::usecase::user::UserUseCase as _;
-use domain::{
-    pagination::{Pagination, page::PaginationPage, size::PaginationSize},
-    user::{CreateUser, role::UserRole},
-};
-use lib::{async_trait, domain::validation::Optional, tap::Pipe as _};
+use domain::user::CreateUser;
+use lib::async_trait;
 use presentation::api::rest::ModulesExt as _;
 
 pub use crate::bootstrappers::initial_state::config::InitialStateConfig;
@@ -18,26 +15,18 @@ impl InitialState {
         config: &<Self as BootstrapperExt>::Config,
         modules: Modules,
     ) -> Result<(), String> {
-        let pagination = Pagination {
-            page: PaginationPage::default().pipe(Optional::Present),
-            size: PaginationSize::try_from(1)
-                .map_err(|err| err.to_string())?
-                .pipe(Optional::Present),
-        };
+        let user = CreateUser::try_from(&config.admin)
+            .map_err(|err| err.to_string())?;
 
-        if !modules
+        if modules
             .user_usecase()
-            .list(None, Ok(pagination), Some(&[UserRole::Admin]), None)
+            .find_by_email(&user.email)
             .await
             .map_err(|err| err.to_string())?
-            .0
-            .is_empty()
+            .is_some()
         {
             return Ok(());
         }
-
-        let user = CreateUser::try_from(&config.admin)
-            .map_err(|err| err.to_string())?;
 
         modules
             .user_usecase()

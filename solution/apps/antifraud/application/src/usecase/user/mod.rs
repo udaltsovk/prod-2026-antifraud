@@ -1,4 +1,5 @@
 use domain::{
+    email::Email,
     pagination::Pagination,
     session::CreateSession,
     user::{
@@ -19,12 +20,28 @@ use crate::{
 pub mod error;
 pub mod implementation;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum GetByEmailSource {
+    Auth,
+}
+
 #[async_trait]
 pub trait UserUseCase<R, S>
 where
     R: RepositoriesModuleExt,
     S: ServicesModuleExt,
 {
+    async fn find_by_email(
+        &self,
+        user_email: &Email,
+    ) -> UserUseCaseResult<R, S, Option<User>>;
+
+    async fn get_by_email(
+        &self,
+        user_email: Email,
+        source: GetByEmailSource,
+    ) -> UserUseCaseResult<R, S, User>;
+
     async fn create(
         &self,
         creator_role: Option<UserRole>,

@@ -1,4 +1,5 @@
 use domain::{
+    email::Email,
     pagination::Pagination,
     session::CreateSession,
     user::{
@@ -25,7 +26,7 @@ use crate::{
     usecase::{
         UseCase,
         user::{
-            UserUseCase,
+            GetByEmailSource, UserUseCase,
             error::{UserUseCaseError, UserUseCaseResult},
         },
     },
@@ -38,6 +39,31 @@ where
     R: RepositoriesModuleExt,
     S: ServicesModuleExt,
 {
+    async fn find_by_email(
+        &self,
+        user_email: &Email,
+    ) -> UserUseCaseResult<R, S, Option<User>> {
+        self.repositories
+            .user_repository()
+            .find_by_email(user_email)
+            .await
+            .map_err(R::Error::from)
+            .map_err(UserUseCaseError::Repository)
+    }
+
+    async fn get_by_email(
+        &self,
+        user_email: Email,
+        source: GetByEmailSource,
+    ) -> UserUseCaseResult<R, S, User> {
+        self.find_by_email(&user_email).await?.ok_or(
+            UserUseCaseError::NotFoundByEmail {
+                email: user_email,
+                from_auth: source == GetByEmailSource::Auth,
+            },
+        )
+    }
+
     async fn create(
         &self,
         creator_role: Option<UserRole>,
@@ -51,15 +77,7 @@ where
 
         let source = source.map_err(UserUseCaseError::Validation)?;
 
-        if self
-            .repositories
-            .user_repository()
-            .find_by_email(&source.email)
-            .await
-            .map_err(R::Error::from)
-            .map_err(UserUseCaseError::Repository)?
-            .is_some()
-        {
+        if self.find_by_email(&source.email).await?.is_some() {
             return UserUseCaseError::EmailAlreadyUsed(source.email).pipe(Err);
         }
 
@@ -83,16 +101,8 @@ where
         source: CreateSession,
     ) -> UserUseCaseResult<R, S, User> {
         let user = self
-            .repositories
-            .user_repository()
-            .find_by_email(&source.email)
-            .await
-            .map_err(R::Error::from)
-            .map_err(UserUseCaseError::Repository)?
-            .ok_or(UserUseCaseError::NotFoundByEmail {
-                email: source.email,
-                from_auth: true,
-            })?;
+            .get_by_email(source.email, GetByEmailSource::Auth)
+            .await?;
 
         self.services
             .password_hasher_service()
