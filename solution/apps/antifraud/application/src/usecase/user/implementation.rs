@@ -187,35 +187,12 @@ where
             return UserUseCaseError::MissingPermissions.pipe(Err);
         }
 
-        let mut errors = ValidationErrors::new();
-
-        let common: Validator<_> =
-            Validator::from_result(common_update_result, &mut errors);
-
-        let (admin_update_errors, (status, role)) =
-            if requester_role == UserRole::Admin {
-                let (update_errors, (status, role)) = into_validators!(
-                    raw_admin_update.status,
-                    raw_admin_update.role
-                );
-
-                let status = status.map(Optional::Present);
-                let role = role.map(Optional::Present);
-
-                (update_errors, (status, role))
-            } else {
-                into_validators!(raw_admin_update.status, raw_admin_update.role)
-            };
-
-        errors.extend(admin_update_errors);
-
-        let user_update = errors
-            .into_result(|ok| UserUpdate {
-                common: common.validated(ok),
-                status: status.validated(ok),
-                role: role.validated(ok),
-            })
-            .map_err(UserUseCaseError::Validation)?;
+        let user_update = Self::user_update_from_parts(
+            requester_role,
+            common_update_result,
+            raw_admin_update,
+        )
+        .map_err(UserUseCaseError::Validation)?;
 
         let user = self
             .get_by_id(requester_id, requester_role, user_id)
@@ -254,5 +231,45 @@ where
             .await
             .map_err(R::Error::from)
             .map_err(UserUseCaseError::Repository)
+    }
+}
+
+impl<R, S> UseCase<R, S, User>
+where
+    R: RepositoriesModuleExt,
+    S: ServicesModuleExt,
+{
+    fn user_update_from_parts(
+        requester_role: UserRole,
+        common_update_result: ValidationResult<UserCommonUpdate>,
+        raw_admin_update: RawUserAdminUpdate,
+    ) -> ValidationResult<UserUpdate> {
+        let mut errors = ValidationErrors::new();
+
+        let common: Validator<_> =
+            Validator::from_result(common_update_result, &mut errors);
+
+        let (admin_update_errors, (status, role)) =
+            if requester_role == UserRole::Admin {
+                let (update_errors, (status, role)) = into_validators!(
+                    raw_admin_update.status,
+                    raw_admin_update.role
+                );
+
+                let status = status.map(Optional::Present);
+                let role = role.map(Optional::Present);
+
+                (update_errors, (status, role))
+            } else {
+                into_validators!(raw_admin_update.status, raw_admin_update.role)
+            };
+
+        errors.extend(admin_update_errors);
+
+        errors.into_result(|ok| UserUpdate {
+            common: common.validated(ok),
+            status: status.validated(ok),
+            role: role.validated(ok),
+        })
     }
 }
