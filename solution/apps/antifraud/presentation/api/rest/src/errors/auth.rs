@@ -19,7 +19,7 @@ impl ApiError {
     {
         (
             StatusCode::UNAUTHORIZED,
-            "invalid_credentials",
+            "UNAUTHORIZED",
             error.to_internal_error_string("Invalid credentials"),
             Value::Null,
         )
@@ -33,7 +33,7 @@ impl From<AuthError> for ApiError {
             use StatusCode as C;
             match error {
                 E::InvalidToken => {
-                    (C::UNAUTHORIZED, "invalid_token", "Invalid token".into())
+                    (C::UNAUTHORIZED, "UNAUTHORIZED", "Invalid token".into())
                 },
             }
         };
