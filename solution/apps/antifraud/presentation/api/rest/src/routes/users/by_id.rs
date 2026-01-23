@@ -4,7 +4,7 @@ use lib::{
     presentation::api::rest::{
         model::Parseable as _, response::ResponseExt as _,
     },
-    tap::{Conv as _, Pipe as _},
+    tap::Pipe as _,
     uuid::Uuid,
 };
 
@@ -30,9 +30,9 @@ where
         .user_usecase()
         .get_by_id(requester_id, requester_role, user_id.into())
         .await
-        .map_err(ApiError::from)?
-        .conv::<JsonUser>()
-        .pipe(Json)
+        .map_err(ApiError::from)
+        .map(JsonUser::from)
+        .map(Json)?
         .into_response()
         .with_status(StatusCode::OK)
         .pipe(Ok)
@@ -63,9 +63,9 @@ where
             raw_admin_update,
         )
         .await
-        .map_err(ApiError::from)?
-        .conv::<JsonUser>()
-        .pipe(Json)
+        .map_err(ApiError::from)
+        .map(JsonUser::from)
+        .map(Json)?
         .into_response()
         .with_status(StatusCode::OK)
         .pipe(Ok)
@@ -86,10 +86,6 @@ where
         .user_usecase()
         .deactivate_by_id(requester_id, requester_role, user_id.into())
         .await
-        .map_err(ApiError::from)?
-        .conv::<JsonUser>()
-        .pipe(Json)
-        .into_response()
-        .with_status(StatusCode::OK)
-        .pipe(Ok)
+        .map_err(ApiError::from)
+        .map(|_| StatusCode::NOT_MODIFIED)
 }

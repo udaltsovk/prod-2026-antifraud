@@ -10,7 +10,7 @@ use lib::{
     presentation::api::rest::{
         model::Parseable as _, response::ResponseExt as _,
     },
-    tap::{Conv as _, Pipe as _},
+    tap::Pipe as _,
 };
 
 use crate::{
@@ -57,9 +57,9 @@ where
     modules
         .user_usecase()
         .create(Some(user_session.user_role), source)
-        .await?
-        .conv::<JsonUser>()
-        .pipe(Json)
+        .await
+        .map(JsonUser::from)
+        .map(Json)?
         .into_response()
         .with_status(StatusCode::CREATED)
         .pipe(Ok)

@@ -222,6 +222,10 @@ where
             .get_by_id(requester_id, requester_role, user_id)
             .await?;
 
+        if user.status == UserStatus::Deactivated {
+            return Ok(user);
+        }
+
         let updated_user =
             user.tap_mut(|user| user.status = UserStatus::Deactivated);
 
