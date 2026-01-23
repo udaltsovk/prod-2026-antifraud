@@ -87,5 +87,5 @@ where
         .deactivate_by_id(requester_id, requester_role, user_id.into())
         .await
         .map_err(ApiError::from)
-        .map(|_| StatusCode::NOT_MODIFIED)
+        .map(|_| StatusCode::NO_CONTENT)
 }

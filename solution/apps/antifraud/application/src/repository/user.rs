@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use domain::{
     email::Email,
-    password::PasswordHash,
+    password_hash::PasswordHash,
     user::{CreateUser, User, is_active::UserStatus, role::UserRole},
 };
 use lib::{async_trait, domain::Id};

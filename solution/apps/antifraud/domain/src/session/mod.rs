@@ -2,9 +2,11 @@ use lib::domain::Id;
 
 use crate::{
     email::Email,
-    password::Password,
+    session::password::SessionPassword,
     user::{User, role::UserRole},
 };
+
+pub mod password;
 
 #[derive(PartialEq, Eq)]
 pub struct Session {
@@ -19,5 +21,5 @@ impl Session {
 
 pub struct CreateSession {
     pub email: Email,
-    pub password: Password,
+    pub password: SessionPassword,
 }

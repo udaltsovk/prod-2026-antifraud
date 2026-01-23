@@ -6,11 +6,11 @@ use lib::domain::{
 
 use crate::{
     email::Email,
-    password::{Password, PasswordHash},
+    password_hash::PasswordHash,
     user::{
         age::UserAge, full_name::UserFullName, gender::UserGender,
         is_active::UserStatus, marital_status::UserMaritalStatus,
-        region::UserRegion, role::UserRole,
+        password::UserPassword, region::UserRegion, role::UserRole,
     },
 };
 
@@ -19,6 +19,7 @@ pub mod full_name;
 pub mod gender;
 pub mod is_active;
 pub mod marital_status;
+pub mod password;
 pub mod region;
 pub mod role;
 
@@ -42,7 +43,7 @@ pub struct User {
 pub struct CreateUser {
     pub email: Email,
     pub full_name: UserFullName,
-    pub password: Password,
+    pub password: UserPassword,
     pub age: Optional<UserAge>,
     pub gender: Optional<UserGender>,
     pub marital_status: Optional<UserMaritalStatus>,

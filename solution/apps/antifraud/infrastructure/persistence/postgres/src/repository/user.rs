@@ -1,7 +1,7 @@
 use application::repository::user::UserRepository;
 use domain::{
     email::Email,
-    password::PasswordHash,
+    password_hash::PasswordHash,
     user::{
         CreateUser, User, is_active::UserStatus, region::UserRegion,
         role::UserRole,
