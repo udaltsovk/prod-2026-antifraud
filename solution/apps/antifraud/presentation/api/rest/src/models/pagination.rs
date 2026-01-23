@@ -2,8 +2,8 @@ use std::num::NonZero;
 
 use domain::pagination::Pagination;
 use lib::{
-    domain::validation::error::ValidationResult,
-    presentation::api::rest::{UserInput, into_validators, model::Parseable},
+    domain::{into_validators, validation::error::ValidationResult},
+    presentation::api::rest::{LossyUserInput, model::Parseable},
 };
 use serde::{Deserialize, Serialize};
 
@@ -46,8 +46,11 @@ where
 #[derive(Deserialize, Clone, Default)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 pub struct QueryPagination {
-    pub page: UserInput<i64>,
-    pub size: UserInput<i64>,
+    #[serde(default)]
+    pub page: LossyUserInput<i64>,
+
+    #[serde(default)]
+    pub size: LossyUserInput<i64>,
 }
 
 impl Parseable<Pagination> for QueryPagination {

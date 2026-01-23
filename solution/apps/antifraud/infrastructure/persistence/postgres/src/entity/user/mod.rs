@@ -51,6 +51,9 @@ pub struct StoredUser {
 
     pub role: StoredUserRole,
 
+    #[mapper(
+        when(ty = User, rename = status)
+    )]
     pub is_active: bool,
 
     pub created_at: DateTime<Utc>,

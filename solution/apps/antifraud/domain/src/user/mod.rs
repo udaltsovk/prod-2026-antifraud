@@ -1,18 +1,26 @@
 use chrono::{DateTime, Utc};
-use lib::domain::Id;
+use lib::domain::{
+    Id, into_validators,
+    validation::{
+        ExternalInput, Nullable, Optional, Validator,
+        error::{ValidationErrors, ValidationResult},
+    },
+};
 
 use crate::{
     email::Email,
     password::{Password, PasswordHash},
     user::{
         age::UserAge, full_name::UserFullName, gender::UserGender,
-        marital_status::UserMaritalStatus, region::UserRegion, role::UserRole,
+        is_active::UserStatus, marital_status::UserMaritalStatus,
+        region::UserRegion, role::UserRole,
     },
 };
 
 pub mod age;
 pub mod full_name;
 pub mod gender;
+pub mod is_active;
 pub mod marital_status;
 pub mod region;
 pub mod role;
@@ -28,7 +36,7 @@ pub struct User {
     pub marital_status: Option<UserMaritalStatus>,
     pub region: Option<UserRegion>,
     pub role: UserRole,
-    pub is_active: bool,
+    pub status: UserStatus,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -38,22 +46,62 @@ pub struct CreateUser {
     pub email: Email,
     pub full_name: UserFullName,
     pub password: Password,
-    pub age: Option<UserAge>,
-    pub gender: Option<UserGender>,
-    pub marital_status: Option<UserMaritalStatus>,
-    pub region: Option<UserRegion>,
+    pub age: Optional<UserAge>,
+    pub gender: Optional<UserGender>,
+    pub marital_status: Optional<UserMaritalStatus>,
+    pub region: Optional<UserRegion>,
     pub role: UserRole,
 }
 
 #[cfg_attr(debug_assertions, derive(Debug))]
-pub struct UserUpdate {
+pub struct UserCommonUpdate {
     pub full_name: UserFullName,
-    pub age: Option<UserAge>,
-    pub gender: Option<UserGender>,
-    pub marital_status: Option<UserMaritalStatus>,
-    pub region: Option<UserRegion>,
-    pub is_active: Option<bool>,
-    pub role: Option<UserRole>,
+    pub age: Nullable<UserAge>,
+    pub gender: Nullable<UserGender>,
+    pub marital_status: Nullable<UserMaritalStatus>,
+    pub region: Nullable<UserRegion>,
+}
+
+#[cfg_attr(debug_assertions, derive(Debug))]
+pub struct RawUserAdminUpdate {
+    pub status: ExternalInput<bool>,
+    pub role: ExternalInput<String>,
+}
+
+#[cfg_attr(debug_assertions, derive(Debug))]
+pub struct UserUpdate {
+    pub common: UserCommonUpdate,
+    pub status: Optional<UserStatus>,
+    pub role: Optional<UserRole>,
+}
+
+impl TryFrom<(ValidationResult<UserCommonUpdate>, RawUserAdminUpdate)>
+    for UserUpdate
+{
+    type Error = ValidationErrors;
+
+    fn try_from(
+        (common_update_result, raw_admin_update): (
+            ValidationResult<UserCommonUpdate>,
+            RawUserAdminUpdate,
+        ),
+    ) -> Result<Self, Self::Error> {
+        let mut errors = ValidationErrors::new();
+
+        let common: Validator<_> =
+            Validator::from_result(common_update_result, &mut errors);
+
+        let (admin_update_errors, (status, role)) =
+            into_validators!(raw_admin_update.status, raw_admin_update.role);
+
+        errors.extend(admin_update_errors);
+
+        errors.into_result(|ok| Self {
+            common: common.validated(ok),
+            status: status.validated(ok),
+            role: role.validated(ok),
+        })
+    }
 }
 
 impl UserUpdate {
@@ -64,19 +112,22 @@ impl UserUpdate {
             email,
             password_hash,
             role,
-            is_active,
+            status,
             created_at,
             updated_at,
             ..
         } = user;
 
         let Self {
-            full_name: full_name_update,
-            age: age_update,
-            gender: gender_update,
-            marital_status: marital_status_update,
-            region: region_update,
-            is_active: is_active_update,
+            common:
+                UserCommonUpdate {
+                    full_name: full_name_update,
+                    age: age_update,
+                    gender: gender_update,
+                    marital_status: marital_status_update,
+                    region: region_update,
+                },
+            status: status_update,
             role: role_update,
         } = self;
 
@@ -85,12 +136,12 @@ impl UserUpdate {
             email,
             full_name: full_name_update,
             password_hash,
-            age: age_update,
-            gender: gender_update,
-            marital_status: marital_status_update,
-            region: region_update,
+            age: age_update.into(),
+            gender: gender_update.into(),
+            marital_status: marital_status_update.into(),
+            region: region_update.into(),
             role: role_update.unwrap_or(role),
-            is_active: is_active_update.unwrap_or(is_active),
+            status: status_update.unwrap_or(status),
             created_at,
             updated_at,
         }

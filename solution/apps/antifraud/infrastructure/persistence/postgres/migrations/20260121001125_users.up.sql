@@ -3,24 +3,24 @@ $$
     BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_gender') THEN
             CREATE TYPE user_gender AS ENUM (
-                'male',
-                'female'
+                'MALE',
+                'FEMALE'
             );
         END IF;
 
         IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_marital_status') THEN
             CREATE TYPE user_marital_status AS ENUM (
-                'single',
-                'married',
-                'divorced',
-                'widowed'
+                'SINGLE',
+                'MARRIED',
+                'DIVORCED',
+                'WIDOWED'
             );
         END IF;
 
         IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
             CREATE TYPE user_role AS ENUM (
-                'admin',
-                'user'
+                'ADMIN',
+                'USER'
             );
         END IF;
     END

@@ -5,7 +5,7 @@ use sqlx::Type;
 #[derive(Mapper, Type)]
 #[mapper(ty = UserGender, from, into)]
 #[cfg_attr(debug_assertions, derive(Debug))]
-#[sqlx(type_name = "user_gender", rename_all = "lowercase")]
+#[sqlx(type_name = "user_gender", rename_all = "UPPERCASE")]
 pub enum StoredUserGender {
     Male,
     Female,

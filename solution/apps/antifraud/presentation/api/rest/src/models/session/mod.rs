@@ -1,7 +1,7 @@
 use domain::session::CreateSession;
 use lib::{
-    domain::validation::error::ValidationResult,
-    presentation::api::rest::{UserInput, into_validators, model::Parseable},
+    domain::{into_validators, validation::error::ValidationResult},
+    presentation::api::rest::{UserInput, model::Parseable},
 };
 use serde::{Deserialize, Serialize};
 

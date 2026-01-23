@@ -3,7 +3,10 @@ use chrono::{DateTime, Utc};
 use domain::{
     email::Email,
     password::PasswordHash,
-    user::{CreateUser, User, region::UserRegion, role::UserRole},
+    user::{
+        CreateUser, User, is_active::UserStatus, region::UserRegion,
+        role::UserRole,
+    },
 };
 use lib::{
     async_trait,
@@ -40,7 +43,7 @@ impl UserRepository for PostgresRepositoryImpl<User> {
             source.marital_status.map(StoredUserMaritalStatus::from);
         let region = source.region.map(UserRegion::into_inner);
         let role: StoredUserRole = source.role.into();
-        let is_active = source.is_active;
+        let is_active: bool = source.status.into();
         let created_at = source.created_at;
 
         let user = query_file_as!(
@@ -85,12 +88,12 @@ impl UserRepository for PostgresRepositoryImpl<User> {
             email,
             full_name,
             password_hash,
-            age,
-            gender,
-            marital_status,
-            region,
+            age: age.into(),
+            gender: gender.into(),
+            marital_status: marital_status.into(),
+            region: region.into(),
             role,
-            is_active: true,
+            status: UserStatus::Active,
             created_at: Utc::now(),
             updated_at: DateTime::UNIX_EPOCH,
         })
@@ -128,7 +131,7 @@ impl UserRepository for PostgresRepositoryImpl<User> {
         limit: i64,
         offset: i64,
         roles: Option<&[UserRole]>,
-        is_active: Option<bool>,
+        status: Option<UserStatus>,
     ) -> Result<Vec<User>, Self::AdapterError> {
         let mut connection = self.pool.get().await?;
 
@@ -138,6 +141,8 @@ impl UserRepository for PostgresRepositoryImpl<User> {
                 .map(|role| StoredUserRole::from(*role))
                 .collect::<Vec<_>>()
         });
+
+        let is_active = status.map(bool::from);
 
         query_file_as!(
             StoredUser,
@@ -158,7 +163,7 @@ impl UserRepository for PostgresRepositoryImpl<User> {
     async fn count(
         &self,
         roles: Option<&[UserRole]>,
-        is_active: Option<bool>,
+        status: Option<UserStatus>,
     ) -> Result<i64, Self::AdapterError> {
         let mut connection = self.pool.get().await?;
 
@@ -168,6 +173,8 @@ impl UserRepository for PostgresRepositoryImpl<User> {
                 .map(|role| StoredUserRole::from(*role))
                 .collect::<Vec<_>>()
         });
+
+        let is_active = status.map(bool::from);
 
         query_file_scalar!("sql/user/count.sql", roles as _, is_active)
             .fetch_one(&mut *connection)

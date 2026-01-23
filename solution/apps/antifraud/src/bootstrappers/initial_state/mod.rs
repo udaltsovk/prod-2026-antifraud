@@ -3,7 +3,7 @@ use domain::{
     pagination::{Pagination, page::PaginationPage, size::PaginationSize},
     user::{CreateUser, role::UserRole},
 };
-use lib::{async_trait, tap::Pipe as _};
+use lib::{async_trait, domain::validation::Optional, tap::Pipe as _};
 use presentation::api::rest::ModulesExt as _;
 
 pub use crate::bootstrappers::initial_state::config::InitialStateConfig;
@@ -19,10 +19,10 @@ impl InitialState {
         modules: Modules,
     ) -> Result<(), String> {
         let pagination = Pagination {
-            page: PaginationPage::default().pipe(Some),
+            page: PaginationPage::default().pipe(Optional::Present),
             size: PaginationSize::try_from(1)
                 .map_err(|err| err.to_string())?
-                .pipe(Some),
+                .pipe(Optional::Present),
         };
 
         if !modules

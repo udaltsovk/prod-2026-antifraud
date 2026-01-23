@@ -13,5 +13,7 @@ serde.workspace = true
 strum = { workspace = true, features = ["derive"] }
 thiserror.workspace = true
 
+result-like = "0.5"
+
 [lints]
 workspace = true

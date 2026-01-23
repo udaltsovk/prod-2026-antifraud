@@ -88,6 +88,7 @@ dependencies = [
  "chrono",
  "derive_more",
  "lib",
+ "result-like",
  "serde",
  "strum",
  "thiserror 2.0.17",
@@ -1317,7 +1318,7 @@ dependencies = [
 [[package]]
 name = "lib"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
+source = "git+https://github.com/udaltsovk/rust-backend-template#289ea694c2231c113e4e34337fc286f474dae43a"
 dependencies = [
  "async-trait",
  "axum",
@@ -1340,7 +1341,7 @@ dependencies = [
 [[package]]
 name = "lib-application"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
+source = "git+https://github.com/udaltsovk/rust-backend-template#289ea694c2231c113e4e34337fc286f474dae43a"
 dependencies = [
  "derive-where",
  "pastey",
@@ -1349,7 +1350,7 @@ dependencies = [
 [[package]]
 name = "lib-bootstrap"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
+source = "git+https://github.com/udaltsovk/rust-backend-template#289ea694c2231c113e4e34337fc286f474dae43a"
 dependencies = [
  "dotenvy",
  "fromenv",
@@ -1361,12 +1362,13 @@ dependencies = [
 [[package]]
 name = "lib-domain"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
+source = "git+https://github.com/udaltsovk/rust-backend-template#289ea694c2231c113e4e34337fc286f474dae43a"
 dependencies = [
  "derive-where",
  "num-traits",
  "pastey",
  "regex",
+ "result-like",
  "serde",
  "serde-value",
  "uuid",
@@ -1376,7 +1378,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
+source = "git+https://github.com/udaltsovk/rust-backend-template#289ea694c2231c113e4e34337fc286f474dae43a"
 dependencies = [
  "lib-infrastructure-persistence",
 ]
@@ -1384,7 +1386,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-instrumentation"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
+source = "git+https://github.com/udaltsovk/rust-backend-template#289ea694c2231c113e4e34337fc286f474dae43a"
 dependencies = [
  "lib-infrastructure-instrumentation-stdout",
 ]
@@ -1392,7 +1394,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-instrumentation-stdout"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
+source = "git+https://github.com/udaltsovk/rust-backend-template#289ea694c2231c113e4e34337fc286f474dae43a"
 dependencies = [
  "tracing",
  "tracing-subscriber",
@@ -1401,7 +1403,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-persistence"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
+source = "git+https://github.com/udaltsovk/rust-backend-template#289ea694c2231c113e4e34337fc286f474dae43a"
 dependencies = [
  "derive-where",
  "lib-domain",
@@ -1414,7 +1416,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-persistence-postgres"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
+source = "git+https://github.com/udaltsovk/rust-backend-template#289ea694c2231c113e4e34337fc286f474dae43a"
 dependencies = [
  "mobc-sqlx",
  "thiserror 2.0.17",
@@ -1423,7 +1425,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-persistence-redis"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
+source = "git+https://github.com/udaltsovk/rust-backend-template#289ea694c2231c113e4e34337fc286f474dae43a"
 dependencies = [
  "mobc-redis",
  "thiserror 2.0.17",
@@ -1432,7 +1434,7 @@ dependencies = [
 [[package]]
 name = "lib-macros"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
+source = "git+https://github.com/udaltsovk/rust-backend-template#289ea694c2231c113e4e34337fc286f474dae43a"
 dependencies = [
  "lib-macros-proc",
 ]
@@ -1440,7 +1442,7 @@ dependencies = [
 [[package]]
 name = "lib-macros-proc"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
+source = "git+https://github.com/udaltsovk/rust-backend-template#289ea694c2231c113e4e34337fc286f474dae43a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1450,7 +1452,7 @@ dependencies = [
 [[package]]
 name = "lib-presentation"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
+source = "git+https://github.com/udaltsovk/rust-backend-template#289ea694c2231c113e4e34337fc286f474dae43a"
 dependencies = [
  "lib-presentation-api",
 ]
@@ -1458,7 +1460,7 @@ dependencies = [
 [[package]]
 name = "lib-presentation-api"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
+source = "git+https://github.com/udaltsovk/rust-backend-template#289ea694c2231c113e4e34337fc286f474dae43a"
 dependencies = [
  "lib-presentation-api-rest",
 ]
@@ -1466,7 +1468,7 @@ dependencies = [
 [[package]]
 name = "lib-presentation-api-rest"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#11e538758977448f7c88a36551efd2f8a4618a9b"
+source = "git+https://github.com/udaltsovk/rust-backend-template#289ea694c2231c113e4e34337fc286f474dae43a"
 dependencies = [
  "axum",
  "chrono",
@@ -1930,6 +1932,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7edddbd0b52d732b21ad9a5fab5c704c14cd949e5e9a1ec5929a24fded1b904c"
 
 [[package]]
+name = "pmutil"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "52a40bc70c2c58040d2d8b167ba9a5ff59fc9dab7ad44771cfde3dcfde7a09c6"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "portable-atomic"
 version = "1.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2148,6 +2161,27 @@ name = "regex-syntax"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "caf4aa5b0f434c91fe5c7f1ecb6a5ece2130b02ad2a590589dda5146df959001"
+
+[[package]]
+name = "result-like"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bffa194499266bd8a1ac7da6ac7355aa0f81ffa1a5db2baaf20dd13854fd6f4e"
+dependencies = [
+ "result-like-derive",
+]
+
+[[package]]
+name = "result-like-derive"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "01d3b03471c9700a3a6bd166550daaa6124cb4a146ea139fb028e4edaa8f4277"
+dependencies = [
+ "pmutil",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "ring"

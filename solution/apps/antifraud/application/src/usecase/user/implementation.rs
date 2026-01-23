@@ -1,7 +1,10 @@
 use domain::{
     pagination::Pagination,
     session::CreateSession,
-    user::{CreateUser, User, UserUpdate, role::UserRole},
+    user::{
+        CreateUser, RawUserAdminUpdate, User, UserCommonUpdate, UserUpdate,
+        is_active::UserStatus, role::UserRole,
+    },
 };
 use lib::{
     async_trait,
@@ -90,7 +93,7 @@ where
             .verify(source.password.as_bytes(), &user.password_hash.0)
             .map_err(|_| UserUseCaseError::InvalidPassword)?;
 
-        if !user.is_active {
+        if user.status != UserStatus::Active {
             return UserUseCaseError::UserDeactivated.pipe(Err);
         }
 
@@ -130,9 +133,9 @@ where
     async fn list(
         &self,
         requester_role: Option<UserRole>,
-        pagination: ValidationResult<Pagination>,
+        pagination_result: ValidationResult<Pagination>,
         roles: Option<&[UserRole]>,
-        is_active: Option<bool>,
+        status: Option<UserStatus>,
     ) -> UserUseCaseResult<R, S, (Vec<User>, u64)> {
         if let Some(role) = requester_role
             && role != UserRole::Admin
@@ -140,14 +143,14 @@ where
             return UserUseCaseError::MissingPermissions.pipe(Err);
         }
 
-        let (limit, offset) = pagination
+        let (limit, offset) = pagination_result
             .map_err(UserUseCaseError::Validation)?
             .into_limit_offset();
 
         let items = self
             .repositories
             .user_repository()
-            .list(limit, offset, roles, is_active)
+            .list(limit, offset, roles, status)
             .await
             .map_err(R::Error::from)
             .map_err(UserUseCaseError::Repository)?;
@@ -155,7 +158,7 @@ where
         let total = self
             .repositories
             .user_repository()
-            .count(roles, is_active)
+            .count(roles, status)
             .await
             .map_err(R::Error::from)
             .map_err(UserUseCaseError::Repository)?;
@@ -168,21 +171,25 @@ where
         requester_id: Id<User>,
         requester_role: UserRole,
         user_id: Id<User>,
-        update: ValidationResult<UserUpdate>,
+        common_update_result: ValidationResult<UserCommonUpdate>,
+        raw_admin_update: RawUserAdminUpdate,
     ) -> UserUseCaseResult<R, S, User> {
         if requester_role != UserRole::Admin
-            && let Ok(update) = &update
-            && (update.is_active.is_some() || update.role.is_some())
+            && !(raw_admin_update.status.is_missing()
+                && raw_admin_update.role.is_missing())
         {
             return UserUseCaseError::MissingPermissions.pipe(Err);
         }
+
+        let update =
+            UserUpdate::try_from((common_update_result, raw_admin_update))
+                .map_err(UserUseCaseError::Validation)?;
 
         let user = self
             .get_by_id(requester_id, requester_role, user_id)
             .await?;
 
-        let updated_user =
-            update.map_err(UserUseCaseError::Validation)?.apply_to(user);
+        let updated_user = update.apply_to(user);
 
         self.repositories
             .user_repository()

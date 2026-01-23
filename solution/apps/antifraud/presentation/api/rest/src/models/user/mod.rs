@@ -1,10 +1,10 @@
 use chrono::{DateTime, Utc};
 use domain::user::{CreateUser, User, role::UserRole};
 use lib::{
-    domain::validation::error::ValidationResult,
+    domain::{into_validators, validation::error::ValidationResult},
     model_mapper::Mapper,
     presentation::api::rest::{
-        UserInput, into_nested_validators, into_validators, model::Parseable,
+        UserInput, into_nested_validators, model::Parseable,
     },
     uuid::Uuid,
 };
@@ -48,6 +48,7 @@ pub struct JsonUser {
 
     pub role: JsonUserRole,
 
+    #[mapper(rename = status)]
     pub is_active: bool,
 
     pub created_at: DateTime<Utc>,
@@ -118,6 +119,7 @@ pub struct CreateJsonUserWithRole {
     #[serde(flatten)]
     pub inner: CreateJsonUser,
 
+    #[serde(default)]
     pub role: UserInput<String>,
 }
 
@@ -136,3 +138,29 @@ impl Parseable<CreateUser> for CreateJsonUserWithRole {
         })
     }
 }
+
+// #[derive(Deserialize)]
+// #[cfg_attr(debug_assertions, derive(Debug))]
+// #[serde(rename_all = "camelCase")]
+// pub struct JsonUserUpdate {
+//     #[serde(default)]
+//     pub age: UserInput<i64>,
+
+//     #[serde(default)]
+//     pub full_name: UserInput<String>,
+
+//     #[serde(default)]
+//     pub gender: UserInput<String>,
+
+//     #[serde(default)]
+//     pub marital_status: UserInput<String>,
+
+//     #[serde(default)]
+//     pub region: UserInput<String>,
+
+//     #[serde(default)]
+//     pub is_active: UserInput<bool>,
+
+//     #[serde(default)]
+//     pub role: UserInput<String>,
+// }
