@@ -66,4 +66,11 @@ where
         common_update_result: ValidationResult<UserCommonUpdate>,
         raw_admin_update: RawUserAdminUpdate,
     ) -> UserUseCaseResult<R, S, User>;
+
+    async fn deactivate_by_id(
+        &self,
+        requester_id: Id<User>,
+        requester_role: UserRole,
+        user_id: Id<User>,
+    ) -> UserUseCaseResult<R, S, User>;
 }

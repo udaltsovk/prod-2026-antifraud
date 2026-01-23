@@ -37,7 +37,9 @@ where
         )
         .route(
             "/{user_id}",
-            get(by_id::get_user_by_id::<M>).put(by_id::update_user_by_id::<M>),
+            get(by_id::get_user_by_id::<M>)
+                .put(by_id::update_user_by_id::<M>)
+                .delete(by_id::deactivate_user_by_id::<M>),
         )
         .route("/", post(register_user::<M>).get(list_users::<M>))
 }

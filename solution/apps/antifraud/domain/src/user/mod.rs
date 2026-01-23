@@ -1,10 +1,7 @@
 use chrono::{DateTime, Utc};
 use lib::domain::{
-    Id, into_validators,
-    validation::{
-        ExternalInput, Nullable, Optional, Validator,
-        error::{ValidationErrors, ValidationResult},
-    },
+    Id,
+    validation::{ExternalInput, Nullable, Optional},
 };
 
 use crate::{
@@ -71,37 +68,8 @@ pub struct RawUserAdminUpdate {
 #[cfg_attr(debug_assertions, derive(Debug))]
 pub struct UserUpdate {
     pub common: UserCommonUpdate,
-    pub status: UserStatus,
-    pub role: UserRole,
-}
-
-impl TryFrom<(ValidationResult<UserCommonUpdate>, RawUserAdminUpdate)>
-    for UserUpdate
-{
-    type Error = ValidationErrors;
-
-    fn try_from(
-        (common_update_result, raw_admin_update): (
-            ValidationResult<UserCommonUpdate>,
-            RawUserAdminUpdate,
-        ),
-    ) -> Result<Self, Self::Error> {
-        let mut errors = ValidationErrors::new();
-
-        let common: Validator<_> =
-            Validator::from_result(common_update_result, &mut errors);
-
-        let (admin_update_errors, (status, role)) =
-            into_validators!(raw_admin_update.status, raw_admin_update.role);
-
-        errors.extend(admin_update_errors);
-
-        errors.into_result(|ok| Self {
-            common: common.validated(ok),
-            status: status.validated(ok),
-            role: role.validated(ok),
-        })
-    }
+    pub status: Optional<UserStatus>,
+    pub role: Optional<UserRole>,
 }
 
 impl UserUpdate {
@@ -111,6 +79,8 @@ impl UserUpdate {
             id,
             email,
             password_hash,
+            role,
+            status,
             created_at,
             updated_at,
             ..
@@ -138,8 +108,8 @@ impl UserUpdate {
             gender: gender_update.into(),
             marital_status: marital_status_update.into(),
             region: region_update.into(),
-            role: role_update,
-            status: status_update,
+            role: role_update.unwrap_or(role),
+            status: status_update.unwrap_or(status),
             created_at,
             updated_at,
         }

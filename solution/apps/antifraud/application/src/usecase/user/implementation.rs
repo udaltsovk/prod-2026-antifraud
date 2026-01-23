@@ -8,9 +8,15 @@ use domain::{
 };
 use lib::{
     async_trait,
-    domain::{Id, validation::error::ValidationResult},
+    domain::{
+        Id, into_validators,
+        validation::{
+            Optional, Validator,
+            error::{ValidationErrors, ValidationResult},
+        },
+    },
     instrument_all,
-    tap::Pipe as _,
+    tap::{Pipe as _, Tap as _},
 };
 
 use crate::{
@@ -181,15 +187,66 @@ where
             return UserUseCaseError::MissingPermissions.pipe(Err);
         }
 
-        let update =
-            UserUpdate::try_from((common_update_result, raw_admin_update))
-                .map_err(UserUseCaseError::Validation)?;
+        let mut errors = ValidationErrors::new();
+
+        let common: Validator<_> =
+            Validator::from_result(common_update_result, &mut errors);
+
+        let (admin_update_errors, (status, role)) =
+            if requester_role == UserRole::Admin {
+                let (update_errors, (status, role)) = into_validators!(
+                    raw_admin_update.status,
+                    raw_admin_update.role
+                );
+
+                let status = status.map(Optional::Present);
+                let role = role.map(Optional::Present);
+
+                (update_errors, (status, role))
+            } else {
+                into_validators!(raw_admin_update.status, raw_admin_update.role)
+            };
+
+        errors.extend(admin_update_errors);
+
+        let user_update = errors
+            .into_result(|ok| UserUpdate {
+                common: common.validated(ok),
+                status: status.validated(ok),
+                role: role.validated(ok),
+            })
+            .map_err(UserUseCaseError::Validation)?;
 
         let user = self
             .get_by_id(requester_id, requester_role, user_id)
             .await?;
 
-        let updated_user = update.apply_to(user);
+        let updated_user = user_update.apply_to(user);
+
+        self.repositories
+            .user_repository()
+            .update(updated_user)
+            .await
+            .map_err(R::Error::from)
+            .map_err(UserUseCaseError::Repository)
+    }
+
+    async fn deactivate_by_id(
+        &self,
+        requester_id: Id<User>,
+        requester_role: UserRole,
+        user_id: Id<User>,
+    ) -> UserUseCaseResult<R, S, User> {
+        if requester_role != UserRole::Admin {
+            return UserUseCaseError::MissingPermissions.pipe(Err);
+        }
+
+        let user = self
+            .get_by_id(requester_id, requester_role, user_id)
+            .await?;
+
+        let updated_user =
+            user.tap_mut(|user| user.status = UserStatus::Deactivated);
 
         self.repositories
             .user_repository()

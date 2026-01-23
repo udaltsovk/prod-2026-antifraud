@@ -70,3 +70,26 @@ where
         .with_status(StatusCode::OK)
         .pipe(Ok)
 }
+
+pub async fn deactivate_user_by_id<M>(
+    modules: State<M>,
+    UserSession {
+        user_id: requester_id,
+        user_role: requester_role,
+    }: UserSession,
+    Path((_api_version, user_id)): Path<((), Uuid)>,
+) -> ApiResult<impl IntoResponse>
+where
+    M: ModulesExt,
+{
+    modules
+        .user_usecase()
+        .deactivate_by_id(requester_id, requester_role, user_id.into())
+        .await
+        .map_err(ApiError::from)?
+        .conv::<JsonUser>()
+        .pipe(Json)
+        .into_response()
+        .with_status(StatusCode::OK)
+        .pipe(Ok)
+}
