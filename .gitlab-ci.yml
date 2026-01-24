@@ -58,7 +58,7 @@ test:
     - EXIT_CODE=$(docker inspect "$CHECKER_ID" --format='{{.State.ExitCode}}')
     - exit "$EXIT_CODE"
   after_script:
-    - docker compose logs antifraud-service
+    - docker compose logs antifraud-service || true
     - docker logs "$CHECKER_ID" || true
     - docker compose down -v || true
   artifacts:
