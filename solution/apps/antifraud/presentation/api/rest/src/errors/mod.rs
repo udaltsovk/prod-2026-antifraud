@@ -45,7 +45,7 @@ pub enum ApiError {
         status_code: StatusCode,
         error_code: &'static str,
         message: String,
-        context: Value,
+        details: Value,
     },
 }
 
@@ -127,10 +127,10 @@ impl IntoResponse for ApiError {
                 status_code,
                 error_code,
                 message: error,
-                context,
+                details,
             } => {
-                JsonError::with_context(status_code, error_code, error, context)
-                    .expect("context from value should serialize successfully")
+                JsonError::with_details(status_code, error_code, error, details)
+                    .expect("details from value should serialize successfully")
             },
         }
         .into_response()

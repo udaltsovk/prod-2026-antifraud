@@ -14,7 +14,7 @@ where
     S: ServicesModuleExt,
 {
     fn from(error: SessionUseCaseError<R, S>) -> Self {
-        let (status_code, error_code, error, context) = {
+        let (status_code, error_code, error, details) = {
             use SessionUseCaseError as E;
             // use StatusCode as C;
             match error {
@@ -28,7 +28,7 @@ where
             status_code,
             error_code,
             message: error,
-            context,
+            details,
         }
     }
 }
