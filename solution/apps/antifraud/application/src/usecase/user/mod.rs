@@ -3,8 +3,7 @@ use domain::{
     pagination::Pagination,
     session::CreateSession,
     user::{
-        CreateUser, RawUserAdminUpdate, User, UserCommonUpdate,
-        is_active::UserStatus, role::UserRole,
+        CreateUser, RawUserAdminUpdate, User, UserCommonUpdate, role::UserRole,
     },
 };
 use lib::{
@@ -71,8 +70,6 @@ where
         &self,
         requester_role: Option<UserRole>,
         pagination_result: ValidationResult<Pagination>,
-        roles: Option<&[UserRole]>,
-        status: Option<UserStatus>,
     ) -> UserUseCaseResult<R, S, (Vec<User>, u64)>;
 
     async fn update_by_id(

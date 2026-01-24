@@ -1,7 +1,10 @@
 use application::{
     repository::RepositoriesModuleExt,
     service::ServicesModuleExt,
-    usecase::{session::SessionUseCase, user::UserUseCase},
+    usecase::{
+        fraud_rule::FraudRuleUseCase, session::SessionUseCase,
+        user::UserUseCase,
+    },
 };
 use lib::presentation::usecase_impl_type;
 
@@ -16,6 +19,10 @@ pub trait ModulesExt: Clone + Send + Sync + 'static {
     fn session_usecase(
         &self,
     ) -> &impl SessionUseCase<Self::RepositoriesModule, Self::ServicesModule>;
+
+    fn fraud_rule_usecase(
+        &self,
+    ) -> &impl FraudRuleUseCase<Self::RepositoriesModule, Self::ServicesModule>;
 }
 
 usecase_impl_type!();

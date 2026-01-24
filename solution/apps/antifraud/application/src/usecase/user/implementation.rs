@@ -4,7 +4,7 @@ use domain::{
     session::CreateSession,
     user::{
         CreateUser, RawUserAdminUpdate, User, UserCommonUpdate, UserUpdate,
-        is_active::UserStatus, role::UserRole,
+        role::UserRole, status::UserStatus,
     },
 };
 use lib::{
@@ -150,8 +150,6 @@ where
         &self,
         requester_role: Option<UserRole>,
         pagination_result: ValidationResult<Pagination>,
-        roles: Option<&[UserRole]>,
-        status: Option<UserStatus>,
     ) -> UserUseCaseResult<R, S, (Vec<User>, u64)> {
         if let Some(role) = requester_role
             && role != UserRole::Admin
@@ -166,7 +164,7 @@ where
         let items = self
             .repositories
             .user_repository()
-            .list(limit, offset, roles, status)
+            .list(limit, offset)
             .await
             .map_err(R::Error::from)
             .map_err(UserUseCaseError::Repository)?;
@@ -174,7 +172,7 @@ where
         let total = self
             .repositories
             .user_repository()
-            .count(roles, status)
+            .count()
             .await
             .map_err(R::Error::from)
             .map_err(UserUseCaseError::Repository)?;
@@ -207,6 +205,10 @@ where
         let user = self
             .get_by_id(requester_id, requester_role, user_id)
             .await?;
+
+        if user_update.eq(&user) {
+            return Ok(user);
+        }
 
         let updated_user = user_update.apply_to(user);
 

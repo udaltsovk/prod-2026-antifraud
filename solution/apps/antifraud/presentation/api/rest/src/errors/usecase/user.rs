@@ -44,24 +44,11 @@ where
                 },
 
                 E::NotFoundByEmail {
-                    ref email, ..
-                } => (
-                    C::NOT_FOUND,
-                    "NOT_FOUND",
-                    error.to_string(),
-                    json!({
-                        "email": email.to_string()
-                    }),
-                ),
-
-                E::NotFoundById(id) => (
-                    C::NOT_FOUND,
-                    "NOT_FOUND",
-                    error.to_string(),
-                    json!({
-                        "user_id": id.to_string()
-                    }),
-                ),
+                    ..
+                }
+                | E::NotFoundById(..) => {
+                    (C::NOT_FOUND, "NOT_FOUND", error.to_string(), Value::Null)
+                },
 
                 E::MissingPermissions => {
                     (C::FORBIDDEN, "FORBIDDEN", error.to_string(), Value::Null)

@@ -1,0 +1,31 @@
+INSERT INTO
+    fraud_rules (
+        id,
+        name,
+        description,
+        dsl_expression,
+        enabled,
+        priority,
+        created_at,
+        updated_at
+    )
+VALUES
+    (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        NOW(),
+        NOW()
+    )
+RETURNING
+    id,
+    name,
+    description,
+    dsl_expression,
+    enabled,
+    priority,
+    created_at,
+    updated_at

@@ -11,5 +11,5 @@ pub enum UserStatus {
 impl_try_from_external_input!(
     domain_type = UserStatus,
     input_type = bool,
-    field = "is_active"
+    field = "isActive"
 );

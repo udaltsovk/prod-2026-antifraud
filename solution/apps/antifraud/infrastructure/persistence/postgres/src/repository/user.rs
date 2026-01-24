@@ -2,17 +2,14 @@ use application::repository::user::UserRepository;
 use domain::{
     email::Email,
     password_hash::PasswordHash,
-    user::{
-        CreateUser, User, is_active::UserStatus, region::UserRegion,
-        role::UserRole,
-    },
+    user::{CreateUser, User, region::UserRegion},
 };
 use lib::{
     async_trait,
     domain::{DomainType as _, Id},
     infrastructure::persistence::postgres::error::PostgresAdapterError,
     instrument_all,
-    tap::{Conv as _, Pipe as _},
+    tap::Pipe as _,
 };
 use sqlx::{query_file_as, query_file_scalar};
 
@@ -65,8 +62,8 @@ impl UserRepository for PostgresRepositoryImpl<User> {
             role as _,
         )
         .fetch_one(&mut *connection)
-        .await?
-        .conv::<User>();
+        .await
+        .map(User::from)?;
 
         Ok(user)
     }
@@ -101,53 +98,22 @@ impl UserRepository for PostgresRepositoryImpl<User> {
         &self,
         limit: i64,
         offset: i64,
-        roles: Option<&[UserRole]>,
-        status: Option<UserStatus>,
     ) -> Result<Vec<User>, Self::AdapterError> {
         let mut connection = self.pool.get().await?;
 
-        let roles = roles.map(|roles| {
-            roles
-                .iter()
-                .map(|role| StoredUserRole::from(*role))
-                .collect::<Vec<_>>()
-        });
-
-        let is_active = status.map(bool::from);
-
-        query_file_as!(
-            StoredUser,
-            "sql/user/list.sql",
-            roles as _,
-            is_active,
-            limit,
-            offset,
-        )
-        .fetch_all(&mut *connection)
-        .await?
-        .into_iter()
-        .map(User::from)
-        .collect::<Vec<_>>()
-        .pipe(Ok)
+        query_file_as!(StoredUser, "sql/user/list.sql", limit, offset,)
+            .fetch_all(&mut *connection)
+            .await?
+            .into_iter()
+            .map(User::from)
+            .collect::<Vec<_>>()
+            .pipe(Ok)
     }
 
-    async fn count(
-        &self,
-        roles: Option<&[UserRole]>,
-        status: Option<UserStatus>,
-    ) -> Result<i64, Self::AdapterError> {
+    async fn count(&self) -> Result<i64, Self::AdapterError> {
         let mut connection = self.pool.get().await?;
 
-        let roles = roles.map(|roles| {
-            roles
-                .iter()
-                .map(|role| StoredUserRole::from(*role))
-                .collect::<Vec<_>>()
-        });
-
-        let is_active = status.map(bool::from);
-
-        query_file_scalar!("sql/user/count.sql", roles as _, is_active)
+        query_file_scalar!("sql/user/count.sql")
             .fetch_one(&mut *connection)
             .await?
             .unwrap_or_default()
@@ -180,8 +146,8 @@ impl UserRepository for PostgresRepositoryImpl<User> {
             is_active,
         )
         .fetch_one(&mut *connection)
-        .await?
-        .conv::<User>();
+        .await
+        .map(User::from)?;
 
         Ok(user)
     }

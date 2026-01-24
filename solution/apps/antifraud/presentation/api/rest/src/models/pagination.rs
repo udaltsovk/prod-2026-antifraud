@@ -1,5 +1,3 @@
-use std::num::NonZero;
-
 use domain::pagination::Pagination;
 use lib::{
     domain::{into_validators, validation::error::ValidationResult},
@@ -16,7 +14,7 @@ where
     items: Vec<T>,
     total: u64,
     page: u64,
-    size: NonZero<u8>,
+    size: u8,
 }
 
 impl<T> Paginated<T>

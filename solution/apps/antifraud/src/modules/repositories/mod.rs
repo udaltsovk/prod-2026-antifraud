@@ -1,5 +1,5 @@
 use application::repository::RepositoriesModuleExt;
-use domain::user::User;
+use domain::{fraud_rule::FraudRule, user::User};
 use infrastructure::persistence::postgres::{
     POSTGRES_MIGRATOR, repository::PostgresRepositoryImpl,
 };
@@ -27,6 +27,7 @@ mod config;
 #[derive(Clone)]
 pub struct RepositoriesModule {
     user_repository: PostgresRepositoryImpl<User>,
+    fraud_rule_repository: PostgresRepositoryImpl<FraudRule>,
 }
 
 impl RepositoriesModule {
@@ -35,9 +36,11 @@ impl RepositoriesModule {
         let _redis = Self::setup_redis(&config.redis);
 
         let user_repository = PostgresRepositoryImpl::new(&postgres);
+        let fraud_rule_repository = PostgresRepositoryImpl::new(&postgres);
 
         Self {
             user_repository,
+            fraud_rule_repository,
         }
     }
 
@@ -70,9 +73,14 @@ pub enum RepositoryError {
 
 impl RepositoriesModuleExt for RepositoriesModule {
     type Error = RepositoryError;
-    type UserRepo = PostgresRepositoryImpl<User>;
+    type FraudRuleRepository = PostgresRepositoryImpl<FraudRule>;
+    type UserRepository = PostgresRepositoryImpl<User>;
 
-    fn user_repository(&self) -> &Self::UserRepo {
+    fn user_repository(&self) -> &Self::UserRepository {
         &self.user_repository
+    }
+
+    fn fraud_rule_repository(&self) -> &Self::FraudRuleRepository {
+        &self.fraud_rule_repository
     }
 }

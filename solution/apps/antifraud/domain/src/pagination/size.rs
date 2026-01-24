@@ -1,4 +1,4 @@
-use std::{num::NonZero, sync::LazyLock};
+use std::sync::LazyLock;
 
 use lib::{
     DomainType,
@@ -14,7 +14,7 @@ use lib::{
 
 #[derive(DomainType, Clone, Copy)]
 #[cfg_attr(debug_assertions, derive(Debug))]
-pub struct PaginationSize(NonZero<u8>);
+pub struct PaginationSize(u8);
 
 static CONSTRAINTS: LazyLock<Constraints<i64>> = LazyLock::new(|| {
     Constraints::builder("size")
@@ -29,16 +29,9 @@ impl TryFrom<i64> for PaginationSize {
         CONSTRAINTS.check(&value).into_result(|_| {
             value
                 .try_conv::<u8>()
-                .map_or_else(
-                    Self::it_should_be_safe_to_unwrap(CONSTRAINTS.name()),
-                    |val| {
-                        NonZero::new(val).unwrap_or_else(|| {
-                            Self::it_should_be_safe_to_unwrap(
-                                CONSTRAINTS.name(),
-                            )(())
-                        })
-                    },
-                )
+                .unwrap_or_else(Self::it_should_be_safe_to_unwrap(
+                    CONSTRAINTS.name(),
+                ))
                 .pipe(Self)
         })
     }
@@ -52,15 +45,12 @@ impl_try_from_external_input!(
 
 impl From<PaginationSize> for i64 {
     fn from(age: PaginationSize) -> Self {
-        age.0.get().into()
+        age.0.into()
     }
 }
 
 impl Default for PaginationSize {
     fn default() -> Self {
-        Self(
-            NonZero::<u8>::try_from(20)
-                .expect("20 is not zero is in the u8 range"),
-        )
+        Self(20)
     }
 }

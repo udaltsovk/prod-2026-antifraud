@@ -1,8 +1,4 @@
-#![allow(
-    clippy::empty_docs,
-    reason = "API model documentation will be added in future iterations"
-)]
-
+pub mod fraud_rule;
 pub mod pagination;
 pub mod session;
 pub mod user;

@@ -13,7 +13,7 @@ use lib::{
 
 use crate::constraints::PASSWORD_LENGTH_CONSTRAINTS;
 
-#[derive(DomainType)]
+#[derive(DomainType, PartialEq, Eq)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 pub struct UserPassword(String);
 

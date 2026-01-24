@@ -77,7 +77,7 @@ where
 
     let (users, count) = modules
         .user_usecase()
-        .list(Some(user_session.user_role), pagination.clone(), None, None)
+        .list(Some(user_session.user_role), pagination.clone())
         .await?;
 
     Paginated::<JsonUser>::from_pagination(pagination?, users, count)

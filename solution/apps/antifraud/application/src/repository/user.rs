@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use domain::{
     email::Email,
     password_hash::PasswordHash,
-    user::{CreateUser, User, is_active::UserStatus, role::UserRole},
+    user::{CreateUser, User},
 };
 use lib::{async_trait, domain::Id};
 
@@ -32,15 +32,9 @@ pub trait UserRepository {
         &self,
         limit: i64,
         offset: i64,
-        roles: Option<&[UserRole]>,
-        status: Option<UserStatus>,
     ) -> Result<Vec<User>, Self::AdapterError>;
 
-    async fn count(
-        &self,
-        roles: Option<&[UserRole]>,
-        status: Option<UserStatus>,
-    ) -> Result<i64, Self::AdapterError>;
+    async fn count(&self) -> Result<i64, Self::AdapterError>;
 
     async fn update(&self, source: User) -> Result<User, Self::AdapterError>;
 }

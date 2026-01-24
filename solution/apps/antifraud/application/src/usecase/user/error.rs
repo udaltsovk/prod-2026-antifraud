@@ -33,7 +33,7 @@ where
     #[error("Пользователь не найден")]
     NotFoundById(Id<User>),
 
-    #[error("invalid password")]
+    #[error("Неверный пароль")]
     InvalidPassword,
 
     #[error("Недостаточно прав для выполнения операции")]

@@ -30,7 +30,6 @@ where
         .user_usecase()
         .get_by_id(requester_id, requester_role, user_id.into())
         .await
-        .map_err(ApiError::from)
         .map(JsonUser::from)
         .map(Json)?
         .into_response()
@@ -63,7 +62,6 @@ where
             raw_admin_update,
         )
         .await
-        .map_err(ApiError::from)
         .map(JsonUser::from)
         .map(Json)?
         .into_response()

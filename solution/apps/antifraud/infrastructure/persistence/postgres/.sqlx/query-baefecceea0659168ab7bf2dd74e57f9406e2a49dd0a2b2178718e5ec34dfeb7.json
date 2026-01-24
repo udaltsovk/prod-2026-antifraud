@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT\n    id,\n    email,\n    full_name,\n    password_hash,\n    age,\n    gender AS \"gender: _\",\n    marital_status AS \"marital_status: _\",\n    region,\n    role AS \"role: _\",\n    is_active,\n    created_at,\n    updated_at\nFROM\n    users\nWHERE\n    (\n        $1::user_role [] IS NULL\n        OR role = ANY($1)\n    )\n    AND (\n        $2::bool IS NULL\n        OR is_active = $2\n    )\nORDER BY\n    created_at\nLIMIT\n    $3 OFFSET $4;\n",
+  "query": "SELECT\n    id,\n    email,\n    full_name,\n    password_hash,\n    age,\n    gender AS \"gender: _\",\n    marital_status AS \"marital_status: _\",\n    region,\n    role AS \"role: _\",\n    is_active,\n    created_at,\n    updated_at\nFROM\n    users\nORDER BY\n    created_at\nLIMIT\n    $1 OFFSET $2\n",
   "describe": {
     "columns": [
       {
@@ -98,25 +98,6 @@
     ],
     "parameters": {
       "Left": [
-        {
-          "Custom": {
-            "name": "user_role[]",
-            "kind": {
-              "Array": {
-                "Custom": {
-                  "name": "user_role",
-                  "kind": {
-                    "Enum": [
-                      "ADMIN",
-                      "USER"
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "Bool",
         "Int8",
         "Int8"
       ]
@@ -136,5 +117,5 @@
       false
     ]
   },
-  "hash": "6352bfcdd3102e16805f92a045ffd2bf75e23b4c8b3601b057e6161732361442"
+  "hash": "baefecceea0659168ab7bf2dd74e57f9406e2a49dd0a2b2178718e5ec34dfeb7"
 }
