@@ -1,4 +1,8 @@
-use domain::fraud_rule::dsl_expression::FraudRuleDslExpression;
+use domain::{
+    fraud_rule::{FraudRule, dsl_expression::FraudRuleDslExpression},
+    transaction::{CreateTransaction, decision::TransactionDecision},
+    user::User,
+};
 
 pub use crate::service::dsl::error::{
     DslServiceError, DslServiceErrorKind, DslServiceResult,
@@ -12,8 +16,10 @@ pub trait DslService {
         expression: FraudRuleDslExpression,
     ) -> DslServiceResult<FraudRuleDslExpression>;
 
-    fn evaluate(
+    fn decide(
         &self,
-        expression: FraudRuleDslExpression,
-    ) -> DslServiceResult<bool>;
+        rules: &[FraudRule],
+        transaction: CreateTransaction,
+        user: &User,
+    ) -> TransactionDecision;
 }

@@ -1,6 +1,8 @@
 use std::fmt::Debug;
 
-use domain::fraud_rule::{CreateFraudRule, FraudRule, name::FraudRuleName};
+use domain::fraud_rule::{
+    CreateFraudRule, FraudRule, name::FraudRuleName, status::FraudRuleStatus,
+};
 use lib::{async_trait, domain::Id};
 
 #[async_trait]
@@ -9,8 +11,7 @@ pub trait FraudRuleRepository {
 
     async fn create(
         &self,
-        id: Id<FraudRule>,
-        source: CreateFraudRule,
+        source: (Id<FraudRule>, CreateFraudRule),
     ) -> Result<FraudRule, Self::AdapterError>;
 
     async fn find_by_id(
@@ -23,7 +24,10 @@ pub trait FraudRuleRepository {
         name: &FraudRuleName,
     ) -> Result<Option<FraudRule>, Self::AdapterError>;
 
-    async fn list(&self) -> Result<Vec<FraudRule>, Self::AdapterError>;
+    async fn list(
+        &self,
+        status: Option<FraudRuleStatus>,
+    ) -> Result<Vec<FraudRule>, Self::AdapterError>;
 
     async fn update(
         &self,

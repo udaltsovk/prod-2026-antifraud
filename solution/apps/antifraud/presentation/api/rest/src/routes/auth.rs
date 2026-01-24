@@ -1,5 +1,6 @@
 use application::usecase::{
-    session::SessionUseCase as _, user::UserUseCase as _,
+    session::SessionUseCase as _,
+    user::{CreateUserSource, UserUseCase as _},
 };
 use axum::{
     Router, extract::State, http::StatusCode, response::IntoResponse,
@@ -34,7 +35,10 @@ pub async fn register<M: ModulesExt>(
 ) -> ApiResult<impl IntoResponse> {
     let user = source.parse();
 
-    let user = modules.user_usecase().create(None, user).await?;
+    let user = modules
+        .user_usecase()
+        .create(CreateUserSource::Registration, user)
+        .await?;
 
     let token = modules.session_usecase().create(user.id, user.role)?;
 

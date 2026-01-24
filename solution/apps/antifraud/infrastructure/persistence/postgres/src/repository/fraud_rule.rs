@@ -1,7 +1,7 @@
 use application::repository::fraud_rule::FraudRuleRepository;
 use domain::fraud_rule::{
     CreateFraudRule, FraudRule, description::FraudRuleDescription,
-    name::FraudRuleName,
+    name::FraudRuleName, status::FraudRuleStatus,
 };
 use lib::{
     async_trait,
@@ -23,11 +23,8 @@ impl FraudRuleRepository for PostgresRepositoryImpl<FraudRule> {
 
     async fn create(
         &self,
-        id: Id<FraudRule>,
-        source: CreateFraudRule,
+        (id, source): (Id<FraudRule>, CreateFraudRule),
     ) -> Result<FraudRule, Self::AdapterError> {
-        let mut connection = self.pool.get().await?;
-
         let id = id.value;
         let name = source.name.into_inner();
         let description = source
@@ -37,6 +34,8 @@ impl FraudRuleRepository for PostgresRepositoryImpl<FraudRule> {
         let dsl_expression = source.dsl_expression.into_inner();
         let enabled = source.status.unwrap_or_default().to_bool();
         let priority: i64 = source.priority.unwrap_or_default().into_inner();
+
+        let mut connection = self.pool.get().await?;
 
         let fraud_rule = query_file_as!(
             StoredFraudRule,
@@ -89,10 +88,15 @@ impl FraudRuleRepository for PostgresRepositoryImpl<FraudRule> {
         .pipe(Ok)
     }
 
-    async fn list(&self) -> Result<Vec<FraudRule>, Self::AdapterError> {
+    async fn list(
+        &self,
+        status: Option<FraudRuleStatus>,
+    ) -> Result<Vec<FraudRule>, Self::AdapterError> {
+        let enabled = status.map(FraudRuleStatus::to_bool);
+
         let mut connection = self.pool.get().await?;
 
-        query_file_as!(StoredFraudRule, "sql/fraud_rule/list.sql",)
+        query_file_as!(StoredFraudRule, "sql/fraud_rule/list.sql", enabled)
             .fetch_all(&mut *connection)
             .await?
             .into_iter()
@@ -105,8 +109,6 @@ impl FraudRuleRepository for PostgresRepositoryImpl<FraudRule> {
         &self,
         source: FraudRule,
     ) -> Result<FraudRule, Self::AdapterError> {
-        let mut connection = self.pool.get().await?;
-
         let id = source.id.value;
         let name = source.name.into_inner();
         let description =
@@ -114,6 +116,8 @@ impl FraudRuleRepository for PostgresRepositoryImpl<FraudRule> {
         let dsl_expression = source.dsl_expression.into_inner();
         let enabled = source.status.to_bool();
         let priority: i64 = source.priority.into_inner();
+
+        let mut connection = self.pool.get().await?;
 
         let fraud_rule = query_file_as!(
             StoredFraudRule,

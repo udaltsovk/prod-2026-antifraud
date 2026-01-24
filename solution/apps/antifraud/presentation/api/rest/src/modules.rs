@@ -3,7 +3,7 @@ use application::{
     service::ServicesModuleExt,
     usecase::{
         fraud_rule::FraudRuleUseCase, session::SessionUseCase,
-        user::UserUseCase,
+        transaction::TransactionUseCase, user::UserUseCase,
     },
 };
 use lib::presentation::usecase_impl_type;
@@ -23,6 +23,10 @@ pub trait ModulesExt: Clone + Send + Sync + 'static {
     fn fraud_rule_usecase(
         &self,
     ) -> &impl FraudRuleUseCase<Self::RepositoriesModule, Self::ServicesModule>;
+
+    fn transaction_usecase(
+        &self,
+    ) -> &impl TransactionUseCase<Self::RepositoriesModule, Self::ServicesModule>;
 }
 
 usecase_impl_type!();

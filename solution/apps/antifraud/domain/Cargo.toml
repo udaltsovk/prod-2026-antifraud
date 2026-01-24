@@ -7,13 +7,17 @@ edition.workspace = true
 [dependencies]
 lib = { workspace = true, features = ["domain", "macros-proc"] }
 
-chrono.workspace = true
+chrono = { workspace = true, features = ["serde"] }
 derive_more = { workspace = true, features = ["from"] }
 serde.workspace = true
+serde_json.workspace = true
+serde-value.workspace = true
 strum = { workspace = true, features = ["derive"] }
 thiserror.workspace = true
 
+
 result-like = "0.5"
+rust_iso3166 = "0.1"
 
 [lints]
 workspace = true

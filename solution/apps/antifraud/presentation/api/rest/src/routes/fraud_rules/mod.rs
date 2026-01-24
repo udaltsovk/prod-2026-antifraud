@@ -16,7 +16,7 @@ use lib::{
 use crate::{
     ModulesExt,
     errors::ApiResult,
-    extractors::{Json, session::UserSession},
+    extractors::{Json, session::AdminSession},
     models::fraud_rule::{
         CreateJsonFraudRule, JsonFraudRule, JsonFraudRuleDslExpression,
         ValidatedJsonFraudRule,
@@ -42,10 +42,10 @@ where
 
 pub async fn create_fraud_rule<M>(
     modules: State<M>,
-    UserSession {
+    AdminSession {
         user_role: requester_role,
         ..
-    }: UserSession,
+    }: AdminSession,
     Json(source): Json<CreateJsonFraudRule>,
 ) -> ApiResult<impl IntoResponse>
 where
@@ -66,14 +66,17 @@ where
 
 pub async fn list_fraud_rules<M>(
     modules: State<M>,
-    user_session: UserSession,
+    AdminSession {
+        user_role: requester_role,
+        ..
+    }: AdminSession,
 ) -> ApiResult<impl IntoResponse>
 where
     M: ModulesExt,
 {
     modules
         .fraud_rule_usecase()
-        .list(user_session.user_role)
+        .list(requester_role, None)
         .await?
         .into_iter()
         .map(JsonFraudRule::from)
@@ -84,10 +87,10 @@ where
 
 pub async fn validate_fraud_rule<M>(
     modules: State<M>,
-    UserSession {
+    AdminSession {
         user_role: requester_role,
         ..
-    }: UserSession,
+    }: AdminSession,
     Json(expression): Json<JsonFraudRuleDslExpression>,
 ) -> ApiResult<impl IntoResponse>
 where

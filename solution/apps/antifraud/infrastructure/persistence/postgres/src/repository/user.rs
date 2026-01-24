@@ -28,12 +28,8 @@ impl UserRepository for PostgresRepositoryImpl<User> {
 
     async fn create(
         &self,
-        id: Id<User>,
-        source: CreateUser,
-        password_hash: PasswordHash,
+        (id, source, password_hash): (Id<User>, CreateUser, PasswordHash),
     ) -> Result<User, Self::AdapterError> {
-        let mut connection = self.pool.get().await?;
-
         let id = id.value;
         let email = source.email.into_inner();
         let full_name = source.full_name.into_inner();
@@ -47,6 +43,8 @@ impl UserRepository for PostgresRepositoryImpl<User> {
             .into_option();
         let region = source.region.map(UserRegion::into_inner).into_option();
         let role: StoredUserRole = source.role.into();
+
+        let mut connection = self.pool.get().await?;
 
         let user = query_file_as!(
             StoredUser,
@@ -121,8 +119,6 @@ impl UserRepository for PostgresRepositoryImpl<User> {
     }
 
     async fn update(&self, source: User) -> Result<User, Self::AdapterError> {
-        let mut connection = self.pool.get().await?;
-
         let id = source.id.value;
         let full_name = source.full_name.into_inner();
         let age: Option<i16> = source.age.map(|age| age.into_inner().into());
@@ -132,6 +128,8 @@ impl UserRepository for PostgresRepositoryImpl<User> {
         let region = source.region.map(UserRegion::into_inner);
         let role: StoredUserRole = source.role.into();
         let is_active: bool = source.status.into();
+
+        let mut connection = self.pool.get().await?;
 
         let user = query_file_as!(
             StoredUser,

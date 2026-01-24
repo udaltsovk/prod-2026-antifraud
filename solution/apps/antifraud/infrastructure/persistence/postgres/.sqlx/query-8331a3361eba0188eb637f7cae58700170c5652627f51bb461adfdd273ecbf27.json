@@ -1,0 +1,161 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT\n    id,\n    user_id,\n    amount,\n    currency,\n    verdict AS \"verdict: _\",\n    merchant_id,\n    merchant_category_code,\n    specified_timestamp,\n    ip_address AS \"ip_address: _\",\n    device_id,\n    channel AS \"channel: _\",\n    location AS \"location: _\",\n    metadata,\n    created_at\nFROM\n    transactions\nWHERE\n    (\n        $1::uuid IS NULL\n        OR user_id = $1\n    )\n    AND (\n        $2::transaction_verdict IS NULL\n        OR verdict = $2\n    )\n    AND $3 <= created_at\n    AND created_at < $4\nORDER BY\n    created_at DESC\nLIMIT\n    $5 OFFSET $6\n",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "amount",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 3,
+        "name": "currency",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "verdict: _",
+        "type_info": {
+          "Custom": {
+            "name": "transaction_verdict",
+            "kind": {
+              "Enum": [
+                "ACCEPTED",
+                "DECLINED"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "merchant_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "merchant_category_code",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "specified_timestamp",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "ip_address: _",
+        "type_info": "Inet"
+      },
+      {
+        "ordinal": 9,
+        "name": "device_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 10,
+        "name": "channel: _",
+        "type_info": {
+          "Custom": {
+            "name": "transaction_channel",
+            "kind": {
+              "Enum": [
+                "WEB",
+                "MOBILE",
+                "POS",
+                "OTHER"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "location: _",
+        "type_info": {
+          "Custom": {
+            "name": "transaction_location",
+            "kind": {
+              "Composite": [
+                [
+                  "country",
+                  "Text"
+                ],
+                [
+                  "city",
+                  "Text"
+                ],
+                [
+                  "latitude",
+                  "Float4"
+                ],
+                [
+                  "longitude",
+                  "Float4"
+                ]
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "metadata",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 13,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        {
+          "Custom": {
+            "name": "transaction_verdict",
+            "kind": {
+              "Enum": [
+                "ACCEPTED",
+                "DECLINED"
+              ]
+            }
+          }
+        },
+        "Timestamptz",
+        "Timestamptz",
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      true,
+      true,
+      true,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "8331a3361eba0188eb637f7cae58700170c5652627f51bb461adfdd273ecbf27"
+}

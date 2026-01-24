@@ -1,8 +1,11 @@
 use application::usecase::{
     UseCase, fraud_rule::FraudRuleUseCase, session::SessionUseCase,
-    user::UserUseCase,
+    transaction::TransactionUseCase, user::UserUseCase,
 };
-use domain::{fraud_rule::FraudRule, session::Session, user::User};
+use domain::{
+    fraud_rule::FraudRule, session::Session, transaction::Transaction,
+    user::User,
+};
 use presentation::api::rest::{ModulesExt, UseCaseImpl};
 
 pub use crate::modules::config::ModulesConfig;
@@ -23,6 +26,7 @@ pub struct Modules {
     user_usecase: UseCaseImpl<Self, User>,
     session_usecase: UseCaseImpl<Self, Session>,
     fraud_rule_usecase: UseCaseImpl<Self, FraudRule>,
+    transaction_usecase: UseCaseImpl<Self, Transaction>,
 }
 
 impl ModulesExt for Modules {
@@ -48,6 +52,13 @@ impl ModulesExt for Modules {
     {
         &self.fraud_rule_usecase
     }
+
+    fn transaction_usecase(
+        &self,
+    ) -> &impl TransactionUseCase<Self::RepositoriesModule, Self::ServicesModule>
+    {
+        &self.transaction_usecase
+    }
 }
 
 impl Modules {
@@ -61,6 +72,8 @@ impl Modules {
             UseCase::new(&repositories_module, &services_module);
         let fraud_rule_usecase =
             UseCase::new(&repositories_module, &services_module);
+        let transaction_usecase =
+            UseCase::new(&repositories_module, &services_module);
 
         Self {
             repositories_module,
@@ -68,6 +81,7 @@ impl Modules {
             user_usecase,
             session_usecase,
             fraud_rule_usecase,
+            transaction_usecase,
         }
     }
 }

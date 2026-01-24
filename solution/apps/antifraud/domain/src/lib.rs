@@ -7,4 +7,5 @@ pub mod fraud_rule;
 pub mod pagination;
 pub mod password_hash;
 pub mod session;
+pub mod transaction;
 pub mod user;

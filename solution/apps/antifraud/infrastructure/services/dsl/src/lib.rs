@@ -1,8 +1,19 @@
 use application::service::dsl::{
     DslService, DslServiceError, DslServiceErrorKind, DslServiceResult,
 };
-use domain::fraud_rule::dsl_expression::FraudRuleDslExpression;
-use lib::instrument_all;
+use domain::{
+    fraud_rule::{
+        FraudRule,
+        dsl_expression::FraudRuleDslExpression,
+        result::{
+            description::FraudRuleResultDescription,
+            status::FraudRuleResultStatus,
+        },
+    },
+    transaction::{CreateTransaction, decision::TransactionDecision},
+    user::User,
+};
+use lib::{instrument_all, tap::Pipe as _};
 
 pub struct DslServiceImpl {
     _phantom: (),
@@ -14,14 +25,38 @@ impl DslService for DslServiceImpl {
         &self,
         _expression: FraudRuleDslExpression,
     ) -> DslServiceResult<FraudRuleDslExpression> {
-        Err(Self::unsupported_tier_error())
+        let error = DslServiceError {
+            kind: DslServiceErrorKind::ParseError,
+            message: Self::unsupported_tier_msg(),
+            position: None,
+            near: None,
+        };
+        Err(vec![error])
     }
 
-    fn evaluate(
+    fn decide(
         &self,
-        _expression: FraudRuleDslExpression,
-    ) -> DslServiceResult<bool> {
-        Err(Self::unsupported_tier_error())
+        rules: &[FraudRule],
+        transaction: CreateTransaction,
+        _user: &User,
+    ) -> TransactionDecision {
+        let rule_results: Vec<_> = rules
+            .iter()
+            .map(|rule| {
+                rule.apply(|_| {
+                    (
+                        FraudRuleResultStatus::Unmatched,
+                        Self::unsupported_tier_msg()
+                            .pipe(FraudRuleResultDescription),
+                    )
+                })
+            })
+            .collect();
+
+        TransactionDecision {
+            transaction: transaction.commit(&rule_results),
+            rule_results,
+        }
     }
 }
 
@@ -33,14 +68,8 @@ impl DslServiceImpl {
         }
     }
 
-    pub fn unsupported_tier_error() -> Vec<DslServiceError> {
-        let error = DslServiceError {
-            kind: DslServiceErrorKind::ParseError,
-            message: "Неподдерживаемый уровень".into(),
-            position: None,
-            near: None,
-        };
-        vec![error]
+    pub fn unsupported_tier_msg() -> String {
+        "Неподдерживаемый уровень".into()
     }
 }
 

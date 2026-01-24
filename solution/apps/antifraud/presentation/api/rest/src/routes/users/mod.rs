@@ -16,7 +16,7 @@ use lib::{
 use crate::{
     ModulesExt,
     errors::ApiResult,
-    extractors::{Json, Query, session::UserSession},
+    extractors::{Json, Query, session::AdminSession},
     models::{
         pagination::{Paginated, QueryPagination},
         user::{CreateJsonUserWithRole, JsonUser},
@@ -46,7 +46,10 @@ where
 
 pub async fn register_user<M>(
     modules: State<M>,
-    user_session: UserSession,
+    AdminSession {
+        user_role: creator_role,
+        ..
+    }: AdminSession,
     Json(source): Json<CreateJsonUserWithRole>,
 ) -> ApiResult<impl IntoResponse>
 where
@@ -56,7 +59,7 @@ where
 
     modules
         .user_usecase()
-        .create(Some(user_session.user_role), source)
+        .create(creator_role.into(), source)
         .await
         .map(JsonUser::from)
         .map(Json)?
@@ -67,7 +70,10 @@ where
 
 pub async fn list_users<M>(
     modules: State<M>,
-    user_session: UserSession,
+    AdminSession {
+        user_role: requester_role,
+        ..
+    }: AdminSession,
     Query(pagination): Query<QueryPagination>,
 ) -> ApiResult<impl IntoResponse>
 where
@@ -77,7 +83,7 @@ where
 
     let (users, count) = modules
         .user_usecase()
-        .list(Some(user_session.user_role), pagination.clone())
+        .list(requester_role, pagination.clone())
         .await?;
 
     Paginated::<JsonUser>::from_pagination(pagination?, users, count)

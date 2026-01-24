@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT\n    id,\n    name,\n    description,\n    dsl_expression,\n    enabled,\n    priority,\n    created_at,\n    updated_at\nFROM\n    fraud_rules\nORDER BY\n    priority\n",
+  "query": "SELECT\n    id,\n    name,\n    description,\n    dsl_expression,\n    enabled,\n    priority,\n    created_at,\n    updated_at\nFROM\n    fraud_rules\nWHERE\n    (\n        $1::bool IS NULL\n        OR enabled = $1\n    )\nORDER BY\n    priority\n",
   "describe": {
     "columns": [
       {
@@ -45,7 +45,9 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Left": [
+        "Bool"
+      ]
     },
     "nullable": [
       false,
@@ -58,5 +60,5 @@
       false
     ]
   },
-  "hash": "e627575832898ad30e8864973ef2cafc700bdece52a413d498f85f4f434e6337"
+  "hash": "0d6efca1ef60473e05b385a96a85e08695a43283cd6b4a66458b460bff202e2c"
 }

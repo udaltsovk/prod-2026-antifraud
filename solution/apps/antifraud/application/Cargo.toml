@@ -8,6 +8,7 @@ edition.workspace = true
 lib = { workspace = true, features = ["domain", "application"] }
 domain = { path = "../domain", package = "antifraud-domain" }
 
+chrono.workspace = true
 derive-where.workspace = true
 pastey.workspace = true
 tracing.workspace = true

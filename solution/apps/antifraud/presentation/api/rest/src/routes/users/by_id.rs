@@ -11,16 +11,16 @@ use lib::{
 use crate::{
     ModulesExt,
     errors::{ApiError, ApiResult},
-    extractors::{Json, Path, session::UserSession},
+    extractors::{
+        Json, Path,
+        session::{AdminSession, UserSession},
+    },
     models::user::{JsonUser, JsonUserUpdate},
 };
 
 pub async fn get_user_by_id<M>(
     modules: State<M>,
-    UserSession {
-        user_id: requester_id,
-        user_role: requester_role,
-    }: UserSession,
+    requester: UserSession,
     Path((_api_version, user_id)): Path<((), Uuid)>,
 ) -> ApiResult<impl IntoResponse>
 where
@@ -28,7 +28,7 @@ where
 {
     modules
         .user_usecase()
-        .get_by_id(requester_id, requester_role, user_id.into())
+        .get_by_id(requester.into(), user_id.into())
         .await
         .map(JsonUser::from)
         .map(Json)?
@@ -39,28 +39,22 @@ where
 
 pub async fn update_user_by_id<M>(
     modules: State<M>,
-    UserSession {
-        user_id: requester_id,
-        user_role: requester_role,
-    }: UserSession,
+    requester: UserSession,
     Path((_api_version, user_id)): Path<((), Uuid)>,
     Json(update): Json<JsonUserUpdate>,
 ) -> ApiResult<impl IntoResponse>
 where
     M: ModulesExt,
 {
-    let (common_update, raw_admin_update) = update.into();
-    let common_update_result = common_update.parse();
+    let input = {
+        let new_is_active = update.is_active.clone();
+        let new_role = update.role.clone();
+        (update.parse(), new_is_active.into(), new_role.into())
+    };
 
     modules
         .user_usecase()
-        .update_by_id(
-            requester_id,
-            requester_role,
-            user_id.into(),
-            common_update_result,
-            raw_admin_update,
-        )
+        .update_by_id(requester.into(), user_id.into(), input)
         .await
         .map(JsonUser::from)
         .map(Json)?
@@ -71,10 +65,7 @@ where
 
 pub async fn deactivate_user_by_id<M>(
     modules: State<M>,
-    UserSession {
-        user_id: requester_id,
-        user_role: requester_role,
-    }: UserSession,
+    requester: AdminSession,
     Path((_api_version, user_id)): Path<((), Uuid)>,
 ) -> ApiResult<impl IntoResponse>
 where
@@ -82,7 +73,7 @@ where
 {
     modules
         .user_usecase()
-        .deactivate_by_id(requester_id, requester_role, user_id.into())
+        .deactivate_by_id(requester.into(), user_id.into())
         .await
         .map_err(ApiError::from)
         .map(|_| StatusCode::NO_CONTENT)

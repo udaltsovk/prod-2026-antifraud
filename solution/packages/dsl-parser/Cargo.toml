@@ -5,6 +5,8 @@ edition.workspace = true
 authors.workspace = true
 
 [dependencies]
+chumsky = "0.12"
+logos = "0.16"
 
 [lints]
 workspace = true

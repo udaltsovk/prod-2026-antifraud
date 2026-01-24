@@ -1,4 +1,4 @@
-use application::usecase::user::UserUseCase as _;
+use application::usecase::user::{CreateUserSource, UserUseCase as _};
 use domain::user::CreateUser;
 use lib::async_trait;
 use presentation::api::rest::ModulesExt as _;
@@ -30,7 +30,7 @@ impl InitialState {
 
         modules
             .user_usecase()
-            .create(None, Ok(user))
+            .create(CreateUserSource::Registration, Ok(user))
             .await
             .map_err(|err| err.to_string())?;
 

@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use lib::domain::{
     Id,
-    validation::{ExternalInput, Nullable, Optional},
+    validation::{Nullable, Optional},
 };
 
 use crate::{
@@ -52,23 +52,12 @@ pub struct CreateUser {
 }
 
 #[cfg_attr(debug_assertions, derive(Debug))]
-pub struct UserCommonUpdate {
+pub struct UserUpdate {
     pub full_name: UserFullName,
     pub age: Nullable<UserAge>,
     pub gender: Nullable<UserGender>,
     pub marital_status: Nullable<UserMaritalStatus>,
     pub region: Nullable<UserRegion>,
-}
-
-#[cfg_attr(debug_assertions, derive(Debug))]
-pub struct RawUserAdminUpdate {
-    pub status: ExternalInput<bool>,
-    pub role: ExternalInput<String>,
-}
-
-#[cfg_attr(debug_assertions, derive(Debug))]
-pub struct UserUpdate {
-    pub common: UserCommonUpdate,
     pub status: Optional<UserStatus>,
     pub role: Optional<UserRole>,
 }
@@ -91,14 +80,11 @@ impl PartialEq<User> for UserUpdate {
         } = other;
 
         let Self {
-            common:
-                UserCommonUpdate {
-                    full_name: new_full_name,
-                    age: new_age,
-                    gender: new_gender,
-                    marital_status: new_marital_status,
-                    region: new_region,
-                },
+            full_name: new_full_name,
+            age: new_age,
+            gender: new_gender,
+            marital_status: new_marital_status,
+            region: new_region,
             status: new_status,
             role: new_role,
         } = self;
@@ -128,14 +114,11 @@ impl UserUpdate {
         } = user;
 
         let Self {
-            common:
-                UserCommonUpdate {
-                    full_name: full_name_update,
-                    age: age_update,
-                    gender: gender_update,
-                    marital_status: marital_status_update,
-                    region: region_update,
-                },
+            full_name: full_name_update,
+            age: age_update,
+            gender: gender_update,
+            marital_status: marital_status_update,
+            region: region_update,
             status: status_update,
             role: role_update,
         } = self;

@@ -25,6 +25,12 @@ pub struct UserSession {
     pub user_role: UserRole,
 }
 
+impl From<UserSession> for (Id<User>, UserRole) {
+    fn from(session: UserSession) -> Self {
+        (session.user_id, session.user_role)
+    }
+}
+
 impl<M> FromRequestParts<M> for UserSession
 where
     M: ModulesExt,
@@ -42,7 +48,7 @@ where
 
         state
             .session_usecase()
-            .get_from_token(bearer.token())
+            .get_from_token(dbg!(bearer).token())
             .map_err(|_| AuthError::InvalidToken)?
             .conv::<Self>()
             .pipe(Ok)

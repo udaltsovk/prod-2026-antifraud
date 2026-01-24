@@ -2,14 +2,22 @@ use chrono::{DateTime, Utc};
 use lib::domain::{Id, validation::Optional};
 
 use crate::fraud_rule::{
-    description::FraudRuleDescription, dsl_expression::FraudRuleDslExpression,
-    name::FraudRuleName, priority::FraudRulePriority, status::FraudRuleStatus,
+    description::FraudRuleDescription,
+    dsl_expression::FraudRuleDslExpression,
+    name::FraudRuleName,
+    priority::FraudRulePriority,
+    result::{
+        FraudRuleResult, description::FraudRuleResultDescription,
+        status::FraudRuleResultStatus,
+    },
+    status::FraudRuleStatus,
 };
 
 pub mod description;
 pub mod dsl_expression;
 pub mod name;
 pub mod priority;
+pub mod result;
 pub mod status;
 
 #[cfg_attr(debug_assertions, derive(Debug))]
@@ -22,6 +30,34 @@ pub struct FraudRule {
     pub priority: FraudRulePriority,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+}
+
+impl FraudRule {
+    pub fn apply<F>(&self, f: F) -> FraudRuleResult
+    where
+        F: FnOnce(
+            &FraudRuleDslExpression,
+        )
+            -> (FraudRuleResultStatus, FraudRuleResultDescription),
+    {
+        let Self {
+            id,
+            name,
+            dsl_expression,
+            priority,
+            ..
+        } = self;
+
+        let (status, description) = f(dsl_expression);
+
+        FraudRuleResult {
+            rule_id: *id,
+            rule_name: name.clone(),
+            priority: *priority,
+            status,
+            description,
+        }
+    }
 }
 
 #[cfg_attr(debug_assertions, derive(Debug))]

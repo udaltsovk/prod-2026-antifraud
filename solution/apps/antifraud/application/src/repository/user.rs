@@ -13,9 +13,7 @@ pub trait UserRepository {
 
     async fn create(
         &self,
-        id: Id<User>,
-        source: CreateUser,
-        password_hash: PasswordHash,
+        source: (Id<User>, CreateUser, PasswordHash),
     ) -> Result<User, Self::AdapterError>;
 
     async fn find_by_id(

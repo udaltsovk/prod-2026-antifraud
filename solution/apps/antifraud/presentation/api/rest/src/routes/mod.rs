@@ -5,6 +5,7 @@ use crate::ModulesExt;
 
 pub mod auth;
 pub mod fraud_rules;
+pub mod transactions;
 pub mod users;
 
 pub fn router<M: ModulesExt>() -> Router<M> {
@@ -13,6 +14,7 @@ pub fn router<M: ModulesExt>() -> Router<M> {
         .nest("/auth", auth::router())
         .nest("/users", users::router())
         .nest("/fraud-rules", fraud_rules::router())
+        .nest("/transactions", transactions::router())
 }
 
 pub async fn ping() -> impl IntoResponse {

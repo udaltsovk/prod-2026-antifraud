@@ -74,7 +74,7 @@ where
 
         self.repositories
             .fraud_rule_repository()
-            .create(Id::generate(), source)
+            .create((Id::generate(), source))
             .await
             .map_err(R::Error::from)
             .map_err(FraudRuleUseCaseError::Repository)
@@ -111,6 +111,7 @@ where
     async fn list(
         &self,
         requester_role: UserRole,
+        status: Option<FraudRuleStatus>,
     ) -> FraudRuleUseCaseResult<R, S, Vec<FraudRule>> {
         if requester_role != UserRole::Admin {
             return FraudRuleUseCaseError::MissingPermissions.pipe(Err);
@@ -118,7 +119,7 @@ where
 
         self.repositories
             .fraud_rule_repository()
-            .list()
+            .list(status)
             .await
             .map_err(R::Error::from)
             .map_err(FraudRuleUseCaseError::Repository)

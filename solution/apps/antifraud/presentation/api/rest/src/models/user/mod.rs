@@ -1,7 +1,5 @@
 use chrono::{DateTime, Utc};
-use domain::user::{
-    CreateUser, RawUserAdminUpdate, User, UserCommonUpdate, role::UserRole,
-};
+use domain::user::{CreateUser, User, UserUpdate, role::UserRole};
 use lib::{
     domain::{into_validators, validation::error::ValidationResult},
     model_mapper::Mapper,
@@ -144,7 +142,7 @@ impl Parseable<CreateUser> for CreateJsonUserWithRole {
 #[derive(Deserialize)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[serde(rename_all = "camelCase")]
-pub struct JsonUserCommonUpdate {
+pub struct JsonUserUpdate {
     #[serde(default)]
     pub age: UserInput<i64>,
 
@@ -159,14 +157,6 @@ pub struct JsonUserCommonUpdate {
 
     #[serde(default)]
     pub region: UserInput<String>,
-}
-
-#[derive(Deserialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
-#[serde(rename_all = "camelCase")]
-pub struct JsonUserUpdate {
-    #[serde(flatten)]
-    pub common: JsonUserCommonUpdate,
 
     #[serde(default)]
     pub is_active: UserInput<bool>,
@@ -175,42 +165,31 @@ pub struct JsonUserUpdate {
     pub role: UserInput<String>,
 }
 
-impl From<JsonUserUpdate> for (JsonUserCommonUpdate, RawUserAdminUpdate) {
-    fn from(
-        JsonUserUpdate {
-            common: common_update,
-            is_active: status,
-            role,
-        }: JsonUserUpdate,
-    ) -> Self {
-        (
-            common_update,
-            RawUserAdminUpdate {
-                status: status.into(),
-                role: role.into(),
-            },
-        )
-    }
-}
-
-impl Parseable<UserCommonUpdate> for JsonUserCommonUpdate {
+impl Parseable<UserUpdate> for JsonUserUpdate {
     const FIELD: &str = "user";
 
-    fn parse(self) -> ValidationResult<UserCommonUpdate> {
-        let (errors, (age, full_name, gender, marital_status, region)) = into_validators!(
+    fn parse(self) -> ValidationResult<UserUpdate> {
+        let (
+            errors,
+            (age, full_name, gender, marital_status, region, status, role),
+        ) = into_validators!(
             self.age,
             self.full_name,
             self.gender,
             self.marital_status,
-            self.region
+            self.region,
+            self.is_active,
+            self.role
         );
 
-        errors.into_result(|ok| UserCommonUpdate {
+        errors.into_result(|ok| UserUpdate {
             full_name: full_name.validated(ok),
             age: age.validated(ok),
             gender: gender.validated(ok),
             marital_status: marital_status.validated(ok),
             region: region.validated(ok),
+            status: status.validated(ok),
+            role: role.validated(ok),
         })
     }
 }

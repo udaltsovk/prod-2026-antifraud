@@ -2,6 +2,7 @@ use domain::{
     fraud_rule::{
         CreateFraudRule, FraudRule, FraudRuleUpdate,
         dsl_expression::FraudRuleDslExpression, name::FraudRuleName,
+        status::FraudRuleStatus,
     },
     user::role::UserRole,
 };
@@ -56,6 +57,7 @@ where
     async fn list(
         &self,
         requester_role: UserRole,
+        status: Option<FraudRuleStatus>,
     ) -> FraudRuleUseCaseResult<R, S, Vec<FraudRule>>;
 
     async fn update_by_id(

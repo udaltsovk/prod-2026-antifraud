@@ -2,13 +2,14 @@ use domain::{
     email::Email,
     pagination::Pagination,
     session::CreateSession,
-    user::{
-        CreateUser, RawUserAdminUpdate, User, UserCommonUpdate, role::UserRole,
-    },
+    user::{CreateUser, User, UserUpdate, role::UserRole},
 };
 use lib::{
     async_trait,
-    domain::{Id, validation::error::ValidationResult},
+    domain::{
+        Id,
+        validation::{ExternalInput, error::ValidationResult},
+    },
 };
 
 use crate::{
@@ -19,9 +20,23 @@ use crate::{
 pub mod error;
 pub mod implementation;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum GetByEmailSource {
+#[derive(Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(debug_assertions, derive(Debug))]
+pub enum GetUserByEmailSource {
     Auth,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(debug_assertions, derive(Debug))]
+pub enum CreateUserSource {
+    Registration,
+    User(UserRole),
+}
+
+impl From<UserRole> for CreateUserSource {
+    fn from(creator_role: UserRole) -> Self {
+        Self::User(creator_role)
+    }
 }
 
 #[async_trait]
@@ -38,53 +53,52 @@ where
     async fn get_by_email(
         &self,
         user_email: Email,
-        source: GetByEmailSource,
+        source: GetUserByEmailSource,
     ) -> UserUseCaseResult<R, S, User>;
 
     async fn create(
         &self,
-        creator_role: Option<UserRole>,
-        source: ValidationResult<CreateUser>,
+        source: CreateUserSource,
+        input: ValidationResult<CreateUser>,
     ) -> UserUseCaseResult<R, S, User>;
 
     async fn authorize(
         &self,
-        source: CreateSession,
+        input: CreateSession,
     ) -> UserUseCaseResult<R, S, User>;
 
     async fn find_by_id(
         &self,
-        requester_id: Id<User>,
-        requester_role: UserRole,
+        requester: (Id<User>, UserRole),
         user_id: Id<User>,
     ) -> UserUseCaseResult<R, S, Option<User>>;
 
     async fn get_by_id(
         &self,
-        requester_id: Id<User>,
-        requester_role: UserRole,
+        requester: (Id<User>, UserRole),
         user_id: Id<User>,
     ) -> UserUseCaseResult<R, S, User>;
 
     async fn list(
         &self,
-        requester_role: Option<UserRole>,
-        pagination_result: ValidationResult<Pagination>,
+        requester_role: UserRole,
+        input: ValidationResult<Pagination>,
     ) -> UserUseCaseResult<R, S, (Vec<User>, u64)>;
 
     async fn update_by_id(
         &self,
-        requester_id: Id<User>,
-        requester_role: UserRole,
+        requester: (Id<User>, UserRole),
         user_id: Id<User>,
-        common_update_result: ValidationResult<UserCommonUpdate>,
-        raw_admin_update: RawUserAdminUpdate,
+        input: (
+            ValidationResult<UserUpdate>,
+            ExternalInput<bool>,
+            ExternalInput<String>,
+        ),
     ) -> UserUseCaseResult<R, S, User>;
 
     async fn deactivate_by_id(
         &self,
-        requester_id: Id<User>,
-        requester_role: UserRole,
+        requester: (Id<User>, UserRole),
         user_id: Id<User>,
     ) -> UserUseCaseResult<R, S, User>;
 }

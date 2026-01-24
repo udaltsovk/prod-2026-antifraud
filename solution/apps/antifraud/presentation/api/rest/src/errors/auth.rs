@@ -6,8 +6,11 @@ use crate::ApiError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum AuthError {
-    #[error("Invalid token")]
+    #[error("Токен отсутствует или невалиден")]
     InvalidToken,
+
+    #[error("Недостаточно прав для выполнения операции")]
+    MissingPermissions,
 }
 
 impl ApiError {
@@ -33,7 +36,10 @@ impl From<AuthError> for ApiError {
             use StatusCode as C;
             match error {
                 E::InvalidToken => {
-                    (C::UNAUTHORIZED, "UNAUTHORIZED", "Invalid token".into())
+                    (C::UNAUTHORIZED, "UNAUTHORIZED", error.to_string())
+                },
+                E::MissingPermissions => {
+                    (C::FORBIDDEN, "FORBIDDEN", error.to_string())
                 },
             }
         };

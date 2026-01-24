@@ -11,7 +11,7 @@ use lib::{
     },
 };
 
-#[derive(DomainType, Debug, PartialEq, Eq)]
+#[derive(DomainType, Clone, Debug, PartialEq, Eq)]
 pub struct FraudRuleName(String);
 
 static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {

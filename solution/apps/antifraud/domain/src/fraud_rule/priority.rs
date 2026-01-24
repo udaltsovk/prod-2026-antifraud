@@ -11,7 +11,7 @@ use lib::{
     },
 };
 
-#[derive(DomainType, PartialEq, Eq)]
+#[derive(DomainType, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 pub struct FraudRulePriority(i64);
 

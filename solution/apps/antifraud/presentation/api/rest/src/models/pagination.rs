@@ -43,6 +43,7 @@ where
 
 #[derive(Deserialize, Clone, Default)]
 #[cfg_attr(debug_assertions, derive(Debug))]
+#[serde(rename_all = "camelCase")]
 pub struct QueryPagination {
     #[serde(default)]
     pub page: LossyUserInput<i64>,

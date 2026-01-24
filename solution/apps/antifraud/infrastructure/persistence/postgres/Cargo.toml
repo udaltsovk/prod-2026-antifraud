@@ -12,6 +12,7 @@ application = { path = "../../../application", package = "antifraud-application"
 chrono.workspace = true
 derive-where.workspace = true
 mobc-sqlx.workspace = true
+serde_json.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 
@@ -19,6 +20,8 @@ sqlx = { version = "0.8", features = [
   "runtime-tokio",
   "postgres",
   "chrono",
+  "ipnet",
+  "json",
   "uuid",
 ] }
 

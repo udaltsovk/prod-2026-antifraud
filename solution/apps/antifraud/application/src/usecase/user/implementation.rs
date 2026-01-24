@@ -2,19 +2,13 @@ use domain::{
     email::Email,
     pagination::Pagination,
     session::CreateSession,
-    user::{
-        CreateUser, RawUserAdminUpdate, User, UserCommonUpdate, UserUpdate,
-        role::UserRole, status::UserStatus,
-    },
+    user::{CreateUser, User, UserUpdate, role::UserRole, status::UserStatus},
 };
 use lib::{
     async_trait,
     domain::{
-        Id, into_validators,
-        validation::{
-            Optional, Validator,
-            error::{ValidationErrors, ValidationResult},
-        },
+        Id,
+        validation::{ExternalInput, error::ValidationResult},
     },
     instrument_all,
     tap::{Pipe as _, Tap as _},
@@ -26,7 +20,7 @@ use crate::{
     usecase::{
         UseCase,
         user::{
-            GetByEmailSource, UserUseCase,
+            CreateUserSource, GetUserByEmailSource, UserUseCase,
             error::{UserUseCaseError, UserUseCaseResult},
         },
     },
@@ -54,43 +48,44 @@ where
     async fn get_by_email(
         &self,
         user_email: Email,
-        source: GetByEmailSource,
+        source: GetUserByEmailSource,
     ) -> UserUseCaseResult<R, S, User> {
         self.find_by_email(&user_email).await?.ok_or(
             UserUseCaseError::NotFoundByEmail {
                 email: user_email,
-                from_auth: source == GetByEmailSource::Auth,
+                from_auth: source == GetUserByEmailSource::Auth,
             },
         )
     }
 
     async fn create(
         &self,
-        creator_role: Option<UserRole>,
-        source: ValidationResult<CreateUser>,
+        source: CreateUserSource,
+        input: ValidationResult<CreateUser>,
     ) -> UserUseCaseResult<R, S, User> {
-        if let Some(role) = creator_role
-            && role != UserRole::Admin
+        if source != CreateUserSource::User(UserRole::Admin)
+            && source != CreateUserSource::Registration
         {
             return UserUseCaseError::MissingPermissions.pipe(Err);
         }
 
-        let source = source.map_err(UserUseCaseError::Validation)?;
+        let new_user = input.map_err(UserUseCaseError::Validation)?;
 
-        if self.find_by_email(&source.email).await?.is_some() {
-            return UserUseCaseError::EmailAlreadyUsed(source.email).pipe(Err);
+        if self.find_by_email(&new_user.email).await?.is_some() {
+            return UserUseCaseError::EmailAlreadyUsed(new_user.email)
+                .pipe(Err);
         }
 
         let password_hash = self
             .services
             .password_hasher_service()
-            .hash(source.password.as_bytes())
+            .hash(new_user.password.as_bytes())
             .map_err(S::Error::from)
             .map_err(UserUseCaseError::Service)?;
 
         self.repositories
             .user_repository()
-            .create(Id::generate(), source, password_hash.into())
+            .create((Id::generate(), new_user, password_hash.into()))
             .await
             .map_err(R::Error::from)
             .map_err(UserUseCaseError::Repository)
@@ -98,15 +93,15 @@ where
 
     async fn authorize(
         &self,
-        source: CreateSession,
+        input: CreateSession,
     ) -> UserUseCaseResult<R, S, User> {
         let user = self
-            .get_by_email(source.email, GetByEmailSource::Auth)
+            .get_by_email(input.email, GetUserByEmailSource::Auth)
             .await?;
 
         self.services
             .password_hasher_service()
-            .verify(source.password.as_bytes(), &user.password_hash.0)
+            .verify(input.password.as_bytes(), &user.password_hash.0)
             .map_err(|_| UserUseCaseError::InvalidPassword)?;
 
         if user.status != UserStatus::Active {
@@ -118,8 +113,7 @@ where
 
     async fn find_by_id(
         &self,
-        requester_id: Id<User>,
-        requester_role: UserRole,
+        (requester_id, requester_role): (Id<User>, UserRole),
         user_id: Id<User>,
     ) -> UserUseCaseResult<R, S, Option<User>> {
         if requester_role != UserRole::Admin && requester_id != user_id {
@@ -137,27 +131,24 @@ where
 
     async fn get_by_id(
         &self,
-        requester_id: Id<User>,
-        requester_role: UserRole,
+        requester: (Id<User>, UserRole),
         user_id: Id<User>,
     ) -> UserUseCaseResult<R, S, User> {
-        self.find_by_id(requester_id, requester_role, user_id)
+        self.find_by_id(requester, user_id)
             .await?
             .ok_or(UserUseCaseError::NotFoundById(user_id))
     }
 
     async fn list(
         &self,
-        requester_role: Option<UserRole>,
-        pagination_result: ValidationResult<Pagination>,
+        requester_role: UserRole,
+        input: ValidationResult<Pagination>,
     ) -> UserUseCaseResult<R, S, (Vec<User>, u64)> {
-        if let Some(role) = requester_role
-            && role != UserRole::Admin
-        {
+        if requester_role != UserRole::Admin {
             return UserUseCaseError::MissingPermissions.pipe(Err);
         }
 
-        let (limit, offset) = pagination_result
+        let (limit, offset) = input
             .map_err(UserUseCaseError::Validation)?
             .into_limit_offset();
 
@@ -182,28 +173,25 @@ where
 
     async fn update_by_id(
         &self,
-        requester_id: Id<User>,
-        requester_role: UserRole,
+        (requester_id, requester_role): (Id<User>, UserRole),
         user_id: Id<User>,
-        common_update_result: ValidationResult<UserCommonUpdate>,
-        raw_admin_update: RawUserAdminUpdate,
+        (update_result, new_status, new_role): (
+            ValidationResult<UserUpdate>,
+            ExternalInput<bool>,
+            ExternalInput<String>,
+        ),
     ) -> UserUseCaseResult<R, S, User> {
         if requester_role != UserRole::Admin
-            && !(raw_admin_update.status.is_missing()
-                && raw_admin_update.role.is_missing())
+            && !(new_status.is_missing() && new_role.is_missing())
         {
             return UserUseCaseError::MissingPermissions.pipe(Err);
         }
 
-        let user_update = Self::user_update_from_parts(
-            requester_role,
-            common_update_result,
-            raw_admin_update,
-        )
-        .map_err(UserUseCaseError::Validation)?;
+        let user_update =
+            update_result.map_err(UserUseCaseError::Validation)?;
 
         let user = self
-            .get_by_id(requester_id, requester_role, user_id)
+            .get_by_id((requester_id, requester_role), user_id)
             .await?;
 
         if user_update.eq(&user) {
@@ -222,8 +210,7 @@ where
 
     async fn deactivate_by_id(
         &self,
-        requester_id: Id<User>,
-        requester_role: UserRole,
+        (requester_id, requester_role): (Id<User>, UserRole),
         user_id: Id<User>,
     ) -> UserUseCaseResult<R, S, User> {
         if requester_role != UserRole::Admin {
@@ -231,7 +218,7 @@ where
         }
 
         let user = self
-            .get_by_id(requester_id, requester_role, user_id)
+            .get_by_id((requester_id, requester_role), user_id)
             .await?;
 
         if user.status == UserStatus::Deactivated {
@@ -247,45 +234,5 @@ where
             .await
             .map_err(R::Error::from)
             .map_err(UserUseCaseError::Repository)
-    }
-}
-
-impl<R, S> UseCase<R, S, User>
-where
-    R: RepositoriesModuleExt,
-    S: ServicesModuleExt,
-{
-    fn user_update_from_parts(
-        requester_role: UserRole,
-        common_update_result: ValidationResult<UserCommonUpdate>,
-        raw_admin_update: RawUserAdminUpdate,
-    ) -> ValidationResult<UserUpdate> {
-        let mut errors = ValidationErrors::new();
-
-        let common: Validator<_> =
-            Validator::from_result(common_update_result, &mut errors);
-
-        let (admin_update_errors, (status, role)) =
-            if requester_role == UserRole::Admin {
-                let (update_errors, (status, role)) = into_validators!(
-                    raw_admin_update.status,
-                    raw_admin_update.role
-                );
-
-                let status = status.map(Optional::Present);
-                let role = role.map(Optional::Present);
-
-                (update_errors, (status, role))
-            } else {
-                into_validators!(raw_admin_update.status, raw_admin_update.role)
-            };
-
-        errors.extend(admin_update_errors);
-
-        errors.into_result(|ok| UserUpdate {
-            common: common.validated(ok),
-            status: status.validated(ok),
-            role: role.validated(ok),
-        })
     }
 }

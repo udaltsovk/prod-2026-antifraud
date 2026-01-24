@@ -1,5 +1,9 @@
 use application::repository::RepositoriesModuleExt;
-use domain::{fraud_rule::FraudRule, user::User};
+use domain::{
+    fraud_rule::{FraudRule, result::FraudRuleResult},
+    transaction::Transaction,
+    user::User,
+};
 use infrastructure::persistence::postgres::{
     POSTGRES_MIGRATOR, repository::PostgresRepositoryImpl,
 };
@@ -26,8 +30,10 @@ mod config;
 
 #[derive(Clone)]
 pub struct RepositoriesModule {
-    user_repository: PostgresRepositoryImpl<User>,
-    fraud_rule_repository: PostgresRepositoryImpl<FraudRule>,
+    user: PostgresRepositoryImpl<User>,
+    fraud_rule: PostgresRepositoryImpl<FraudRule>,
+    transaction: PostgresRepositoryImpl<Transaction>,
+    fraud_rule_result: PostgresRepositoryImpl<FraudRuleResult>,
 }
 
 impl RepositoriesModule {
@@ -37,10 +43,15 @@ impl RepositoriesModule {
 
         let user_repository = PostgresRepositoryImpl::new(&postgres);
         let fraud_rule_repository = PostgresRepositoryImpl::new(&postgres);
+        let transaction_repository = PostgresRepositoryImpl::new(&postgres);
+        let fraud_rule_result_repository =
+            PostgresRepositoryImpl::new(&postgres);
 
         Self {
-            user_repository,
-            fraud_rule_repository,
+            user: user_repository,
+            fraud_rule: fraud_rule_repository,
+            transaction: transaction_repository,
+            fraud_rule_result: fraud_rule_result_repository,
         }
     }
 
@@ -67,6 +78,7 @@ impl RepositoriesModule {
 pub enum RepositoryError {
     #[error(transparent)]
     Postgres(#[from] PostgresAdapterError),
+
     #[error(transparent)]
     Redis(#[from] RedisAdapterError),
 }
@@ -74,13 +86,23 @@ pub enum RepositoryError {
 impl RepositoriesModuleExt for RepositoriesModule {
     type Error = RepositoryError;
     type FraudRuleRepository = PostgresRepositoryImpl<FraudRule>;
+    type FraudRuleResultRepository = PostgresRepositoryImpl<FraudRuleResult>;
+    type TransactionRepository = PostgresRepositoryImpl<Transaction>;
     type UserRepository = PostgresRepositoryImpl<User>;
 
     fn user_repository(&self) -> &Self::UserRepository {
-        &self.user_repository
+        &self.user
     }
 
     fn fraud_rule_repository(&self) -> &Self::FraudRuleRepository {
-        &self.fraud_rule_repository
+        &self.fraud_rule
+    }
+
+    fn transaction_repository(&self) -> &Self::TransactionRepository {
+        &self.transaction
+    }
+
+    fn fraud_rule_result_repository(&self) -> &Self::FraudRuleResultRepository {
+        &self.fraud_rule_result
     }
 }
