@@ -5,6 +5,8 @@ authors.workspace = true
 edition.workspace = true
 
 [features]
+dsl = ["dep:dsl"]
+
 hasher = ["dep:hasher"]
 hasher-argon2 = ["hasher/argon2"]
 
@@ -12,6 +14,7 @@ token = ["dep:token"]
 token-jwt = ["token/jwt"]
 
 [dependencies]
+dsl = { path = "./dsl", package = "antifraud-infrastructure-services-dsl", optional = true }
 hasher = { path = "./hasher", package = "antifraud-infrastructure-services-hasher", optional = true }
 token = { path = "./token", package = "antifraud-infrastructure-services-token", optional = true }
 

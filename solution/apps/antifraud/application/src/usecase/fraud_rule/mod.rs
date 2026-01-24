@@ -1,6 +1,7 @@
 use domain::{
     fraud_rule::{
-        CreateFraudRule, FraudRule, FraudRuleUpdate, name::FraudRuleName,
+        CreateFraudRule, FraudRule, FraudRuleUpdate,
+        dsl_expression::FraudRuleDslExpression, name::FraudRuleName,
     },
     user::role::UserRole,
 };
@@ -10,7 +11,8 @@ use lib::{
 };
 
 use crate::{
-    repository::RepositoriesModuleExt, service::ServicesModuleExt,
+    repository::RepositoriesModuleExt,
+    service::{ServicesModuleExt, dsl::DslServiceResult},
     usecase::fraud_rule::error::FraudRuleUseCaseResult,
 };
 
@@ -62,6 +64,12 @@ where
         fraud_rule_id: Id<FraudRule>,
         update_result: ValidationResult<FraudRuleUpdate>,
     ) -> FraudRuleUseCaseResult<R, S, FraudRule>;
+
+    fn normalize_dsl_expression(
+        &self,
+        requester_role: UserRole,
+        expression_result: ValidationResult<FraudRuleDslExpression>,
+    ) -> FraudRuleUseCaseResult<R, S, DslServiceResult<FraudRuleDslExpression>>;
 
     async fn disable_by_id(
         &self,

@@ -1,6 +1,6 @@
 use domain::fraud_rule::{FraudRule, name::FraudRuleName};
 use lib::{
-    application::usecase_result,
+    application::application_result,
     domain::{Id, validation::error::ValidationErrors},
 };
 
@@ -34,4 +34,4 @@ where
     MissingPermissions,
 }
 
-usecase_result!(FraudRule);
+application_result!(FraudRuleUseCase<R, S>);

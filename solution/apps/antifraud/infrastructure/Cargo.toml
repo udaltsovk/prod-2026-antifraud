@@ -12,6 +12,8 @@ persistence-redis = ["persistence", "persistence/redis"]
 
 
 services = ["dep:services"]
+services-dsl = ["services", "services/dsl"]
+
 services-hasher = ["services", "services/hasher"]
 services-hasher-argon2 = ["services-hasher", "services/hasher-argon2"]
 

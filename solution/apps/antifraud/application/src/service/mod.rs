@@ -1,7 +1,10 @@
 use std::fmt::{Debug, Display};
 
-use crate::service::{hasher::HasherService, token::TokenService};
+use crate::service::{
+    dsl::DslService, hasher::HasherService, token::TokenService,
+};
 
+pub mod dsl;
 pub mod hasher;
 pub mod token;
 
@@ -16,4 +19,7 @@ pub trait ServicesModuleExt: Clone + Send + Sync {
 
     type TokenService: TokenService + Send + Sync;
     fn token_service(&self) -> &Self::TokenService;
+
+    type DslService: DslService + Send + Sync;
+    fn dsl_service(&self) -> &Self::DslService;
 }

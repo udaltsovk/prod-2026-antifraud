@@ -1,0 +1,17 @@
+[package]
+name = "antifraud-infrastructure-services-dsl"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+
+
+[dependencies]
+lib = { workspace = true }
+domain = { path = "../../../domain", package = "antifraud-domain" }
+application = { path = "../../../application", package = "antifraud-application" }
+
+thiserror.workspace = true
+tracing.workspace = true
+
+[lints]
+workspace = true

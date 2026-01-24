@@ -143,8 +143,20 @@ dependencies = [
 name = "antifraud-infrastructure-services"
 version = "0.1.0"
 dependencies = [
+ "antifraud-infrastructure-services-dsl",
  "antifraud-infrastructure-services-hasher",
  "antifraud-infrastructure-services-token",
+]
+
+[[package]]
+name = "antifraud-infrastructure-services-dsl"
+version = "0.1.0"
+dependencies = [
+ "antifraud-application",
+ "antifraud-domain",
+ "lib",
+ "thiserror 2.0.17",
+ "tracing",
 ]
 
 [[package]]
@@ -1318,7 +1330,7 @@ dependencies = [
 [[package]]
 name = "lib"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#56466f608f6c4058c9fee9fca5df0b1ed65bc816"
+source = "git+https://github.com/udaltsovk/rust-backend-template#e31b629b93813846ace020c6256da1a755d99971"
 dependencies = [
  "async-trait",
  "axum",
@@ -1341,7 +1353,7 @@ dependencies = [
 [[package]]
 name = "lib-application"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#56466f608f6c4058c9fee9fca5df0b1ed65bc816"
+source = "git+https://github.com/udaltsovk/rust-backend-template#e31b629b93813846ace020c6256da1a755d99971"
 dependencies = [
  "derive-where",
  "pastey",
@@ -1350,7 +1362,7 @@ dependencies = [
 [[package]]
 name = "lib-bootstrap"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#56466f608f6c4058c9fee9fca5df0b1ed65bc816"
+source = "git+https://github.com/udaltsovk/rust-backend-template#e31b629b93813846ace020c6256da1a755d99971"
 dependencies = [
  "dotenvy",
  "fromenv",
@@ -1362,7 +1374,7 @@ dependencies = [
 [[package]]
 name = "lib-domain"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#56466f608f6c4058c9fee9fca5df0b1ed65bc816"
+source = "git+https://github.com/udaltsovk/rust-backend-template#e31b629b93813846ace020c6256da1a755d99971"
 dependencies = [
  "derive-where",
  "num-traits",
@@ -1378,7 +1390,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#56466f608f6c4058c9fee9fca5df0b1ed65bc816"
+source = "git+https://github.com/udaltsovk/rust-backend-template#e31b629b93813846ace020c6256da1a755d99971"
 dependencies = [
  "lib-infrastructure-persistence",
 ]
@@ -1386,7 +1398,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-instrumentation"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#56466f608f6c4058c9fee9fca5df0b1ed65bc816"
+source = "git+https://github.com/udaltsovk/rust-backend-template#e31b629b93813846ace020c6256da1a755d99971"
 dependencies = [
  "lib-infrastructure-instrumentation-stdout",
 ]
@@ -1394,7 +1406,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-instrumentation-stdout"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#56466f608f6c4058c9fee9fca5df0b1ed65bc816"
+source = "git+https://github.com/udaltsovk/rust-backend-template#e31b629b93813846ace020c6256da1a755d99971"
 dependencies = [
  "tracing",
  "tracing-subscriber",
@@ -1403,7 +1415,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-persistence"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#56466f608f6c4058c9fee9fca5df0b1ed65bc816"
+source = "git+https://github.com/udaltsovk/rust-backend-template#e31b629b93813846ace020c6256da1a755d99971"
 dependencies = [
  "derive-where",
  "lib-domain",
@@ -1416,7 +1428,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-persistence-postgres"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#56466f608f6c4058c9fee9fca5df0b1ed65bc816"
+source = "git+https://github.com/udaltsovk/rust-backend-template#e31b629b93813846ace020c6256da1a755d99971"
 dependencies = [
  "mobc-sqlx",
  "thiserror 2.0.17",
@@ -1425,7 +1437,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-persistence-redis"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#56466f608f6c4058c9fee9fca5df0b1ed65bc816"
+source = "git+https://github.com/udaltsovk/rust-backend-template#e31b629b93813846ace020c6256da1a755d99971"
 dependencies = [
  "mobc-redis",
  "thiserror 2.0.17",
@@ -1434,7 +1446,7 @@ dependencies = [
 [[package]]
 name = "lib-macros"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#56466f608f6c4058c9fee9fca5df0b1ed65bc816"
+source = "git+https://github.com/udaltsovk/rust-backend-template#e31b629b93813846ace020c6256da1a755d99971"
 dependencies = [
  "lib-macros-proc",
 ]
@@ -1442,7 +1454,7 @@ dependencies = [
 [[package]]
 name = "lib-macros-proc"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#56466f608f6c4058c9fee9fca5df0b1ed65bc816"
+source = "git+https://github.com/udaltsovk/rust-backend-template#e31b629b93813846ace020c6256da1a755d99971"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1452,7 +1464,7 @@ dependencies = [
 [[package]]
 name = "lib-presentation"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#56466f608f6c4058c9fee9fca5df0b1ed65bc816"
+source = "git+https://github.com/udaltsovk/rust-backend-template#e31b629b93813846ace020c6256da1a755d99971"
 dependencies = [
  "lib-presentation-api",
 ]
@@ -1460,7 +1472,7 @@ dependencies = [
 [[package]]
 name = "lib-presentation-api"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#56466f608f6c4058c9fee9fca5df0b1ed65bc816"
+source = "git+https://github.com/udaltsovk/rust-backend-template#e31b629b93813846ace020c6256da1a755d99971"
 dependencies = [
  "lib-presentation-api-rest",
 ]
@@ -1468,7 +1480,7 @@ dependencies = [
 [[package]]
 name = "lib-presentation-api-rest"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#56466f608f6c4058c9fee9fca5df0b1ed65bc816"
+source = "git+https://github.com/udaltsovk/rust-backend-template#e31b629b93813846ace020c6256da1a755d99971"
 dependencies = [
  "axum",
  "chrono",

@@ -24,6 +24,7 @@ application = { path = "./application", package = "antifraud-application" }
 infrastructure = { path = "./infrastructure", package = "antifraud-infrastructure", features = [
   "persistence-postgres",
   "persistence-redis",
+  "services-dsl",
   "services-hasher-argon2",
   "services-token-jwt",
 ] }

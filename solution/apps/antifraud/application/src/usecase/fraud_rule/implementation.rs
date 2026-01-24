@@ -1,6 +1,7 @@
 use domain::{
     fraud_rule::{
-        CreateFraudRule, FraudRule, FraudRuleUpdate, name::FraudRuleName,
+        CreateFraudRule, FraudRule, FraudRuleUpdate,
+        dsl_expression::FraudRuleDslExpression, name::FraudRuleName,
         status::FraudRuleStatus,
     },
     user::role::UserRole,
@@ -14,7 +15,10 @@ use lib::{
 
 use crate::{
     repository::{RepositoriesModuleExt, fraud_rule::FraudRuleRepository as _},
-    service::ServicesModuleExt,
+    service::{
+        ServicesModuleExt,
+        dsl::{DslService as _, DslServiceResult},
+    },
     usecase::{
         UseCase,
         fraud_rule::{
@@ -157,6 +161,25 @@ where
             .await
             .map_err(R::Error::from)
             .map_err(FraudRuleUseCaseError::Repository)
+    }
+
+    fn normalize_dsl_expression(
+        &self,
+        requester_role: UserRole,
+        expression_result: ValidationResult<FraudRuleDslExpression>,
+    ) -> FraudRuleUseCaseResult<R, S, DslServiceResult<FraudRuleDslExpression>>
+    {
+        if requester_role != UserRole::Admin {
+            return FraudRuleUseCaseError::MissingPermissions.pipe(Err);
+        }
+
+        let dsl_expression =
+            expression_result.map_err(FraudRuleUseCaseError::Validation)?;
+
+        self.services
+            .dsl_service()
+            .normalize(dsl_expression)
+            .pipe(Ok)
     }
 
     async fn disable_by_id(

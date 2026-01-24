@@ -1,6 +1,6 @@
 use domain::{email::Email, user::User};
 use lib::{
-    application::usecase_result,
+    application::application_result,
     domain::{Id, validation::error::ValidationErrors},
 };
 
@@ -40,4 +40,4 @@ where
     MissingPermissions,
 }
 
-usecase_result!(User);
+application_result!(UserUseCase<R, S>);

@@ -1,4 +1,4 @@
-use lib::application::usecase_result;
+use lib::application::application_result;
 
 use crate::{repository::RepositoriesModuleExt, service::ServicesModuleExt};
 
@@ -15,4 +15,4 @@ where
     Service(S::Error),
 }
 
-usecase_result!(Session);
+application_result!(SessionUseCase<R, S>);

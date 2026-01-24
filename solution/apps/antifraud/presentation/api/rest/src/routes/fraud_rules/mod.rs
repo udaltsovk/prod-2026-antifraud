@@ -17,11 +17,13 @@ use crate::{
     ModulesExt,
     errors::ApiResult,
     extractors::{Json, session::UserSession},
-    models::fraud_rule::{CreateJsonFraudRule, JsonFraudRule},
+    models::fraud_rule::{
+        CreateJsonFraudRule, JsonFraudRule, JsonFraudRuleDslExpression,
+        ValidatedJsonFraudRule,
+    },
 };
 
 pub mod by_id;
-pub mod validate;
 
 pub fn router<M>() -> Router<M>
 where
@@ -35,12 +37,15 @@ where
                 .put(by_id::update_fraud_rule_by_id::<M>)
                 .delete(by_id::disable_fraud_rule_by_id::<M>),
         )
-    // .route("/validate", post(validate::validate::<M>))
+        .route("/validate", post(validate_fraud_rule::<M>))
 }
 
 pub async fn create_fraud_rule<M>(
     modules: State<M>,
-    user_session: UserSession,
+    UserSession {
+        user_role: requester_role,
+        ..
+    }: UserSession,
     Json(source): Json<CreateJsonFraudRule>,
 ) -> ApiResult<impl IntoResponse>
 where
@@ -50,7 +55,7 @@ where
 
     modules
         .fraud_rule_usecase()
-        .create(user_session.user_role, source)
+        .create(requester_role, source)
         .await
         .map(JsonFraudRule::from)
         .map(Json)?
@@ -73,6 +78,27 @@ where
         .into_iter()
         .map(JsonFraudRule::from)
         .collect::<Vec<_>>()
+        .pipe(Json)
+        .pipe(Ok)
+}
+
+pub async fn validate_fraud_rule<M>(
+    modules: State<M>,
+    UserSession {
+        user_role: requester_role,
+        ..
+    }: UserSession,
+    Json(expression): Json<JsonFraudRuleDslExpression>,
+) -> ApiResult<impl IntoResponse>
+where
+    M: ModulesExt,
+{
+    let dsl_expression = expression.parse();
+
+    modules
+        .fraud_rule_usecase()
+        .normalize_dsl_expression(requester_role, dsl_expression)
+        .map(ValidatedJsonFraudRule::from)?
         .pipe(Json)
         .pipe(Ok)
 }
