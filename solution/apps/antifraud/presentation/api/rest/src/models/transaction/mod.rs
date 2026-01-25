@@ -101,6 +101,7 @@ pub struct CreateJsonTransaction {
     #[serde(default)]
     pub channel: UserInput<String>,
 
+    #[serde(default)]
     pub location: CreateJsonTransactionLocation,
 
     #[serde(default)]

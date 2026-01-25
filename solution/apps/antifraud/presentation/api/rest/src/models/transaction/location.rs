@@ -31,7 +31,7 @@ pub struct JsonTransactionLocation {
     pub longitude: Option<f32>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[serde(rename_all = "UPPERCASE")]
 pub struct CreateJsonTransactionLocation {
