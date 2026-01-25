@@ -9,7 +9,7 @@ use crate::models::{
 #[derive(Mapper, Serialize)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[mapper(ty = TransactionDecision, from)]
-#[serde(rename_all = "UPPERCASE")]
+#[serde(rename_all = "camelCase")]
 pub struct JsonTransactionDecision {
     pub transaction: JsonTransaction,
 

@@ -5,7 +5,7 @@ use sqlx::Type;
 #[derive(Mapper, Type)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[mapper(ty = TransactionStatus, from, into)]
-#[sqlx(type_name = "transaction_status", rename_all = "UPPERCASE")]
+#[sqlx(type_name = "transaction_verdict", rename_all = "UPPERCASE")]
 pub enum StoredTransactionVerdict {
     Approved,
     Declined,

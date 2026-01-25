@@ -8,7 +8,7 @@ use sqlx::Type;
 #[derive(Mapper, Type)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[mapper(ty = TransactionLocation, from, into)]
-#[sqlx(type_name = "user_target_settings")]
+#[sqlx(type_name = "transaction_location")]
 pub struct StoredTransactionLocation {
     #[mapper(
         from_with = country.map(DomainType::into_inner).into_option(),

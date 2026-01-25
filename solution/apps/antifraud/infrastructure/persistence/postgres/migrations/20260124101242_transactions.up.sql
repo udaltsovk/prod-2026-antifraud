@@ -8,7 +8,7 @@ IF NOT EXISTS (
         pg_type
     WHERE
         typname = 'transaction_verdict'
-) THEN CREATE TYPE transaction_verdict AS ENUM ('ACCEPTED', 'DECLINED');
+) THEN CREATE TYPE transaction_verdict AS ENUM ('APPROVED', 'DECLINED');
 
 END IF;
 

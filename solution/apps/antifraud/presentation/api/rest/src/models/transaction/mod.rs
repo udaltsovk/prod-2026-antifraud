@@ -29,7 +29,7 @@ pub mod status;
 #[derive(Mapper, Serialize)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[mapper(ty = Transaction, from)]
-#[serde(rename_all = "UPPERCASE")]
+#[serde(rename_all = "camelCase")]
 pub struct JsonTransaction {
     pub id: Uuid,
 
@@ -72,7 +72,7 @@ pub struct JsonTransaction {
 
 #[derive(Deserialize)]
 #[cfg_attr(debug_assertions, derive(Debug))]
-#[serde(rename_all = "UPPERCASE")]
+#[serde(rename_all = "camelCase")]
 pub struct CreateJsonTransaction {
     #[serde(default)]
     pub user_id: UserInput<Uuid>,

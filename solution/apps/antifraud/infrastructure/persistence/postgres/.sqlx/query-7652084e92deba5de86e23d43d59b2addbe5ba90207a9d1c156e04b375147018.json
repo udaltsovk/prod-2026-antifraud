@@ -31,7 +31,7 @@
             "name": "transaction_verdict",
             "kind": {
               "Enum": [
-                "ACCEPTED",
+                "APPROVED",
                 "DECLINED"
               ]
             }
@@ -131,7 +131,7 @@
             "name": "transaction_verdict",
             "kind": {
               "Enum": [
-                "ACCEPTED",
+                "APPROVED",
                 "DECLINED"
               ]
             }

@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Mapper, Serialize)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[mapper(ty = TransactionLocation, from)]
-#[serde(rename_all = "UPPERCASE")]
+#[serde(rename_all = "camelCase")]
 pub struct JsonTransactionLocation {
     #[mapper(with = country.into_option().map(From::from))]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -33,7 +33,7 @@ pub struct JsonTransactionLocation {
 
 #[derive(Deserialize, Default)]
 #[cfg_attr(debug_assertions, derive(Debug))]
-#[serde(rename_all = "UPPERCASE")]
+#[serde(rename_all = "camelCase")]
 pub struct CreateJsonTransactionLocation {
     #[serde(default)]
     pub country: UserInput<String>,
