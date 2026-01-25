@@ -17,6 +17,7 @@ pub fn router<M: ModulesExt>() -> Router<M> {
         .nest("/transactions", transactions::router())
 }
 
+#[cfg_attr(debug_assertions, tracing::instrument)]
 pub async fn ping() -> impl IntoResponse {
     Json(json!({"status": "ok"}))
 }

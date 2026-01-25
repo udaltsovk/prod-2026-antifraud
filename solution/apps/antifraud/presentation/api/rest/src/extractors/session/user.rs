@@ -19,6 +19,7 @@ use lib::{
 use crate::{ApiError, ModulesExt, errors::AuthError};
 
 #[derive(Mapper)]
+#[cfg_attr(debug_assertions, derive(Debug))]
 #[mapper(ty = Session, from)]
 pub struct UserSession {
     pub user_id: Id<User>,
@@ -48,7 +49,7 @@ where
 
         state
             .session_usecase()
-            .get_from_token(dbg!(bearer).token())
+            .get_from_token(bearer.token())
             .map_err(|_| AuthError::InvalidToken)?
             .conv::<Self>()
             .pipe(Ok)

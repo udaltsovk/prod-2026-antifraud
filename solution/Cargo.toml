@@ -44,6 +44,8 @@ mobc-redis = { git = "https://github.com/NikSneMC/mobc", branch = "useful" }
 
 
 [profile.release]
+# FIXME: remove that
+debug-assertions = true
 lto = "fat"
 strip = true
 opt-level = 3

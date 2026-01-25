@@ -15,13 +15,14 @@ use crate::{
     models::fraud_rule::{JsonFraudRule, JsonFraudRuleUpdate},
 };
 
+#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn get_fraud_rule_by_id<M>(
     modules: State<M>,
     UserSession {
         user_role: requester_role,
         ..
     }: UserSession,
-    Path((_api_version, user_id)): Path<((), Uuid)>,
+    Path(((), user_id)): Path<((), Uuid)>,
 ) -> ApiResult<impl IntoResponse>
 where
     M: ModulesExt,
@@ -37,13 +38,14 @@ where
         .pipe(Ok)
 }
 
+#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn update_fraud_rule_by_id<M>(
     modules: State<M>,
     UserSession {
         user_role: requester_role,
         ..
     }: UserSession,
-    Path((_api_version, user_id)): Path<((), Uuid)>,
+    Path(((), user_id)): Path<((), Uuid)>,
     Json(update): Json<JsonFraudRuleUpdate>,
 ) -> ApiResult<impl IntoResponse>
 where
@@ -62,13 +64,14 @@ where
         .pipe(Ok)
 }
 
+#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn disable_fraud_rule_by_id<M>(
     modules: State<M>,
     UserSession {
         user_role: requester_role,
         ..
     }: UserSession,
-    Path((_api_version, user_id)): Path<((), Uuid)>,
+    Path(((), user_id)): Path<((), Uuid)>,
 ) -> ApiResult<impl IntoResponse>
 where
     M: ModulesExt,

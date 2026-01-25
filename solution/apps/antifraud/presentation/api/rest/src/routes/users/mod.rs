@@ -44,6 +44,7 @@ where
         .route("/", post(register_user::<M>).get(list_users::<M>))
 }
 
+#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn register_user<M>(
     modules: State<M>,
     AdminSession {
@@ -68,6 +69,7 @@ where
         .pipe(Ok)
 }
 
+#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn list_users<M>(
     modules: State<M>,
     AdminSession {

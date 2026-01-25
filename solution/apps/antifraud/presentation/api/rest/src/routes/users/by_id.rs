@@ -18,10 +18,11 @@ use crate::{
     models::user::{JsonUser, JsonUserUpdate},
 };
 
+#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn get_user_by_id<M>(
     modules: State<M>,
     requester: UserSession,
-    Path((_api_version, user_id)): Path<((), Uuid)>,
+    Path(((), user_id)): Path<((), Uuid)>,
 ) -> ApiResult<impl IntoResponse>
 where
     M: ModulesExt,
@@ -37,10 +38,11 @@ where
         .pipe(Ok)
 }
 
+#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn update_user_by_id<M>(
     modules: State<M>,
     requester: UserSession,
-    Path((_api_version, user_id)): Path<((), Uuid)>,
+    Path(((), user_id)): Path<((), Uuid)>,
     Json(update): Json<JsonUserUpdate>,
 ) -> ApiResult<impl IntoResponse>
 where
@@ -63,10 +65,11 @@ where
         .pipe(Ok)
 }
 
+#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn deactivate_user_by_id<M>(
     modules: State<M>,
     requester: AdminSession,
-    Path((_api_version, user_id)): Path<((), Uuid)>,
+    Path(((), user_id)): Path<((), Uuid)>,
 ) -> ApiResult<impl IntoResponse>
 where
     M: ModulesExt,

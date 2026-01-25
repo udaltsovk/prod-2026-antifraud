@@ -40,6 +40,7 @@ where
         .route("/validate", post(validate_fraud_rule::<M>))
 }
 
+#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn create_fraud_rule<M>(
     modules: State<M>,
     AdminSession {
@@ -64,6 +65,7 @@ where
         .pipe(Ok)
 }
 
+#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn list_fraud_rules<M>(
     modules: State<M>,
     AdminSession {
@@ -85,6 +87,7 @@ where
         .pipe(Ok)
 }
 
+#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn validate_fraud_rule<M>(
     modules: State<M>,
     AdminSession {

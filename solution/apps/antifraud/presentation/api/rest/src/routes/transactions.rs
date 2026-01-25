@@ -37,6 +37,7 @@ pub fn router<M: ModulesExt>() -> Router<M> {
         .route("/{transaction_id}", get(get_transaction_by_id::<M>))
 }
 
+#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn create_transaction<M>(
     modules: State<M>,
     creator: UserSession,
@@ -61,6 +62,7 @@ where
         .pipe(Ok)
 }
 
+#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn list_transactions<M>(
     modules: State<M>,
     requester: UserSession,
@@ -90,10 +92,11 @@ where
     .pipe(Ok)
 }
 
+#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn get_transaction_by_id<M>(
     modules: State<M>,
     requester: UserSession,
-    Path((_api_version, transaction_id)): Path<((), Uuid)>,
+    Path(((), transaction_id)): Path<((), Uuid)>,
 ) -> ApiResult<impl IntoResponse>
 where
     M: ModulesExt,
