@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{fmt, sync::Arc};
 
 use strum::{Display, EnumString};
 
@@ -35,20 +35,20 @@ pub enum Operator {
     NotEqual,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum Literal<'src> {
+#[derive(Debug, Clone)]
+pub enum Literal {
     Number(Option<f64>),
-    String(Option<&'src str>),
+    String(Option<Arc<str>>),
 }
 
-impl fmt::Display for Literal<'_> {
+impl fmt::Display for Literal {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Number(n) => {
                 n.expect("literal in the ast must be some").fmt(f)
             },
             Self::String(s) => {
-                s.expect("literal in the ast must be some").fmt(f)
+                s.as_ref().expect("literal in the ast must be some").fmt(f)
             },
         }
     }
@@ -60,7 +60,7 @@ pub enum Expression<'src> {
     Comparison {
         field: &'src str,
         op: Operator,
-        value: Literal<'src>,
+        value: Literal,
     },
 
     #[strum(to_string = "({0})")]

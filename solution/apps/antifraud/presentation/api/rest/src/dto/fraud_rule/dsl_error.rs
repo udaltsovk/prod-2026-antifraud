@@ -13,7 +13,7 @@ pub struct DslErrorDto {
     pub near: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub position: Option<u64>,
+    pub position: Option<usize>,
 }
 
 impl From<DslServiceError> for DslErrorDto {

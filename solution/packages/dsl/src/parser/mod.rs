@@ -99,7 +99,7 @@ where
     recursive(|expr| {
         let literal = select! {
             Token::Number(n) => Literal::Number(Some(n)),
-            Token::String(s) => Literal::String(Some(s)),
+            Token::String(s) => Literal::String(Some(s.into())),
         };
 
         let comparison = select! { Token::Ident(f) => f }

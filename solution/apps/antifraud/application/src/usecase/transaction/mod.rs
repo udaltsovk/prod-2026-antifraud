@@ -33,8 +33,13 @@ pub trait TransactionUseCase {
     async fn bulk_create(
         &self,
         creator: (Id<User>, UserRole),
-        input: ValidationResultWithFields<CreateTransaction>,
-    ) -> Vec<(i64, TransactionUseCaseResult<TransactionDecision>)>;
+        input: Vec<(
+            ValidationResultWithFields<CreateTransaction>,
+            ExternalInput<Uuid>,
+        )>,
+    ) -> TransactionUseCaseResult<
+        Vec<(usize, TransactionUseCaseResult<TransactionDecision>)>,
+    >;
 
     async fn find_by_id(
         &self,

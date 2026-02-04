@@ -76,6 +76,8 @@ dependencies = [
  "antifraud-domain",
  "chrono",
  "derive-where",
+ "dsl",
+ "futures",
  "lib",
  "pastey",
  "thiserror 2.0.17",
@@ -159,6 +161,7 @@ version = "0.1.0"
 dependencies = [
  "antifraud-application",
  "antifraud-domain",
+ "dsl",
  "lib",
  "thiserror 2.0.17",
  "tracing",
@@ -903,6 +906,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "futures"
+version = "0.3.31"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "65bc07b1a8bc7c85c5f2e110c476c7389b4554ba72af57d8445ea63a576b0876"
+dependencies = [
+ "futures-channel",
+ "futures-core",
+ "futures-executor",
+ "futures-io",
+ "futures-sink",
+ "futures-task",
+ "futures-util",
+]
+
+[[package]]
 name = "futures-channel"
 version = "0.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -981,6 +999,7 @@ version = "0.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9fa08315bb612088cc391249efdc3bc77536f16c91f6cf495e6fbe85b20a4a81"
 dependencies = [
+ "futures-channel",
  "futures-core",
  "futures-io",
  "futures-macro",
@@ -1442,7 +1461,7 @@ dependencies = [
 [[package]]
 name = "lib"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#2952b9e5e1e885a3dcc6b18928070a0be7d822f7"
+source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1467,7 +1486,7 @@ dependencies = [
 [[package]]
 name = "lib-application"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#2952b9e5e1e885a3dcc6b18928070a0be7d822f7"
+source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
 dependencies = [
  "derive-where",
  "pastey",
@@ -1476,7 +1495,7 @@ dependencies = [
 [[package]]
 name = "lib-bootstrap"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#2952b9e5e1e885a3dcc6b18928070a0be7d822f7"
+source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
 dependencies = [
  "dotenvy",
  "fromenv",
@@ -1488,7 +1507,7 @@ dependencies = [
 [[package]]
 name = "lib-domain"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#2952b9e5e1e885a3dcc6b18928070a0be7d822f7"
+source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
 dependencies = [
  "derive-where",
  "num-traits",
@@ -1503,7 +1522,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#2952b9e5e1e885a3dcc6b18928070a0be7d822f7"
+source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
 dependencies = [
  "lib-infrastructure-persistence",
 ]
@@ -1511,7 +1530,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-instrumentation"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#2952b9e5e1e885a3dcc6b18928070a0be7d822f7"
+source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
 dependencies = [
  "lib-infrastructure-instrumentation-stdout",
 ]
@@ -1519,7 +1538,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-instrumentation-stdout"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#2952b9e5e1e885a3dcc6b18928070a0be7d822f7"
+source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
 dependencies = [
  "tracing",
  "tracing-subscriber",
@@ -1528,7 +1547,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-persistence"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#2952b9e5e1e885a3dcc6b18928070a0be7d822f7"
+source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
 dependencies = [
  "derive-where",
  "lib-domain",
@@ -1540,12 +1559,12 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-persistence-redis"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#2952b9e5e1e885a3dcc6b18928070a0be7d822f7"
+source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
 
 [[package]]
 name = "lib-macros"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#2952b9e5e1e885a3dcc6b18928070a0be7d822f7"
+source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
 dependencies = [
  "lib-macros-proc",
 ]
@@ -1553,7 +1572,7 @@ dependencies = [
 [[package]]
 name = "lib-macros-proc"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#2952b9e5e1e885a3dcc6b18928070a0be7d822f7"
+source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1563,7 +1582,7 @@ dependencies = [
 [[package]]
 name = "lib-presentation"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#2952b9e5e1e885a3dcc6b18928070a0be7d822f7"
+source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
 dependencies = [
  "lib-presentation-api",
 ]
@@ -1571,7 +1590,7 @@ dependencies = [
 [[package]]
 name = "lib-presentation-api"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#2952b9e5e1e885a3dcc6b18928070a0be7d822f7"
+source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
 dependencies = [
  "lib-presentation-api-rest",
 ]
@@ -1579,7 +1598,7 @@ dependencies = [
 [[package]]
 name = "lib-presentation-api-rest"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#2952b9e5e1e885a3dcc6b18928070a0be7d822f7"
+source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
 dependencies = [
  "axum",
  "chrono",

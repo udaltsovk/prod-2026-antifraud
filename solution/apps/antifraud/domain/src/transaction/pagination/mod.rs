@@ -61,6 +61,6 @@ impl TransactionPagination {
         );
         let (limit, offset) = self.pagination.into_limit_offset();
 
-        (user_id, status, to, from, limit, offset)
+        (user_id, status, from, to, limit, offset)
     }
 }

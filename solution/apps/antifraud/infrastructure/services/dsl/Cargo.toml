@@ -7,6 +7,8 @@ edition.workspace = true
 
 [dependencies]
 lib = { workspace = true }
+dsl.workspace = true
+
 domain = { path = "../../../domain", package = "antifraud-domain" }
 application = { path = "../../../application", package = "antifraud-application" }
 

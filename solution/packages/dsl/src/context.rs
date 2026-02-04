@@ -1,22 +1,35 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use crate::Literal;
 
-trait ContextField<'src> {
-    fn to_literal(self) -> Literal<'src>;
+trait ContextField {
+    fn to_literal(self) -> Literal;
 }
-impl<'src> ContextField<'src> for Option<f64> {
-    fn to_literal(self) -> Literal<'src> {
+impl ContextField for Option<f64> {
+    fn to_literal(self) -> Literal {
         Literal::Number(self)
     }
 }
-impl<'src> ContextField<'src> for Option<&'src str> {
-    fn to_literal(self) -> Literal<'src> {
-        Literal::String(self)
+
+impl ContextField for Option<&str> {
+    fn to_literal(self) -> Literal {
+        Literal::String(self.map(Arc::from))
     }
 }
 
-pub struct ContextBuilder<'src>(HashMap<&'src str, Literal<'src>>);
+impl ContextField for Option<String> {
+    fn to_literal(self) -> Literal {
+        Literal::String(self.map(Arc::from))
+    }
+}
+
+impl ContextField for Option<&String> {
+    fn to_literal(self) -> Literal {
+        Literal::String(self.map(String::as_str).map(Arc::from))
+    }
+}
+
+pub struct ContextBuilder<'src>(HashMap<&'src str, Literal>);
 
 impl<'src> ContextBuilder<'src> {
     #[must_use]
@@ -35,7 +48,7 @@ impl<'src> ContextBuilder<'src> {
         field_value: Option<T>,
     ) -> Self
     where
-        Option<T>: ContextField<'src>,
+        Option<T>: ContextField,
     {
         self.0.insert(field_name, field_value.to_literal());
         self
@@ -54,7 +67,7 @@ impl Default for ContextBuilder<'_> {
 }
 
 #[derive(Debug)]
-pub struct Context<'src>(HashMap<&'src str, Literal<'src>>);
+pub struct Context<'src>(HashMap<&'src str, Literal>);
 
 impl<'src> Context<'src> {
     #[must_use]
@@ -62,7 +75,7 @@ impl<'src> Context<'src> {
         ContextBuilder::new()
     }
 
-    pub(crate) fn get_field(&self, field: &'src str) -> Option<&Literal<'src>> {
+    pub(crate) fn get_field(&self, field: &'src str) -> Option<&Literal> {
         self.0.get(field)
     }
 }

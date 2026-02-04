@@ -1,11 +1,15 @@
-use std::net::IpAddr;
+use std::{net::IpAddr, sync::LazyLock};
 
 use chrono::{DateTime, Utc};
 use domain::transaction::{CreateTransaction, Transaction};
 use lib::{
-    domain::DomainType,
+    domain::{
+        DomainType, impl_try_from_external_input,
+        validation::{Constraints, constraints, error::ValidationErrors},
+    },
     model_mapper::Mapper,
     presentation::api::rest::{
+        errors::JsonError,
         into_validators,
         validation::{
             UserInput, parseable::Parseable, validator::ValidatorResult,
@@ -17,6 +21,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::dto::transaction::{
     channel::TransactionChannelDto,
+    decision::TransactionDecisionDto,
     location::{CreateTransactionLocationDto, TransactionLocationDto},
     status::TransactionStatusDto,
 };
@@ -157,5 +162,62 @@ impl Parseable<CreateTransaction> for CreateTransactionDto {
             location: location.validated(ok),
             metadata: metadata.validated(ok),
         })
+    }
+}
+
+#[derive(Serialize)]
+#[cfg_attr(debug_assertions, derive(Debug))]
+#[serde(rename_all = "camelCase")]
+pub struct BulkTransactionDto {
+    pub index: usize,
+
+    pub decision: Option<TransactionDecisionDto>,
+
+    pub error: Option<JsonError>,
+}
+
+#[cfg_attr(debug_assertions, derive(Debug))]
+pub struct BulkCreateTransactions {
+    pub items: Vec<CreateTransactionDto>,
+}
+
+#[derive(Deserialize)]
+#[cfg_attr(debug_assertions, derive(Debug))]
+#[serde(rename_all = "camelCase")]
+pub struct BulkCreateTransactionsDto {
+    #[serde(default)]
+    pub items: UserInput<Vec<CreateTransactionDto>>,
+}
+
+static CONSTRAINTS: LazyLock<Constraints<Vec<()>>> = LazyLock::new(|| {
+    Constraints::builder()
+        .add_constraint(constraints::length::Min(1))
+        .add_constraint(constraints::length::Max(500))
+        .build()
+});
+
+impl TryFrom<Vec<CreateTransactionDto>> for BulkCreateTransactions {
+    type Error = ValidationErrors;
+
+    fn try_from(value: Vec<CreateTransactionDto>) -> Result<Self, Self::Error> {
+        CONSTRAINTS
+            .check(&value.iter().map(|_| ()).collect())
+            .into_result(|_| Self {
+                items: value,
+            })
+    }
+}
+
+impl_try_from_external_input!(
+    domain_type = BulkCreateTransactions,
+    input_type = Vec<CreateTransactionDto>
+);
+
+impl Parseable<BulkCreateTransactions> for BulkCreateTransactionsDto {
+    fn parse(self) -> ValidatorResult<BulkCreateTransactions> {
+        let (errors, items) =
+            into_validators!(field!(self.items, required, "items"));
+
+        errors.into_result(|ok| items.validated(ok))
     }
 }

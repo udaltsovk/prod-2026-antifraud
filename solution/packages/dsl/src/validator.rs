@@ -8,7 +8,7 @@ pub enum ValidatorError<'src> {
     InvalidOperator {
         field: &'src str,
         op: Operator,
-        value: Literal<'src>,
+        value: &'src Literal,
     },
 }
 
@@ -17,7 +17,7 @@ pub struct ValidationConfirmation(());
 
 impl<'src> Expression<'src> {
     pub fn validate(
-        &self,
+        &'src self,
         ctx: &Context<'src>,
     ) -> Result<&'src ValidationConfirmation, Vec<ValidatorError<'src>>> {
         let mut errors = Vec::new();
@@ -29,7 +29,7 @@ impl<'src> Expression<'src> {
     }
 
     fn validate_into(
-        &self,
+        &'src self,
         ctx: &Context<'src>,
         errors: &mut Vec<ValidatorError<'src>>,
     ) {
@@ -46,7 +46,7 @@ impl<'src> Expression<'src> {
                 },
                 Some(field_ty) => {
                     if let Some(err) =
-                        validate_comparison(field, *op, *field_ty, value).err()
+                        validate_comparison(field, *op, field_ty, value).err()
                     {
                         errors.push(err);
                     }
@@ -68,8 +68,8 @@ impl<'src> Expression<'src> {
 const fn validate_comparison<'src>(
     field: &'src str,
     op: Operator,
-    field_ty: Literal<'src>,
-    value: &Literal<'src>,
+    field_ty: &Literal,
+    value: &'src Literal,
 ) -> Result<(), ValidatorError<'src>> {
     use Literal as Lit;
     use Operator as Op;
@@ -82,14 +82,14 @@ const fn validate_comparison<'src>(
             _ => Err(ValidatorError::InvalidOperator {
                 field,
                 op,
-                value: *value,
+                value,
             }),
         },
 
         _ => Err(ValidatorError::InvalidOperator {
             field,
             op,
-            value: *value,
+            value,
         }),
     }
 }

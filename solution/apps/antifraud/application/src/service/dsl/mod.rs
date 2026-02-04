@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use domain::{
     fraud_rule::{FraudRule, dsl_expression::FraudRuleDslExpression},
     transaction::{CreateTransaction, decision::TransactionDecision},
@@ -5,7 +7,8 @@ use domain::{
 };
 
 pub use crate::service::dsl::error::{
-    DslServiceError, DslServiceErrorKind, DslServiceResult,
+    DslServiceError, DslServiceErrorExt, DslServiceErrorKind, DslServiceErrors,
+    DslServiceResult,
 };
 
 mod error;
@@ -19,7 +22,6 @@ pub trait DslService {
     fn decide(
         &self,
         rules: &[FraudRule],
-        transaction: CreateTransaction,
-        user: &User,
-    ) -> TransactionDecision;
+        input: Vec<(usize, (CreateTransaction, Arc<User>))>,
+    ) -> Vec<(usize, TransactionDecision)>;
 }

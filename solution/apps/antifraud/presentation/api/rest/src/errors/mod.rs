@@ -91,37 +91,40 @@ impl ApiError {
     }
 }
 
-impl IntoResponse for ApiError {
-    fn into_response(self) -> Response {
-        self.log();
-        match self {
-            Self::Validation(validation_errors) => {
+impl From<ApiError> for JsonError {
+    fn from(error: ApiError) -> Self {
+        match error {
+            ApiError::Validation(validation_errors) => {
                 ValidationFailedResponse::from(validation_errors).into()
             },
-            Self::JsonRejection(rejection) => {
+            ApiError::JsonRejection(rejection) => {
                 BadRequestResponse::from(rejection).into()
             },
-            Self::PathRejection(rejection) => {
+            ApiError::PathRejection(rejection) => {
                 BadRequestResponse::from(rejection).into()
             },
-            Self::QueryRejection(rejection) => {
+            ApiError::QueryRejection(rejection) => {
                 BadRequestResponse::from(rejection).into()
             },
-            Self::UnknownApiVerRejection(version) => JsonError::new(
+            ApiError::UnknownApiVerRejection(version) => Self::new(
                 StatusCode::NOT_FOUND,
                 "unknown_api_version",
                 format!("Unknown api version ({version})."),
             ),
-            Self::UseCase {
+            ApiError::UseCase {
                 status_code,
                 error_code,
                 message: error,
                 details,
-            } => {
-                JsonError::with_details(status_code, error_code, error, details)
-                    .expect("details from value should serialize successfully")
-            },
+            } => Self::with_details(status_code, error_code, error, details)
+                .expect("details from value should serialize successfully"),
         }
-        .into_response()
+    }
+}
+
+impl IntoResponse for ApiError {
+    fn into_response(self) -> Response {
+        self.log();
+        JsonError::from(self).into_response()
     }
 }

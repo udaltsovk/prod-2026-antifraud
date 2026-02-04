@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use domain::{
     fraud_rule::status::FraudRuleStatus,
     transaction::{
@@ -6,6 +8,7 @@ use domain::{
     },
     user::{User, role::UserRole, status::UserStatus},
 };
+use futures::future;
 use lib::{
     async_trait,
     domain::{
@@ -31,28 +34,26 @@ impl TransactionUseCase for UseCase<Transaction> {
     async fn create(
         &self,
         (creator_id, creator_role): (Id<User>, UserRole),
-        (create_result, transaction_user_id): (
+        input: (
             ValidationResultWithFields<CreateTransaction>,
             ExternalInput<Uuid>,
         ),
     ) -> TransactionUseCaseResult<TransactionDecision> {
-        if transaction_user_id != ExternalInput::Ok(creator_id.into())
-            && creator_role != UserRole::Admin
-        {
-            return TransactionUseCaseError::MissingPermissions.pipe(Err);
-        }
+        let creator = self
+            .repositories
+            .user_repository()
+            .find_by_id(creator_id)
+            .await
+            .map_err(TransactionUseCaseError::Infrastructure)?
+            .map(Arc::new);
 
-        let input =
-            create_result.map_err(TransactionUseCaseError::Validation)?;
-
-        let user = self.check_user_by_id(creator_id).await?;
-
-        let user = if input.user_id.as_ref() == &creator_id.value {
-            user
-        } else {
-            self.check_user_by_id((*input.user_id.as_ref()).into())
-                .await?
-        };
+        let decision_tuple = self
+            .get_transaction_decision_tuple(
+                (creator_id, creator_role),
+                creator.as_ref(),
+                input,
+            )
+            .await?;
 
         let fraud_rules = self
             .repositories
@@ -61,41 +62,104 @@ impl TransactionUseCase for UseCase<Transaction> {
             .await
             .map_err(TransactionUseCaseError::Infrastructure)?;
 
-        let TransactionDecision {
-            transaction,
-            rule_results,
-        } = self
+        let decisions = self
             .services
             .dsl_service()
-            .decide(&fraud_rules, input, &user);
+            .decide(&fraud_rules, vec![(0, decision_tuple)])
+            .into_iter()
+            .map(|(_index, decision)| self.save_transaction_decision(decision))
+            .pipe(future::join_all)
+            .await;
 
-        let transaction = self
-            .repositories
-            .transaction_repository()
-            .save(transaction)
-            .await
-            .map_err(TransactionUseCaseError::Infrastructure)?;
-
-        let rule_results = self
-            .repositories
-            .fraud_rule_result_repository()
-            .batch_create((transaction.id, rule_results))
-            .await
-            .map_err(TransactionUseCaseError::Infrastructure)?;
-
-        TransactionDecision {
-            transaction,
-            rule_results,
-        }
-        .pipe(Ok)
+        decisions
+            .into_iter()
+            .next()
+            .expect("we've passed one transaction, so we should get it back")
     }
 
     async fn bulk_create(
         &self,
-        _creator: (Id<User>, UserRole),
-        _create_result: ValidationResultWithFields<CreateTransaction>,
-    ) -> Vec<(i64, TransactionUseCaseResult<TransactionDecision>)> {
-        todo!()
+        (creator_id, creator_role): (Id<User>, UserRole),
+        input: Vec<(
+            ValidationResultWithFields<CreateTransaction>,
+            ExternalInput<Uuid>,
+        )>,
+    ) -> TransactionUseCaseResult<
+        Vec<(usize, TransactionUseCaseResult<TransactionDecision>)>,
+    > {
+        let creator = self
+            .repositories
+            .user_repository()
+            .find_by_id(creator_id)
+            .await
+            .map_err(TransactionUseCaseError::Infrastructure)?
+            .map(Arc::new);
+
+        let (decision_tuples, mut errors): (Vec<_>, Vec<_>) = input
+            .into_iter()
+            .enumerate()
+            .map(async |(index, inp)| {
+                let res = self
+                    .get_transaction_decision_tuple(
+                        (creator_id, creator_role),
+                        creator.as_ref(),
+                        inp,
+                    )
+                    .await;
+                (index, res)
+            })
+            .pipe(future::join_all)
+            .await
+            .into_iter()
+            .map(|(index, res)| match res {
+                Ok(val) => (Some((index, val)), None),
+                Err(err) => (None, Some((index, err))),
+            })
+            .unzip();
+
+        let fraud_rules = self
+            .repositories
+            .fraud_rule_repository()
+            .list(FraudRuleStatus::Enabled.into())
+            .await
+            .map_err(TransactionUseCaseError::Infrastructure)?;
+
+        let decision_tuples = decision_tuples.into_iter().flatten().collect();
+
+        let (decisions, new_errors): (Vec<_>, Vec<_>) = self
+            .services
+            .dsl_service()
+            .decide(&fraud_rules, decision_tuples)
+            .into_iter()
+            .map(async |(index, decision)| {
+                let res = self.save_transaction_decision(decision).await;
+                (index, res)
+            })
+            .pipe(future::join_all)
+            .await
+            .into_iter()
+            .map(|(index, res)| match res {
+                Ok(val) => (Some((index, val)), None),
+                Err(err) => (None, Some((index, err))),
+            })
+            .unzip();
+
+        errors.extend(new_errors);
+
+        let mut results: Vec<_> = decisions
+            .into_iter()
+            .flatten()
+            .map(|(index, decision)| (index, Ok(decision)))
+            .collect();
+        let errors: Vec<_> = errors
+            .into_iter()
+            .flatten()
+            .map(|(index, error)| (index, Err(error)))
+            .collect();
+
+        results.extend(errors);
+
+        Ok(results)
     }
 
     async fn find_by_id(
@@ -185,19 +249,80 @@ impl UseCase<Transaction> {
     async fn check_user_by_id(
         &self,
         user_id: Id<User>,
-    ) -> TransactionUseCaseResult<User> {
-        let user = self
-            .repositories
-            .user_repository()
-            .find_by_id(user_id)
-            .await
-            .map_err(TransactionUseCaseError::Infrastructure)?
-            .ok_or(TransactionUseCaseError::UserNotFoundById(user_id))?;
+        user: Option<&Arc<User>>,
+    ) -> TransactionUseCaseResult<Arc<User>> {
+        let user =
+            user.ok_or(TransactionUseCaseError::UserNotFoundById(user_id))?;
 
         user.status
             .eq(&UserStatus::Active)
             .ok_or(TransactionUseCaseError::MissingPermissions)?;
 
-        Ok(user)
+        Ok(Arc::clone(user))
+    }
+
+    async fn get_transaction_decision_tuple(
+        &self,
+        (creator_id, creator_role): (Id<User>, UserRole),
+        creator: Option<&Arc<User>>,
+        (create_result, transaction_user_id): (
+            ValidationResultWithFields<CreateTransaction>,
+            ExternalInput<Uuid>,
+        ),
+    ) -> TransactionUseCaseResult<(CreateTransaction, Arc<User>)> {
+        if transaction_user_id != ExternalInput::Ok(creator_id.into())
+            && creator_role != UserRole::Admin
+        {
+            return TransactionUseCaseError::MissingPermissions.pipe(Err);
+        }
+
+        let input =
+            create_result.map_err(TransactionUseCaseError::Validation)?;
+
+        let user = self.check_user_by_id(creator_id, creator).await?;
+
+        let user = if input.user_id.as_ref() == &creator_id.value {
+            user
+        } else {
+            let user_id = (*input.user_id.as_ref()).into();
+            let user_opt = self
+                .repositories
+                .user_repository()
+                .find_by_id(user_id)
+                .await
+                .map_err(TransactionUseCaseError::Infrastructure)?
+                .map(Arc::new);
+            self.check_user_by_id(user_id, user_opt.as_ref()).await?
+        };
+
+        Ok((input, user))
+    }
+
+    async fn save_transaction_decision(
+        &self,
+        TransactionDecision {
+            transaction,
+            rule_results,
+        }: TransactionDecision,
+    ) -> TransactionUseCaseResult<TransactionDecision> {
+        let transaction = self
+            .repositories
+            .transaction_repository()
+            .save(transaction)
+            .await
+            .map_err(TransactionUseCaseError::Infrastructure)?;
+
+        let rule_results = self
+            .repositories
+            .fraud_rule_result_repository()
+            .batch_create((transaction.id, rule_results))
+            .await
+            .map_err(TransactionUseCaseError::Infrastructure)?;
+
+        TransactionDecision {
+            transaction,
+            rule_results,
+        }
+        .pipe(Ok)
     }
 }
