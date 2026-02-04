@@ -57,6 +57,11 @@ impl Default for ContextBuilder<'_> {
 pub struct Context<'src>(HashMap<&'src str, Literal<'src>>);
 
 impl<'src> Context<'src> {
+    #[must_use]
+    pub fn builder() -> ContextBuilder<'src> {
+        ContextBuilder::new()
+    }
+
     pub(crate) fn get_field(&self, field: &'src str) -> Option<&Literal<'src>> {
         self.0.get(field)
     }

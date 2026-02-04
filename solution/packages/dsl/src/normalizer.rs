@@ -1,15 +1,15 @@
-use crate::Expr;
+use crate::Expression;
 
-impl Expr<'_> {
+impl Expression<'_> {
     fn precedence(&self) -> u8 {
         match self {
-            Expr::Or(_, _) => 1,
-            Expr::And(_, _) => 2,
-            Expr::Not(_) => 3,
-            Expr::Comparison {
+            Expression::Or(_, _) => 1,
+            Expression::And(_, _) => 2,
+            Expression::Not(_) => 3,
+            Expression::Comparison {
                 ..
             } => 4,
-            Expr::Parens(inner) => inner.precedence(),
+            Expression::Parens(inner) => inner.precedence(),
         }
     }
 
@@ -20,37 +20,37 @@ impl Expr<'_> {
 
     fn normalize_with_precedence(self, parent_prec: u8) -> Self {
         match self {
-            Expr::Parens(inner) => {
+            Expression::Parens(inner) => {
                 let inner = inner.normalize_with_precedence(parent_prec);
 
                 if inner.precedence() < parent_prec {
-                    Expr::Parens(Box::new(inner))
+                    Expression::Parens(Box::new(inner))
                 } else {
                     inner
                 }
             },
 
-            Expr::And(a, b) => {
+            Expression::And(a, b) => {
                 let prec = 2;
                 let a = a.normalize_with_precedence(prec);
                 let b = b.normalize_with_precedence(prec);
 
-                Expr::And(Box::new(a), Box::new(b))
+                Expression::And(Box::new(a), Box::new(b))
             },
 
-            Expr::Or(a, b) => {
+            Expression::Or(a, b) => {
                 let prec = 1;
                 let a = a.normalize_with_precedence(prec);
                 let b = b.normalize_with_precedence(prec);
 
-                Expr::Or(Box::new(a), Box::new(b))
+                Expression::Or(Box::new(a), Box::new(b))
             },
 
-            Expr::Not(e) => {
+            Expression::Not(e) => {
                 let prec = 3;
                 let e = e.normalize_with_precedence(prec);
 
-                Expr::Not(Box::new(e))
+                Expression::Not(Box::new(e))
             },
 
             other => other,

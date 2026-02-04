@@ -5,10 +5,10 @@
 )]
 
 use crate::{
-    Context, Expr, Literal, Operator, validator::ValidationConfirmation,
+    Context, Expression, Literal, Operator, validator::ValidationConfirmation,
 };
 
-impl<'src> Expr<'src> {
+impl<'src> Expression<'src> {
     const ERROR_MARGIN: f64 = 0.01;
 
     #[must_use]
@@ -18,7 +18,7 @@ impl<'src> Expr<'src> {
         confirmation: &'src ValidationConfirmation,
     ) -> bool {
         match self {
-            Expr::Comparison {
+            Expression::Comparison {
                 field,
                 op,
                 value,
@@ -57,13 +57,13 @@ impl<'src> Expr<'src> {
                 }
             },
 
-            Expr::Parens(inner) => inner.evaluate(ctx, confirmation),
-            Expr::Not(inner) => !inner.evaluate(ctx, confirmation),
-            Expr::And(lhs, rhs) => {
+            Expression::Parens(inner) => inner.evaluate(ctx, confirmation),
+            Expression::Not(inner) => !inner.evaluate(ctx, confirmation),
+            Expression::And(lhs, rhs) => {
                 lhs.evaluate(ctx, confirmation)
                     && rhs.evaluate(ctx, confirmation)
             },
-            Expr::Or(lhs, rhs) => {
+            Expression::Or(lhs, rhs) => {
                 lhs.evaluate(ctx, confirmation)
                     || rhs.evaluate(ctx, confirmation)
             },

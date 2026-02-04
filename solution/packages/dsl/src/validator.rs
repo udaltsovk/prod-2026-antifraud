@@ -1,4 +1,4 @@
-use crate::{Expr, Literal, Operator, context::Context};
+use crate::{Expression, Literal, Operator, context::Context};
 
 #[derive(Debug)]
 pub enum ValidatorError<'src> {
@@ -15,7 +15,7 @@ pub enum ValidatorError<'src> {
 #[derive(Debug, Clone)]
 pub struct ValidationConfirmation(());
 
-impl<'src> Expr<'src> {
+impl<'src> Expression<'src> {
     pub fn validate(
         &self,
         ctx: &Context<'src>,
@@ -34,7 +34,7 @@ impl<'src> Expr<'src> {
         errors: &mut Vec<ValidatorError<'src>>,
     ) {
         match self {
-            Expr::Comparison {
+            Expression::Comparison {
                 field,
                 op,
                 value,
@@ -53,11 +53,11 @@ impl<'src> Expr<'src> {
                 },
             },
 
-            Expr::Parens(expr) | Expr::Not(expr) => {
+            Expression::Parens(expr) | Expression::Not(expr) => {
                 expr.validate_into(ctx, errors);
             },
 
-            Expr::And(lhs, rhs) | Expr::Or(lhs, rhs) => {
+            Expression::And(lhs, rhs) | Expression::Or(lhs, rhs) => {
                 lhs.validate_into(ctx, errors);
                 rhs.validate_into(ctx, errors);
             },

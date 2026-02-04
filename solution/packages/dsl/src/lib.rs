@@ -2,8 +2,11 @@ use std::fmt;
 
 use strum::{Display, EnumString};
 
-pub use crate::context::{Context, ContextBuilder};
-use crate::{parser::ParserError, validator::ValidatorError};
+pub use crate::{
+    context::{Context, ContextBuilder},
+    parser::ParserError,
+    validator::ValidatorError,
+};
 
 mod context;
 mod evaluator;
@@ -52,7 +55,7 @@ impl fmt::Display for Literal<'_> {
 }
 
 #[derive(Display, Debug, Clone)]
-pub enum Expr<'src> {
+pub enum Expression<'src> {
     #[strum(to_string = "{field} {op} {value}")]
     Comparison {
         field: &'src str,
@@ -71,14 +74,4 @@ pub enum Expr<'src> {
 
     #[strum(to_string = "{0} OR {1}")]
     Or(Box<Self>, Box<Self>),
-}
-
-#[derive(Debug)]
-pub enum DslError<'src> {
-    Parser(ParserError<'src>),
-    Validator(ValidatorError<'src>),
-}
-
-impl DslError<'_> {
-    pub const CONTEXT_SIZE: usize = 2;
 }

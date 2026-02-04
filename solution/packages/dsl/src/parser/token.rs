@@ -16,6 +16,8 @@ pub enum LexingError {
 #[logos(error(LexingError))]
 #[logos(skip r"[ \t\n\f]+")]
 pub enum Token<'src> {
+    Error(LexingError),
+
     #[token("AND", ignore(case))]
     And,
 

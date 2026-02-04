@@ -1,39 +1,59 @@
-use chumsky::prelude::*;
+use chumsky::{
+    IterParser as _, Parser,
+    error::Rich,
+    extra,
+    input::{Input as _, Stream, ValueInput},
+    primitive::just,
+    recursive::recursive,
+    select,
+    span::SimpleSpan,
+};
 use logos::Logos as _;
 
 use crate::{
-    DslError, Expr, Literal, Operator,
+    Expression, Literal, Operator,
     parser::token::{LexingError, Token},
 };
 
 mod token;
 
 #[derive(Debug)]
-pub enum ParserError<'src> {
-    Lexer {
-        message: String,
-        near: String,
-        position: usize,
-    },
-    Tokenizer(&'src str),
+pub struct ParserError<'src> {
+    pub message: String,
+    pub near: &'src str,
+    pub position: usize,
+}
+impl ParserError<'_> {
+    pub const CONTEXT_SIZE: usize = 2;
 }
 
-impl<'src> Expr<'src> {
+impl<'src> Expression<'src> {
     #[expect(
         clippy::string_slice,
         reason = "we're checking that we map to valid characters"
     )]
-    pub fn parse(
-        input: &'src str,
-        tokens: &'src mut Vec<Token<'src>>,
-    ) -> Result<Self, ParserError<'src>> {
-        let lexer = Token::lexer(input);
+    pub fn parse(input: &'src str) -> Result<Self, ParserError<'src>> {
+        let token_iter =
+            Token::lexer(input).spanned().map(|(tok, span)| match tok {
+                Ok(tok) => (tok, span.into()),
+                Err(err) => (Token::Error(err), span.into()),
+            });
 
-        *tokens = lexer
-            .spanned()
-            .map(|(token, span)| token.map_err(|err| (err, span)))
-            .collect::<Result<_, _>>()
-            .map_err(|(err, span)| {
+        let token_stream = Stream::from_iter(token_iter)
+            .map((0..input.len()).into(), |(t, s): (_, _)| (t, s));
+
+        parser()
+            .parse(token_stream)
+            .into_result()
+            .map(Self::normalize)
+            .map_err(|errs| {
+                let err =
+                    errs.first().expect("there should be at least one error");
+
+                let span = err.span().into_range();
+
+                let position = span.start;
+
                 let start =
                     input.char_indices().nth(span.start).map_or(0, |(i, _)| i);
                 let end = input
@@ -41,39 +61,41 @@ impl<'src> Expr<'src> {
                     .nth(span.end)
                     .map_or(input.len(), |(i, _)| i);
 
-                let message = match err {
-                    LexingError::InvalidNumber(err) => err.to_string(),
-                    LexingError::UnexpectedChar => {
-                        format!("{err}: `{}`", &input[start..end])
+                let message = match err.found() {
+                    None => "Unexpected end of input".into(),
+                    Some(Token::Error(LexingError::UnexpectedChar)) => {
+                        format!(
+                            "Unexpected character: `{}`",
+                            &input[start..end]
+                        )
+                    },
+                    Some(Token::Error(LexingError::InvalidNumber(err))) => {
+                        err.to_string()
+                    },
+                    Some(_) => {
+                        format!("Unexpected token: `{}`", &input[start..end])
                     },
                 };
 
-                ParserError::Lexer {
-                    message,
-                    near: input[start.saturating_sub(DslError::CONTEXT_SIZE)
-                        ..end.saturating_add(DslError::CONTEXT_SIZE)]
-                        .to_string(),
-                    position: span.start,
-                }
-            })?;
+                let start = start.saturating_sub(ParserError::CONTEXT_SIZE);
+                let end = end
+                    .saturating_add(ParserError::CONTEXT_SIZE)
+                    .min(input.len());
 
-        parser()
-            .parse(tokens)
-            .into_result()
-            .map_err(|err| {
-                dbg!(err);
-                ParserError::Tokenizer("parser")
+                ParserError {
+                    message,
+                    near: &input[start..end],
+                    position,
+                }
             })
-            .map(Self::normalize)
     }
 }
 
-fn parser<'src>() -> impl Parser<
-    'src,
-    &'src [Token<'src>],
-    Expr<'src>,
-    extra::Err<Simple<'src, Token<'src>>>,
-> {
+fn parser<'tokens, 'src: 'tokens, I>()
+-> impl Parser<'tokens, I, Expression<'src>, extra::Err<Rich<'tokens, Token<'src>>>>
+where
+    I: ValueInput<'tokens, Token = Token<'src>, Span = SimpleSpan>,
+{
     recursive(|expr| {
         let literal = select! {
             Token::Number(n) => Literal::Number(Some(n)),
@@ -90,7 +112,7 @@ fn parser<'src>() -> impl Parser<
                 Token::Neq => Operator::NotEqual,
             })
             .then(literal)
-            .map(|((field, op), value)| Expr::Comparison {
+            .map(|((field, op), value)| Expression::Comparison {
                 field,
                 op,
                 value,
@@ -98,19 +120,19 @@ fn parser<'src>() -> impl Parser<
 
         let atom = comparison
             .or(expr.delimited_by(just(Token::LParen), just(Token::RParen)))
-            .map(|e| Expr::Parens(Box::new(e)));
+            .map(|e| Expression::Parens(Box::new(e)));
 
         let unary = just(Token::Not)
             .repeated()
-            .foldr(atom, |_op, rhs| Expr::Not(Box::new(rhs)));
+            .foldr(atom, |_op, rhs| Expression::Not(Box::new(rhs)));
 
         let product = unary.clone().foldl(
-            just(Token::And).to(Expr::And).then(unary).repeated(),
+            just(Token::And).to(Expression::And).then(unary).repeated(),
             |lhs, (op, rhs)| op(Box::new(lhs), Box::new(rhs)),
         );
 
         product.clone().foldl(
-            just(Token::Or).to(Expr::Or).then(product).repeated(),
+            just(Token::Or).to(Expression::Or).then(product).repeated(),
             |lhs, (op, rhs)| op(Box::new(lhs), Box::new(rhs)),
         )
     })
