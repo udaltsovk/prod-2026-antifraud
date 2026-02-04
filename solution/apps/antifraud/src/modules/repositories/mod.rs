@@ -1,4 +1,8 @@
-use application::repository::RepositoriesModuleExt;
+use application::repository::{
+    RepositoriesModuleExt, fraud_rule::FraudRuleRepository,
+    fraud_rule_result::FraudRuleResultRepository,
+    transaction::TransactionRepository, user::UserRepository,
+};
 use domain::{
     fraud_rule::{FraudRule, result::FraudRuleResult},
     transaction::Transaction,
@@ -8,10 +12,7 @@ use infrastructure::persistence::postgres::{
     POSTGRES_MIGRATOR, repository::PostgresRepositoryImpl,
 };
 use lib::{
-    infrastructure::persistence::{
-        mobc_sqlx::MigratorExt as _, postgres::error::PostgresAdapterError,
-        redis::error::RedisAdapterError,
-    },
+    infrastructure::persistence::mobc_sqlx::MigratorExt as _,
     mobc_redis::{RedisConnectionManager, redis},
     mobc_sqlx::{
         SqlxConnectionManager,
@@ -74,35 +75,20 @@ impl RepositoriesModule {
     }
 }
 
-#[derive(thiserror::Error, Debug)]
-pub enum RepositoryError {
-    #[error(transparent)]
-    Postgres(#[from] PostgresAdapterError),
-
-    #[error(transparent)]
-    Redis(#[from] RedisAdapterError),
-}
-
 impl RepositoriesModuleExt for RepositoriesModule {
-    type Error = RepositoryError;
-    type FraudRuleRepository = PostgresRepositoryImpl<FraudRule>;
-    type FraudRuleResultRepository = PostgresRepositoryImpl<FraudRuleResult>;
-    type TransactionRepository = PostgresRepositoryImpl<Transaction>;
-    type UserRepository = PostgresRepositoryImpl<User>;
-
-    fn user_repository(&self) -> &Self::UserRepository {
+    fn user_repository(&self) -> &dyn UserRepository {
         &self.user
     }
 
-    fn fraud_rule_repository(&self) -> &Self::FraudRuleRepository {
+    fn fraud_rule_repository(&self) -> &dyn FraudRuleRepository {
         &self.fraud_rule
     }
 
-    fn transaction_repository(&self) -> &Self::TransactionRepository {
+    fn transaction_repository(&self) -> &dyn TransactionRepository {
         &self.transaction
     }
 
-    fn fraud_rule_result_repository(&self) -> &Self::FraudRuleResultRepository {
+    fn fraud_rule_result_repository(&self) -> &dyn FraudRuleResultRepository {
         &self.fraud_rule_result
     }
 }

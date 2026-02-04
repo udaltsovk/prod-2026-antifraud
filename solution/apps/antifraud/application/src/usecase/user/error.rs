@@ -1,31 +1,22 @@
 use domain::{email::Email, user::User};
 use lib::{
     application::application_result,
-    domain::{Id, validation::error::ValidationErrors},
+    domain::{Id, validation::error::ValidationErrorsWithFields},
 };
 
-use crate::{repository::RepositoriesModuleExt, service::ServicesModuleExt};
-
 #[derive(thiserror::Error, Debug)]
-pub enum UserUseCaseError<R, S>
-where
-    R: RepositoriesModuleExt,
-    S: ServicesModuleExt,
-{
-    #[error("Repository error: {0}")]
-    Repository(R::Error),
+pub enum UserUseCaseError {
+    #[error(transparent)]
+    Infrastructure(#[from] lib::anyhow::Error),
 
     #[error(transparent)]
-    Service(S::Error),
-
-    #[error(transparent)]
-    Validation(ValidationErrors),
+    Validation(ValidationErrorsWithFields),
 
     #[error("Пользователь с таким email уже существует")]
     EmailAlreadyUsed(Email),
 
     #[error("Пользователь не найден")]
-    NotFoundByEmail { email: Email, from_auth: bool },
+    NotFoundByEmail(Email),
 
     #[error("Пользователь деактивирован")]
     UserDeactivated,
@@ -40,4 +31,4 @@ where
     MissingPermissions,
 }
 
-application_result!(UserUseCase<R, S>);
+application_result!(UserUseCase);

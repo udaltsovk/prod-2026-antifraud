@@ -8,19 +8,19 @@ use axum::{
 };
 use lib::{
     presentation::api::rest::{
-        model::Parseable as _, response::ResponseExt as _,
+        response::ResponseExt as _, validation::parseable::Parseable as _,
     },
     tap::Pipe as _,
 };
 
 use crate::{
     ModulesExt,
+    dto::{
+        session::{CreateSessionDto, UserSessionDto},
+        user::CreateUserDto,
+    },
     errors::ApiResult,
     extractors::Json,
-    models::{
-        session::{CreateJsonSession, JsonUserSession},
-        user::CreateJsonUser,
-    },
 };
 
 pub fn router<M: ModulesExt>() -> Router<M> {
@@ -32,9 +32,9 @@ pub fn router<M: ModulesExt>() -> Router<M> {
 #[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn register<M: ModulesExt>(
     modules: State<M>,
-    Json(source): Json<CreateJsonUser>,
+    Json(source): Json<CreateUserDto>,
 ) -> ApiResult<impl IntoResponse> {
-    let user = source.parse();
+    let user = source.parse().map_err(Into::into);
 
     let user = modules
         .user_usecase()
@@ -43,7 +43,7 @@ pub async fn register<M: ModulesExt>(
 
     let token = modules.session_usecase().create(user.id, user.role)?;
 
-    JsonUserSession::from((token, user.into()))
+    UserSessionDto::from((token, user.into()))
         .pipe(Json)
         .into_response()
         .with_status(StatusCode::CREATED)
@@ -53,7 +53,7 @@ pub async fn register<M: ModulesExt>(
 #[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn login<M: ModulesExt>(
     modules: State<M>,
-    Json(source): Json<CreateJsonSession>,
+    Json(source): Json<CreateSessionDto>,
 ) -> ApiResult<impl IntoResponse> {
     let credentials = source.parse()?;
 
@@ -61,7 +61,7 @@ pub async fn login<M: ModulesExt>(
 
     let token = modules.session_usecase().create(user.id, user.role)?;
 
-    JsonUserSession::from((token, user.into()))
+    UserSessionDto::from((token, user.into()))
         .pipe(Json)
         .into_response()
         .with_status(StatusCode::OK)

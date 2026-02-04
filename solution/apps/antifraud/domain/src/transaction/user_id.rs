@@ -17,7 +17,7 @@ use lib::{
 pub struct TransactionUserId(Uuid);
 
 static CONSTRAINTS: LazyLock<Constraints<Uuid>> =
-    LazyLock::new(|| Constraints::builder("userId").build());
+    LazyLock::new(|| Constraints::builder().build());
 
 impl TryFrom<Uuid> for TransactionUserId {
     type Error = ValidationErrors;
@@ -29,6 +29,5 @@ impl TryFrom<Uuid> for TransactionUserId {
 
 impl_try_from_external_input!(
     domain_type = TransactionUserId,
-    input_type = Uuid,
-    constraints = CONSTRAINTS
+    input_type = Uuid
 );

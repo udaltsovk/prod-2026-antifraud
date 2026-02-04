@@ -17,7 +17,7 @@ use lib::{
 pub struct TransactionPaginationTo(DateTime<Utc>);
 
 static CONSTRAINTS: LazyLock<Constraints<DateTime<Utc>>> =
-    LazyLock::new(|| Constraints::builder("to").build());
+    LazyLock::new(|| Constraints::builder().build());
 
 impl TryFrom<DateTime<Utc>> for TransactionPaginationTo {
     type Error = ValidationErrors;
@@ -29,8 +29,7 @@ impl TryFrom<DateTime<Utc>> for TransactionPaginationTo {
 
 impl_try_from_external_input!(
     domain_type = TransactionPaginationTo,
-    input_type = DateTime<Utc>,
-    constraints = CONSTRAINTS
+    input_type = DateTime<Utc>
 );
 
 impl Default for TransactionPaginationTo {

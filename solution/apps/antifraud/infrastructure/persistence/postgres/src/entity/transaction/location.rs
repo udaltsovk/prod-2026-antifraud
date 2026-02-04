@@ -11,26 +11,34 @@ use sqlx::Type;
 #[sqlx(type_name = "transaction_location")]
 pub struct StoredTransactionLocation {
     #[mapper(
-        from_with = country.map(DomainType::into_inner).into_option(),
-        into_with = country.map(DomainTypeFromDb::into_domain).into()
+        opt(
+            from_with = DomainType::into_inner,
+            into_with = DomainTypeFromDb::into_domain
+        )
     )]
     pub country: Option<String>,
 
     #[mapper(
-        from_with = city.map(DomainType::into_inner).into_option(),
-        into_with = city.map(DomainTypeFromDb::into_domain).into()
+        opt(
+            from_with = DomainType::into_inner,
+            into_with = DomainTypeFromDb::into_domain
+        )
     )]
     pub city: Option<String>,
 
     #[mapper(
-        from_with = latitude.map(DomainType::into_inner).into_option(),
-        into_with = latitude.map(DomainTypeFromDb::into_domain).into()
+        opt(
+            from_with = DomainType::into_inner,
+            into_with = DomainTypeFromDb::into_domain
+        )
     )]
     pub latitude: Option<f32>,
 
     #[mapper(
-        from_with = longitude.map(DomainType::into_inner).into_option(),
-        into_with = longitude.map(DomainTypeFromDb::into_domain).into()
+        opt(
+            from_with = DomainType::into_inner,
+            into_with = DomainTypeFromDb::into_domain
+        )
     )]
     pub longitude: Option<f32>,
 }

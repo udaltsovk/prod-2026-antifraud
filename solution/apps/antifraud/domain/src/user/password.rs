@@ -9,38 +9,39 @@ use lib::{
             error::{ValidationErrors, ValidationResult},
         },
     },
+    redact::Secret,
 };
 
-use crate::constraints::PASSWORD_LENGTH_CONSTRAINTS;
+use crate::{constraints::PASSWORD_LENGTH_CONSTRAINTS, password::Password};
 
-#[derive(DomainType, PartialEq, Eq)]
+#[derive(DomainType, PartialEq, Eq, Clone)]
 #[cfg_attr(debug_assertions, derive(Debug))]
-pub struct UserPassword(String);
+pub struct UserPassword(Secret<String>);
 
 static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
-    Constraints::builder_with("password", &PASSWORD_LENGTH_CONSTRAINTS)
+    Constraints::builder_with(&PASSWORD_LENGTH_CONSTRAINTS)
         .add_constraint(constraints::has::Letter)
         .add_constraint(constraints::has::Digit)
         .build()
 });
 
-impl TryFrom<String> for UserPassword {
+impl TryFrom<Secret<String>> for UserPassword {
     type Error = ValidationErrors;
 
-    fn try_from(value: String) -> ValidationResult<Self> {
-        CONSTRAINTS.check(&value).into_result(|_| Self(value))
+    fn try_from(value: Secret<String>) -> ValidationResult<Self> {
+        CONSTRAINTS
+            .check(value.expose_secret())
+            .into_result(|_| Self(value))
     }
 }
 
 impl_try_from_external_input!(
     domain_type = UserPassword,
-    input_type = String,
-    constraints = CONSTRAINTS
+    input_type = Secret<String>
 );
 
-impl UserPassword {
-    #[must_use]
-    pub const fn as_bytes(&self) -> &[u8] {
-        self.0.as_bytes()
+impl From<UserPassword> for Password {
+    fn from(password: UserPassword) -> Self {
+        Self(password.0)
     }
 }

@@ -9,52 +9,51 @@ use lib::{
     async_trait,
     domain::{
         Id,
-        validation::{ExternalInput, error::ValidationResult},
+        validation::{ExternalInput, error::ValidationResultWithFields},
     },
     uuid::Uuid,
 };
 
-use crate::{
-    repository::RepositoriesModuleExt, service::ServicesModuleExt,
-    usecase::transaction::error::TransactionUseCaseResult,
-};
+use crate::usecase::transaction::error::TransactionUseCaseResult;
 
 pub mod error;
 pub mod implementation;
 
 #[async_trait]
-pub trait TransactionUseCase<R, S>
-where
-    R: RepositoriesModuleExt,
-    S: ServicesModuleExt,
-{
+pub trait TransactionUseCase {
     async fn create(
         &self,
         creator: (Id<User>, UserRole),
-        input: (ValidationResult<CreateTransaction>, ExternalInput<Uuid>),
-    ) -> TransactionUseCaseResult<R, S, TransactionDecision>;
+        input: (
+            ValidationResultWithFields<CreateTransaction>,
+            ExternalInput<Uuid>,
+        ),
+    ) -> TransactionUseCaseResult<TransactionDecision>;
 
     async fn bulk_create(
         &self,
         creator: (Id<User>, UserRole),
-        input: ValidationResult<CreateTransaction>,
-    ) -> Vec<(i64, TransactionUseCaseResult<R, S, TransactionDecision>)>;
+        input: ValidationResultWithFields<CreateTransaction>,
+    ) -> Vec<(i64, TransactionUseCaseResult<TransactionDecision>)>;
 
     async fn find_by_id(
         &self,
         requester: (Id<User>, UserRole),
         transaction_id: Id<Transaction>,
-    ) -> TransactionUseCaseResult<R, S, Option<TransactionDecision>>;
+    ) -> TransactionUseCaseResult<Option<TransactionDecision>>;
 
     async fn get_by_id(
         &self,
         requester: (Id<User>, UserRole),
         transaction_id: Id<Transaction>,
-    ) -> TransactionUseCaseResult<R, S, TransactionDecision>;
+    ) -> TransactionUseCaseResult<TransactionDecision>;
 
     async fn list(
         &self,
         requester: (Id<User>, UserRole),
-        input: (ValidationResult<TransactionPagination>, ExternalInput<Uuid>),
-    ) -> TransactionUseCaseResult<R, S, (Vec<Transaction>, u64)>;
+        input: (
+            ValidationResultWithFields<TransactionPagination>,
+            ExternalInput<Uuid>,
+        ),
+    ) -> TransactionUseCaseResult<(Vec<Transaction>, u64)>;
 }

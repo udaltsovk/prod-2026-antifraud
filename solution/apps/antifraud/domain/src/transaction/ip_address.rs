@@ -16,7 +16,7 @@ use lib::{
 pub struct TransactionIpAddress(IpAddr);
 
 static CONSTRAINTS: LazyLock<Constraints<IpAddr>> =
-    LazyLock::new(|| Constraints::builder("ipAddress").build());
+    LazyLock::new(|| Constraints::builder().build());
 
 impl TryFrom<IpAddr> for TransactionIpAddress {
     type Error = ValidationErrors;
@@ -28,6 +28,5 @@ impl TryFrom<IpAddr> for TransactionIpAddress {
 
 impl_try_from_external_input!(
     domain_type = TransactionIpAddress,
-    input_type = IpAddr,
-    constraints = CONSTRAINTS
+    input_type = IpAddr
 );

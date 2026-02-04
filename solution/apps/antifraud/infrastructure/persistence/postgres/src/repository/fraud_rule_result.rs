@@ -1,9 +1,9 @@
 use application::repository::fraud_rule_result::FraudRuleResultRepository;
 use domain::{fraud_rule::result::FraudRuleResult, transaction::Transaction};
 use lib::{
+    anyhow::Result,
     async_trait,
     domain::{DomainType as _, Id},
-    infrastructure::persistence::postgres::error::PostgresAdapterError,
     instrument_all,
     tap::Pipe as _,
     uuid::Uuid,
@@ -18,12 +18,10 @@ use crate::{
 #[async_trait]
 #[instrument_all]
 impl FraudRuleResultRepository for PostgresRepositoryImpl<FraudRuleResult> {
-    type AdapterError = PostgresAdapterError;
-
     async fn batch_create(
         &self,
         (transaction_id, sources): (Id<Transaction>, Vec<FraudRuleResult>),
-    ) -> Result<Vec<FraudRuleResult>, Self::AdapterError> {
+    ) -> Result<Vec<FraudRuleResult>> {
         let transaction_id = transaction_id.value;
 
         let mut fraud_rule_results = Vec::new();
@@ -48,7 +46,7 @@ impl FraudRuleResultRepository for PostgresRepositoryImpl<FraudRuleResult> {
     async fn find_all_by_transaction_id(
         &self,
         transaction_id: Id<Transaction>,
-    ) -> Result<Vec<FraudRuleResult>, Self::AdapterError> {
+    ) -> Result<Vec<FraudRuleResult>> {
         let transaction_id = transaction_id.value;
 
         let mut connection = self.pool.get().await?;
@@ -72,10 +70,7 @@ impl PostgresRepositoryImpl<FraudRuleResult> {
     async fn save_fraud_rule_result<'c, E>(
         executor: E,
         (transaction_id, source): (Uuid, FraudRuleResult),
-    ) -> Result<
-        FraudRuleResult,
-        <Self as FraudRuleResultRepository>::AdapterError,
-    >
+    ) -> Result<FraudRuleResult>
     where
         E: Executor<'c, Database = Postgres>,
     {

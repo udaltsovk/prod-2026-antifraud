@@ -2,7 +2,7 @@ use application::usecase::fraud_rule::FraudRuleUseCase as _;
 use axum::{extract::State, http::StatusCode, response::IntoResponse};
 use lib::{
     presentation::api::rest::{
-        model::Parseable as _, response::ResponseExt as _,
+        response::ResponseExt as _, validation::parseable::Parseable as _,
     },
     tap::Pipe as _,
     uuid::Uuid,
@@ -10,9 +10,9 @@ use lib::{
 
 use crate::{
     ModulesExt,
+    dto::fraud_rule::{FraudRuleDto, FraudRuleUpdateDto},
     errors::{ApiError, ApiResult},
     extractors::{Json, Path, session::UserSession},
-    models::fraud_rule::{JsonFraudRule, JsonFraudRuleUpdate},
 };
 
 #[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
@@ -31,7 +31,7 @@ where
         .fraud_rule_usecase()
         .get_by_id(requester_role, user_id.into())
         .await
-        .map(JsonFraudRule::from)
+        .map(FraudRuleDto::from)
         .map(Json)?
         .into_response()
         .with_status(StatusCode::OK)
@@ -46,18 +46,18 @@ pub async fn update_fraud_rule_by_id<M>(
         ..
     }: UserSession,
     Path(((), user_id)): Path<((), Uuid)>,
-    Json(update): Json<JsonFraudRuleUpdate>,
+    Json(update): Json<FraudRuleUpdateDto>,
 ) -> ApiResult<impl IntoResponse>
 where
     M: ModulesExt,
 {
-    let update_result = update.parse();
+    let update_result = update.parse().map_err(Into::into);
 
     modules
         .fraud_rule_usecase()
         .update_by_id(requester_role, user_id.into(), update_result)
         .await
-        .map(JsonFraudRule::from)
+        .map(FraudRuleDto::from)
         .map(Json)?
         .into_response()
         .with_status(StatusCode::OK)

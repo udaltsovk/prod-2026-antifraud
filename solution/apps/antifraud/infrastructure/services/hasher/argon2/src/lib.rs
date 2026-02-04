@@ -1,44 +1,71 @@
-use application::service::hasher::HasherService;
-pub use argon2::password_hash::Error as Argon2AdapterError;
+use std::sync::OnceLock;
+
+use application::service::hasher::{HasherService, Password, PasswordHash};
 use argon2::{
-    Algorithm, Argon2, Params, ParamsBuilder, PasswordHash,
-    PasswordHasher as _, PasswordVerifier as _, Version,
+    Algorithm, Argon2, Params, ParamsBuilder, PasswordHasher as _,
+    PasswordVerifier as _, Version,
     password_hash::{SaltString, rand_core::OsRng},
 };
-use lib::instrument_all;
+use lib::{
+    anyhow::{Context as _, Result},
+    instrument_all,
+    redact::Secret,
+    tap::Pipe as _,
+};
 
+#[derive(Clone)]
 pub struct Argon2Service {
     hasher: Argon2<'static>,
 }
 
 #[instrument_all]
 impl HasherService for Argon2Service {
-    type AdapterError = Argon2AdapterError;
-
-    fn hash(&self, data: &[u8]) -> Result<String, Self::AdapterError> {
+    fn hash(&self, data: &Password) -> Result<PasswordHash> {
         self.hasher
-            .hash_password(data, &Self::gen_salt())
-            .map(|hashed| hashed.to_string())
+            .hash_password(
+                data.as_ref().expose_secret().as_bytes(),
+                &Self::gen_salt(),
+            )
+            .map(|hashed| {
+                hashed.to_string().pipe(Secret::new).pipe(PasswordHash)
+            })
+            .context("while hashing password with argon")
     }
 
     fn verify(
         &self,
-        data: &[u8],
-        original_hash: &str,
-    ) -> Result<(), Self::AdapterError> {
+        data: &Password,
+        original_hash: Option<&PasswordHash>,
+    ) -> Result<()> {
+        static DUMMY_HASH: OnceLock<String> = OnceLock::new();
+
         self.hasher
-            .verify_password(data, &PasswordHash::new(original_hash)?)
+            .verify_password(
+                data.as_ref().expose_secret().as_bytes(),
+                &original_hash
+                    .map_or_else(
+                        || {
+                            DUMMY_HASH.get_or_init(|| {
+                                self.hasher
+                                    .hash_password(&[], &Self::gen_salt())
+                                    .expect("hashing to be successful")
+                                    .to_string()
+                            })
+                        },
+                        |hash| hash.0.expose_secret(),
+                    )
+                    .pipe(|hash| argon2::PasswordHash::new(hash))?,
+            )
+            .context("while verifying password with argon")
     }
 }
 
-#[instrument_all(level = "debug")]
 impl Argon2Service {
     fn gen_salt() -> SaltString {
         SaltString::generate(&mut OsRng)
     }
 }
 
-#[instrument_all(level = "trace")]
 impl Argon2Service {
     #[inline]
     fn params() -> Params {
@@ -51,6 +78,7 @@ impl Argon2Service {
             .expect("hasher params should be valid")
     }
 
+    #[must_use]
     pub fn new() -> Self {
         Self {
             hasher: Argon2::new(

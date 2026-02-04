@@ -16,7 +16,7 @@ use lib::{
 pub struct UserRegion(String);
 
 static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
-    Constraints::builder("region")
+    Constraints::builder()
         .add_constraint(constraints::length::Max(32))
         .build()
 });
@@ -29,8 +29,4 @@ impl TryFrom<String> for UserRegion {
     }
 }
 
-impl_try_from_external_input!(
-    domain_type = UserRegion,
-    input_type = String,
-    constraints = CONSTRAINTS
-);
+impl_try_from_external_input!(domain_type = UserRegion, input_type = String);

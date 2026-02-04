@@ -6,7 +6,7 @@ use serde::Serialize;
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[mapper(ty = FraudRuleResult, from)]
 #[serde(rename_all = "camelCase")]
-pub struct JsonFraudRuleResult {
+pub struct FraudRuleResultDto {
     pub rule_id: Uuid,
 
     pub rule_name: String,

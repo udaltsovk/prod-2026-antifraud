@@ -1,25 +1,16 @@
-use application::{
-    repository::RepositoriesModuleExt, service::ServicesModuleExt,
-    usecase::transaction::error::TransactionUseCaseError,
-};
+use application::usecase::transaction::error::TransactionUseCaseError;
 use axum::http::StatusCode;
-use serde_json::Value;
+use serde_json::{Value, json};
 
 use crate::ApiError;
 
-impl<R, S> From<TransactionUseCaseError<R, S>> for ApiError
-where
-    R: RepositoriesModuleExt,
-    S: ServicesModuleExt,
-{
-    fn from(error: TransactionUseCaseError<R, S>) -> Self {
+impl From<TransactionUseCaseError> for ApiError {
+    fn from(error: TransactionUseCaseError) -> Self {
         let (status_code, error_code, error, details) = {
             use StatusCode as C;
             use TransactionUseCaseError as E;
             match error {
-                E::Repository(_) | E::Service(_) => {
-                    Self::internal_server_error(error)
-                },
+                E::Infrastructure(_) => Self::internal_server_error(error),
 
                 E::Validation(err) => return Self::from(err),
 
@@ -27,7 +18,15 @@ where
                     (C::LOCKED, "USER_INACTIVE", error.to_string(), Value::Null)
                 },
 
-                E::UserNotFoundById(..) | E::TransactionNotFoundById(..) => {
+                E::UserNotFoundById(id) => (
+                    C::NOT_FOUND,
+                    "NOT_FOUND",
+                    error.to_string(),
+                    json!({
+                        "userId": id
+                    }),
+                ),
+                E::TransactionNotFoundById(..) => {
                     (C::NOT_FOUND, "NOT_FOUND", error.to_string(), Value::Null)
                 },
 

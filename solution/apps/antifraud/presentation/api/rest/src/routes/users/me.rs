@@ -2,9 +2,9 @@ use axum::{extract::State, response::IntoResponse};
 
 use crate::{
     ModulesExt,
+    dto::user::UserUpdateDto,
     errors::ApiResult,
     extractors::{Json, Path, session::UserSession},
-    models::user::JsonUserUpdate,
     routes::users::by_id,
 };
 
@@ -24,7 +24,7 @@ where
 pub async fn update_current_user<M>(
     modules: State<M>,
     user_session: UserSession,
-    update: Json<JsonUserUpdate>,
+    update: Json<UserUpdateDto>,
 ) -> ApiResult<impl IntoResponse>
 where
     M: ModulesExt,

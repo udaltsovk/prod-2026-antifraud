@@ -5,9 +5,9 @@ use domain::{
     user::User,
 };
 use lib::{
+    anyhow::Result,
     async_trait,
     domain::{DomainType, Id},
-    infrastructure::persistence::postgres::error::PostgresAdapterError,
     instrument_all,
     tap::Pipe as _,
     uuid::Uuid,
@@ -28,12 +28,7 @@ use crate::{
 #[async_trait]
 #[instrument_all]
 impl TransactionRepository for PostgresRepositoryImpl<Transaction> {
-    type AdapterError = PostgresAdapterError;
-
-    async fn save(
-        &self,
-        source: Transaction,
-    ) -> Result<Transaction, Self::AdapterError> {
+    async fn save(&self, source: Transaction) -> Result<Transaction> {
         let mut connection = self.pool.get().await?;
 
         Self::save_transaction(&mut *connection, source).await
@@ -42,7 +37,7 @@ impl TransactionRepository for PostgresRepositoryImpl<Transaction> {
     async fn batch_save(
         &self,
         sources: Vec<Transaction>,
-    ) -> Result<Vec<Transaction>, Self::AdapterError> {
+    ) -> Result<Vec<Transaction>> {
         let mut transactions = Vec::new();
 
         let mut connection = self.pool.get().await?;
@@ -62,7 +57,7 @@ impl TransactionRepository for PostgresRepositoryImpl<Transaction> {
     async fn find_by_id(
         &self,
         transaction_id: Id<Transaction>,
-    ) -> Result<Option<Transaction>, Self::AdapterError> {
+    ) -> Result<Option<Transaction>> {
         let transaction_id = transaction_id.value;
 
         let mut connection = self.pool.get().await?;
@@ -86,7 +81,7 @@ impl TransactionRepository for PostgresRepositoryImpl<Transaction> {
         to: DateTime<Utc>,
         limit: i64,
         offset: i64,
-    ) -> Result<Vec<Transaction>, Self::AdapterError> {
+    ) -> Result<Vec<Transaction>> {
         let requester_id = requester_id.map(Uuid::from);
         let verdict = status.map(StoredTransactionVerdict::from);
 
@@ -116,7 +111,7 @@ impl TransactionRepository for PostgresRepositoryImpl<Transaction> {
         status: Option<TransactionStatus>,
         from: DateTime<Utc>,
         to: DateTime<Utc>,
-    ) -> Result<i64, Self::AdapterError> {
+    ) -> Result<i64> {
         let requester_id = requester_id.map(Uuid::from);
         let verdict = status.map(StoredTransactionVerdict::from);
 
@@ -141,7 +136,7 @@ impl PostgresRepositoryImpl<Transaction> {
     async fn save_transaction<'c, E>(
         executor: E,
         source: Transaction,
-    ) -> Result<Transaction, <Self as TransactionRepository>::AdapterError>
+    ) -> Result<Transaction>
     where
         E: Executor<'c, Database = Postgres>,
     {

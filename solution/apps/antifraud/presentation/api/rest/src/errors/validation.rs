@@ -1,7 +1,11 @@
 use lib::{
-    domain::validation::error::ValidationErrors,
-    presentation::api::rest::validation_error_response,
+    domain::validation::error::ValidationErrorsWithFields,
+    presentation::api::rest::{
+        errors::validation::FieldErrors, validation_error_response,
+    },
 };
+
+use crate::errors::ApiError;
 
 validation_error_response!(
     /// поля не прошли валидацию
@@ -10,8 +14,14 @@ validation_error_response!(
     status_code = UNPROCESSABLE_ENTITY,
 );
 
-impl From<ValidationErrors> for ValidationFailedResponse {
-    fn from(errors: ValidationErrors) -> Self {
+impl From<FieldErrors> for ValidationFailedResponse {
+    fn from(errors: FieldErrors) -> Self {
         Self::new("Some fields haven't passed validation", errors)
+    }
+}
+
+impl From<ValidationErrorsWithFields> for ApiError {
+    fn from(errors: ValidationErrorsWithFields) -> Self {
+        Self::Validation(errors.into())
     }
 }

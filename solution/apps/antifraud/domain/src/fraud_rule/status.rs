@@ -9,8 +9,4 @@ pub enum FraudRuleStatus {
     Disabled,
 }
 
-impl_try_from_external_input!(
-    domain_type = FraudRuleStatus,
-    input_type = bool,
-    field = "enabled"
-);
+impl_try_from_external_input!(domain_type = FraudRuleStatus, input_type = bool);

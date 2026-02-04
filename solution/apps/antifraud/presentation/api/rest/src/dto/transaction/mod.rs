@@ -3,21 +3,22 @@ use std::net::IpAddr;
 use chrono::{DateTime, Utc};
 use domain::transaction::{CreateTransaction, Transaction};
 use lib::{
-    domain::{
-        DomainType, into_validators, validation::error::ValidationResult,
-    },
+    domain::DomainType,
     model_mapper::Mapper,
     presentation::api::rest::{
-        UserInput, into_nested_validators, model::Parseable,
+        into_validators,
+        validation::{
+            UserInput, parseable::Parseable, validator::ValidatorResult,
+        },
     },
     uuid::Uuid,
 };
 use serde::{Deserialize, Serialize};
 
-use crate::models::transaction::{
-    channel::JsonTransactionChannel,
-    location::{CreateJsonTransactionLocation, JsonTransactionLocation},
-    status::JsonTransactionStatus,
+use crate::dto::transaction::{
+    channel::TransactionChannelDto,
+    location::{CreateTransactionLocationDto, TransactionLocationDto},
+    status::TransactionStatusDto,
 };
 
 pub mod channel;
@@ -30,7 +31,7 @@ pub mod status;
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[mapper(ty = Transaction, from)]
 #[serde(rename_all = "camelCase")]
-pub struct JsonTransaction {
+pub struct TransactionDto {
     pub id: Uuid,
 
     #[mapper(with = DomainType::into_inner)]
@@ -40,7 +41,7 @@ pub struct JsonTransaction {
 
     pub currency: String,
 
-    pub status: JsonTransactionStatus,
+    pub status: TransactionStatusDto,
 
     #[mapper(skip(default(value = status.is_fraudulent())))]
     pub is_fraud: bool,
@@ -60,9 +61,9 @@ pub struct JsonTransaction {
     pub device_id: Option<String>,
 
     #[mapper(opt)]
-    pub channel: Option<JsonTransactionChannel>,
+    pub channel: Option<TransactionChannelDto>,
 
-    pub location: JsonTransactionLocation,
+    pub location: TransactionLocationDto,
 
     #[mapper(opt)]
     pub metadata: Option<serde_json::Value>,
@@ -73,7 +74,7 @@ pub struct JsonTransaction {
 #[derive(Deserialize)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[serde(rename_all = "camelCase")]
-pub struct CreateJsonTransaction {
+pub struct CreateTransactionDto {
     #[serde(default)]
     pub user_id: UserInput<Uuid>,
 
@@ -102,18 +103,16 @@ pub struct CreateJsonTransaction {
     pub channel: UserInput<String>,
 
     #[serde(default)]
-    pub location: CreateJsonTransactionLocation,
+    pub location: UserInput<CreateTransactionLocationDto>,
 
     #[serde(default)]
     pub metadata: UserInput<serde_value::Value>,
 }
 
-impl Parseable<CreateTransaction> for CreateJsonTransaction {
-    const FIELD: &str = "transaction";
-
-    fn parse(self) -> ValidationResult<CreateTransaction> {
+impl Parseable<CreateTransaction> for CreateTransactionDto {
+    fn parse(self) -> ValidatorResult<CreateTransaction> {
         let (
-            mut errors,
+            errors,
             (
                 user_id,
                 amount,
@@ -124,24 +123,26 @@ impl Parseable<CreateTransaction> for CreateJsonTransaction {
                 ip_address,
                 device_id,
                 channel,
+                location,
                 metadata,
             ),
         ) = into_validators!(
-            self.user_id,
-            self.amount,
-            self.currency,
-            self.merchant_id,
-            self.merchant_category_code,
-            self.timestamp,
-            self.ip_address,
-            self.device_id,
-            self.channel,
-            self.metadata
+            field!(self.user_id, required, "userId"),
+            field!(self.amount, required, "amount"),
+            field!(self.currency, required, "currency"),
+            field!(self.merchant_id, optional, "merchantId"),
+            field!(
+                self.merchant_category_code,
+                optional,
+                "merchantCategoryCode"
+            ),
+            field!(self.timestamp, required, "timestamp"),
+            field!(self.ip_address, optional, "ipAddress"),
+            field!(self.device_id, optional, "deviceId"),
+            field!(self.channel, optional, "channel"),
+            field!(self.location, nested, "location"),
+            field!(self.metadata, optional, "metadata")
         );
-
-        let (nested_errors, location) = into_nested_validators!(self.location);
-
-        errors.extend(nested_errors);
 
         errors.into_result(|ok| CreateTransaction {
             user_id: user_id.validated(ok),

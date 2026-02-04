@@ -8,23 +8,14 @@ use lib::{
     async_trait,
     domain::{
         Id,
-        validation::{ExternalInput, error::ValidationResult},
+        validation::{ExternalInput, error::ValidationResultWithFields},
     },
 };
 
-use crate::{
-    repository::RepositoriesModuleExt, service::ServicesModuleExt,
-    usecase::user::error::UserUseCaseResult,
-};
+use crate::usecase::user::error::UserUseCaseResult;
 
 pub mod error;
 pub mod implementation;
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-#[cfg_attr(debug_assertions, derive(Debug))]
-pub enum GetUserByEmailSource {
-    Auth,
-}
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(debug_assertions, derive(Debug))]
@@ -40,65 +31,54 @@ impl From<UserRole> for CreateUserSource {
 }
 
 #[async_trait]
-pub trait UserUseCase<R, S>
-where
-    R: RepositoriesModuleExt,
-    S: ServicesModuleExt,
-{
+pub trait UserUseCase {
     async fn find_by_email(
         &self,
         user_email: &Email,
-    ) -> UserUseCaseResult<R, S, Option<User>>;
+    ) -> UserUseCaseResult<Option<User>>;
 
-    async fn get_by_email(
-        &self,
-        user_email: Email,
-        source: GetUserByEmailSource,
-    ) -> UserUseCaseResult<R, S, User>;
+    async fn get_by_email(&self, user_email: Email) -> UserUseCaseResult<User>;
 
     async fn create(
         &self,
         source: CreateUserSource,
-        input: ValidationResult<CreateUser>,
-    ) -> UserUseCaseResult<R, S, User>;
+        input: ValidationResultWithFields<CreateUser>,
+    ) -> UserUseCaseResult<User>;
 
-    async fn authorize(
-        &self,
-        input: CreateSession,
-    ) -> UserUseCaseResult<R, S, User>;
+    async fn authorize(&self, input: CreateSession) -> UserUseCaseResult<User>;
 
     async fn find_by_id(
         &self,
         requester: (Id<User>, UserRole),
         user_id: Id<User>,
-    ) -> UserUseCaseResult<R, S, Option<User>>;
+    ) -> UserUseCaseResult<Option<User>>;
 
     async fn get_by_id(
         &self,
         requester: (Id<User>, UserRole),
         user_id: Id<User>,
-    ) -> UserUseCaseResult<R, S, User>;
+    ) -> UserUseCaseResult<User>;
 
     async fn list(
         &self,
         requester_role: UserRole,
-        input: ValidationResult<Pagination>,
-    ) -> UserUseCaseResult<R, S, (Vec<User>, u64)>;
+        input: ValidationResultWithFields<Pagination>,
+    ) -> UserUseCaseResult<(Vec<User>, u64)>;
 
     async fn update_by_id(
         &self,
         requester: (Id<User>, UserRole),
         user_id: Id<User>,
         input: (
-            ValidationResult<UserUpdate>,
+            ValidationResultWithFields<UserUpdate>,
             ExternalInput<bool>,
             ExternalInput<String>,
         ),
-    ) -> UserUseCaseResult<R, S, User>;
+    ) -> UserUseCaseResult<User>;
 
     async fn deactivate_by_id(
         &self,
         requester: (Id<User>, UserRole),
         user_id: Id<User>,
-    ) -> UserUseCaseResult<R, S, User>;
+    ) -> UserUseCaseResult<User>;
 }

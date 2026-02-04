@@ -3,11 +3,14 @@ use domain::{
     pagination::Pagination, transaction::pagination::TransactionPagination,
 };
 use lib::{
-    domain::{
+    presentation::api::rest::{
+        errors::validation::FieldErrors,
         into_validators,
-        validation::error::{ValidationErrors, ValidationResult},
+        validation::{
+            LossyUserInput, UserInput, parseable::Parseable,
+            validator::ValidatorResult,
+        },
     },
-    presentation::api::rest::{LossyUserInput, UserInput, model::Parseable},
     uuid::Uuid,
 };
 use serde::Deserialize;
@@ -39,11 +42,13 @@ pub struct QueryTransactionPagination {
 }
 
 impl Parseable<TransactionPagination> for QueryTransactionPagination {
-    const FIELD: &str = "pagination";
-
-    fn parse(self) -> ValidationResult<TransactionPagination> {
-        let (mut errors, (user_id, status, page, size)) =
-            into_validators!(self.user_id, self.status, self.page, self.size);
+    fn parse(self) -> ValidatorResult<TransactionPagination> {
+        let (mut errors, (user_id, status, page, size)) = into_validators!(
+            field!(self.user_id.0, optional, "userId"),
+            field!(self.status.0, optional, "status"),
+            field!(self.page.0, optional, "page"),
+            field!(self.size.0, optional, "size")
+        );
 
         let time_errors = match (&self.from, &self.to) {
             (
@@ -53,11 +58,13 @@ impl Parseable<TransactionPagination> for QueryTransactionPagination {
             (LossyUserInput(UserInput::Ok(from)), _) => {
                 validate_to_and_from(from, &Utc::now())
             },
-            (_, _) => ValidationErrors::new(),
+            (_, _) => FieldErrors::new(),
         };
 
-        let (time_validation_errors, (from, to)) =
-            into_validators!(self.from, self.to);
+        let (time_validation_errors, (from, to)) = into_validators!(
+            field!(self.from.0, optional, "from"),
+            field!(self.to.0, optional, "to")
+        );
 
         errors.extend(time_validation_errors);
         errors.extend(time_errors);
@@ -78,8 +85,8 @@ impl Parseable<TransactionPagination> for QueryTransactionPagination {
 fn validate_to_and_from(
     from: &DateTime<Utc>,
     to: &DateTime<Utc>,
-) -> ValidationErrors {
-    let mut errors = ValidationErrors::new();
+) -> FieldErrors {
+    let mut errors = FieldErrors::new();
 
     if from >= to {
         errors.push("from", "must be less than `to`", from);

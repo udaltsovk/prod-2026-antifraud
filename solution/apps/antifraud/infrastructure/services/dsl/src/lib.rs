@@ -15,6 +15,7 @@ use domain::{
 };
 use lib::{instrument_all, tap::Pipe as _};
 
+#[derive(Clone)]
 pub struct DslServiceImpl {
     _phantom: (),
 }

@@ -6,7 +6,7 @@ use domain::{
     fraud_rule::FraudRule, session::Session, transaction::Transaction,
     user::User,
 };
-use presentation::api::rest::{ModulesExt, UseCaseImpl};
+use presentation::api::rest::ModulesExt;
 
 pub use crate::modules::config::ModulesConfig;
 use crate::modules::{
@@ -23,40 +23,26 @@ pub struct Modules {
     repositories_module: RepositoriesModule,
     #[expect(dead_code, reason = "We might need that in the future")]
     services_module: ServicesModule,
-    user_usecase: UseCaseImpl<Self, User>,
-    session_usecase: UseCaseImpl<Self, Session>,
-    fraud_rule_usecase: UseCaseImpl<Self, FraudRule>,
-    transaction_usecase: UseCaseImpl<Self, Transaction>,
+    user_usecase: UseCase<User>,
+    session_usecase: UseCase<Session>,
+    fraud_rule_usecase: UseCase<FraudRule>,
+    transaction_usecase: UseCase<Transaction>,
 }
 
 impl ModulesExt for Modules {
-    type RepositoriesModule = RepositoriesModule;
-    type ServicesModule = ServicesModule;
-
-    fn user_usecase(
-        &self,
-    ) -> &impl UserUseCase<Self::RepositoriesModule, Self::ServicesModule> {
+    fn user_usecase(&self) -> &impl UserUseCase {
         &self.user_usecase
     }
 
-    fn session_usecase(
-        &self,
-    ) -> &impl SessionUseCase<Self::RepositoriesModule, Self::ServicesModule>
-    {
+    fn session_usecase(&self) -> &impl SessionUseCase {
         &self.session_usecase
     }
 
-    fn fraud_rule_usecase(
-        &self,
-    ) -> &impl FraudRuleUseCase<Self::RepositoriesModule, Self::ServicesModule>
-    {
+    fn fraud_rule_usecase(&self) -> &impl FraudRuleUseCase {
         &self.fraud_rule_usecase
     }
 
-    fn transaction_usecase(
-        &self,
-    ) -> &impl TransactionUseCase<Self::RepositoriesModule, Self::ServicesModule>
-    {
+    fn transaction_usecase(&self) -> &impl TransactionUseCase {
         &self.transaction_usecase
     }
 }

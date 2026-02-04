@@ -17,7 +17,7 @@ use lib::{
 pub struct PaginationSize(u8);
 
 static CONSTRAINTS: LazyLock<Constraints<i64>> = LazyLock::new(|| {
-    Constraints::builder("size")
+    Constraints::builder()
         .add_constraint(constraints::range::Min(1_i64))
         .add_constraint(constraints::range::Max(100_i64))
         .build()
@@ -29,19 +29,13 @@ impl TryFrom<i64> for PaginationSize {
         CONSTRAINTS.check(&value).into_result(|_| {
             value
                 .try_conv::<u8>()
-                .unwrap_or_else(Self::it_should_be_safe_to_unwrap(
-                    CONSTRAINTS.name(),
-                ))
+                .unwrap_or_else(Self::it_should_be_safe_to_unwrap())
                 .pipe(Self)
         })
     }
 }
 
-impl_try_from_external_input!(
-    domain_type = PaginationSize,
-    input_type = i64,
-    constraints = CONSTRAINTS
-);
+impl_try_from_external_input!(domain_type = PaginationSize, input_type = i64);
 
 impl From<PaginationSize> for i64 {
     fn from(age: PaginationSize) -> Self {

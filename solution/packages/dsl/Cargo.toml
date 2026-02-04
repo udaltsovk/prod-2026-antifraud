@@ -1,0 +1,15 @@
+[package]
+name = "dsl"
+version = "0.1.0"
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+strum = { workspace = true, features = ["derive"] }
+thiserror.workspace = true
+
+chumsky = "0.12"
+logos = { version = "0.16", features = ["forbid_unsafe"] }
+
+[lints]
+workspace = true

@@ -12,6 +12,5 @@ pub enum UserMaritalStatus {
 }
 
 impl_try_from_string!(
-    enum = UserMaritalStatus,
-    field = "maritalStatus"
+    enum = UserMaritalStatus
 );

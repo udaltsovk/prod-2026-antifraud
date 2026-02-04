@@ -1,13 +1,13 @@
 use application::repository::user::UserRepository;
 use domain::{
     email::Email,
-    password_hash::PasswordHash,
+    password::PasswordHash,
     user::{CreateUser, User, region::UserRegion},
 };
 use lib::{
+    anyhow::Result,
     async_trait,
     domain::{DomainType as _, Id},
-    infrastructure::persistence::postgres::error::PostgresAdapterError,
     instrument_all,
     tap::Pipe as _,
 };
@@ -24,24 +24,19 @@ use crate::{
 #[async_trait]
 #[instrument_all]
 impl UserRepository for PostgresRepositoryImpl<User> {
-    type AdapterError = PostgresAdapterError;
-
     async fn create(
         &self,
         (id, source, password_hash): (Id<User>, CreateUser, PasswordHash),
-    ) -> Result<User, Self::AdapterError> {
+    ) -> Result<User> {
         let id = id.value;
         let email = source.email.into_inner();
         let full_name = source.full_name.into_inner();
-        let password_hash = password_hash.0;
-        let age: Option<i16> =
-            source.age.map(|age| age.into_inner().into()).into_option();
-        let gender = source.gender.map(StoredUserGender::from).into_option();
-        let marital_status = source
-            .marital_status
-            .map(StoredUserMaritalStatus::from)
-            .into_option();
-        let region = source.region.map(UserRegion::into_inner).into_option();
+        let password_hash = password_hash.0.expose_secret();
+        let age: Option<i16> = source.age.map(|age| age.into_inner().into());
+        let gender = source.gender.map(StoredUserGender::from);
+        let marital_status =
+            source.marital_status.map(StoredUserMaritalStatus::from);
+        let region = source.region.map(UserRegion::into_inner);
         let role: StoredUserRole = source.role.into();
 
         let mut connection = self.pool.get().await?;
@@ -66,10 +61,7 @@ impl UserRepository for PostgresRepositoryImpl<User> {
         Ok(user)
     }
 
-    async fn find_by_id(
-        &self,
-        id: Id<User>,
-    ) -> Result<Option<User>, Self::AdapterError> {
+    async fn find_by_id(&self, id: Id<User>) -> Result<Option<User>> {
         let mut connection = self.pool.get().await?;
 
         query_file_as!(StoredUser, "sql/user/find_by_id.sql", id.value)
@@ -79,10 +71,7 @@ impl UserRepository for PostgresRepositoryImpl<User> {
             .pipe(Ok)
     }
 
-    async fn find_by_email(
-        &self,
-        email: &Email,
-    ) -> Result<Option<User>, Self::AdapterError> {
+    async fn find_by_email(&self, email: &Email) -> Result<Option<User>> {
         let mut connection = self.pool.get().await?;
 
         query_file_as!(StoredUser, "sql/user/find_by_email.sql", email.as_ref())
@@ -92,11 +81,7 @@ impl UserRepository for PostgresRepositoryImpl<User> {
             .pipe(Ok)
     }
 
-    async fn list(
-        &self,
-        limit: i64,
-        offset: i64,
-    ) -> Result<Vec<User>, Self::AdapterError> {
+    async fn list(&self, limit: i64, offset: i64) -> Result<Vec<User>> {
         let mut connection = self.pool.get().await?;
 
         query_file_as!(StoredUser, "sql/user/list.sql", limit, offset,)
@@ -108,7 +93,7 @@ impl UserRepository for PostgresRepositoryImpl<User> {
             .pipe(Ok)
     }
 
-    async fn count(&self) -> Result<i64, Self::AdapterError> {
+    async fn count(&self) -> Result<i64> {
         let mut connection = self.pool.get().await?;
 
         query_file_scalar!("sql/user/count.sql")
@@ -118,7 +103,7 @@ impl UserRepository for PostgresRepositoryImpl<User> {
             .pipe(Ok)
     }
 
-    async fn update(&self, source: User) -> Result<User, Self::AdapterError> {
+    async fn update(&self, source: User) -> Result<User> {
         let id = source.id.value;
         let full_name = source.full_name.into_inner();
         let age: Option<i16> = source.age.map(|age| age.into_inner().into());

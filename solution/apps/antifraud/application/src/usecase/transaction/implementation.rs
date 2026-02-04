@@ -10,44 +10,32 @@ use lib::{
     async_trait,
     domain::{
         Id,
-        validation::{ExternalInput, error::ValidationResult},
+        validation::{ExternalInput, error::ValidationResultWithFields},
     },
     instrument_all,
     tap::Pipe as _,
     uuid::Uuid,
 };
 
-use crate::{
-    repository::{
-        RepositoriesModuleExt, fraud_rule::FraudRuleRepository as _,
-        fraud_rule_result::FraudRuleResultRepository as _,
-        transaction::TransactionRepository as _, user::UserRepository as _,
-    },
-    service::{ServicesModuleExt, dsl::DslService as _},
-    usecase::{
-        UseCase,
-        transaction::{
-            TransactionUseCase,
-            error::{TransactionUseCaseError, TransactionUseCaseResult},
-        },
+use crate::usecase::{
+    UseCase,
+    transaction::{
+        TransactionUseCase,
+        error::{TransactionUseCaseError, TransactionUseCaseResult},
     },
 };
 
 #[async_trait]
 #[instrument_all]
-impl<R, S> TransactionUseCase<R, S> for UseCase<R, S, Transaction>
-where
-    R: RepositoriesModuleExt,
-    S: ServicesModuleExt,
-{
+impl TransactionUseCase for UseCase<Transaction> {
     async fn create(
         &self,
         (creator_id, creator_role): (Id<User>, UserRole),
         (create_result, transaction_user_id): (
-            ValidationResult<CreateTransaction>,
+            ValidationResultWithFields<CreateTransaction>,
             ExternalInput<Uuid>,
         ),
-    ) -> TransactionUseCaseResult<R, S, TransactionDecision> {
+    ) -> TransactionUseCaseResult<TransactionDecision> {
         if transaction_user_id != ExternalInput::Ok(creator_id.into())
             && creator_role != UserRole::Admin
         {
@@ -71,8 +59,7 @@ where
             .fraud_rule_repository()
             .list(FraudRuleStatus::Enabled.into())
             .await
-            .map_err(R::Error::from)
-            .map_err(TransactionUseCaseError::Repository)?;
+            .map_err(TransactionUseCaseError::Infrastructure)?;
 
         let TransactionDecision {
             transaction,
@@ -87,16 +74,14 @@ where
             .transaction_repository()
             .save(transaction)
             .await
-            .map_err(R::Error::from)
-            .map_err(TransactionUseCaseError::Repository)?;
+            .map_err(TransactionUseCaseError::Infrastructure)?;
 
         let rule_results = self
             .repositories
             .fraud_rule_result_repository()
             .batch_create((transaction.id, rule_results))
             .await
-            .map_err(R::Error::from)
-            .map_err(TransactionUseCaseError::Repository)?;
+            .map_err(TransactionUseCaseError::Infrastructure)?;
 
         TransactionDecision {
             transaction,
@@ -108,8 +93,8 @@ where
     async fn bulk_create(
         &self,
         _creator: (Id<User>, UserRole),
-        _create_result: ValidationResult<CreateTransaction>,
-    ) -> Vec<(i64, TransactionUseCaseResult<R, S, TransactionDecision>)> {
+        _create_result: ValidationResultWithFields<CreateTransaction>,
+    ) -> Vec<(i64, TransactionUseCaseResult<TransactionDecision>)> {
         todo!()
     }
 
@@ -117,14 +102,13 @@ where
         &self,
         (requester_id, requester_role): (Id<User>, UserRole),
         transaction_id: Id<Transaction>,
-    ) -> TransactionUseCaseResult<R, S, Option<TransactionDecision>> {
+    ) -> TransactionUseCaseResult<Option<TransactionDecision>> {
         let transaction = self
             .repositories
             .transaction_repository()
             .find_by_id(transaction_id)
             .await
-            .map_err(R::Error::from)
-            .map_err(TransactionUseCaseError::Repository)?;
+            .map_err(TransactionUseCaseError::Infrastructure)?;
 
         if let Some(transaction) = &transaction
             && requester_role != UserRole::Admin
@@ -139,8 +123,7 @@ where
                 .fraud_rule_result_repository()
                 .find_all_by_transaction_id(transaction.id)
                 .await
-                .map_err(R::Error::from)
-                .map_err(TransactionUseCaseError::Repository)?;
+                .map_err(TransactionUseCaseError::Infrastructure)?;
 
             TransactionDecision {
                 transaction,
@@ -157,7 +140,7 @@ where
         &self,
         requester: (Id<User>, UserRole),
         transaction_id: Id<Transaction>,
-    ) -> TransactionUseCaseResult<R, S, TransactionDecision> {
+    ) -> TransactionUseCaseResult<TransactionDecision> {
         self.find_by_id(requester, transaction_id).await?.ok_or(
             TransactionUseCaseError::TransactionNotFoundById(transaction_id),
         )
@@ -167,10 +150,10 @@ where
         &self,
         (requester_id, requester_role): (Id<User>, UserRole),
         (pagination_result, raw_user_id): (
-            ValidationResult<TransactionPagination>,
+            ValidationResultWithFields<TransactionPagination>,
             ExternalInput<Uuid>,
         ),
-    ) -> TransactionUseCaseResult<R, S, (Vec<Transaction>, u64)> {
+    ) -> TransactionUseCaseResult<(Vec<Transaction>, u64)> {
         if requester_role != UserRole::Admin && !raw_user_id.is_missing() {
             return TransactionUseCaseError::MissingPermissions.pipe(Err);
         }
@@ -184,38 +167,31 @@ where
             .transaction_repository()
             .list(user_id, status, from, to, limit, offset)
             .await
-            .map_err(R::Error::from)
-            .map_err(TransactionUseCaseError::Repository)?;
+            .map_err(TransactionUseCaseError::Infrastructure)?;
 
         let total = self
             .repositories
             .transaction_repository()
             .count(user_id, status, from, to)
             .await
-            .map_err(R::Error::from)
-            .map_err(TransactionUseCaseError::Repository)?;
+            .map_err(TransactionUseCaseError::Infrastructure)?;
 
         Ok((items, total.try_into().unwrap_or(u64::MIN)))
     }
 }
 
 #[instrument_all]
-impl<R, S> UseCase<R, S, Transaction>
-where
-    R: RepositoriesModuleExt,
-    S: ServicesModuleExt,
-{
+impl UseCase<Transaction> {
     async fn check_user_by_id(
         &self,
         user_id: Id<User>,
-    ) -> TransactionUseCaseResult<R, S, User> {
+    ) -> TransactionUseCaseResult<User> {
         let user = self
             .repositories
             .user_repository()
             .find_by_id(user_id)
             .await
-            .map_err(R::Error::from)
-            .map_err(TransactionUseCaseError::Repository)?
+            .map_err(TransactionUseCaseError::Infrastructure)?
             .ok_or(TransactionUseCaseError::UserNotFoundById(user_id))?;
 
         user.status

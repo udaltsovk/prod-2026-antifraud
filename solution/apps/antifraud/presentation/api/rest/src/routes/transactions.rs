@@ -8,7 +8,7 @@ use axum::{
 };
 use lib::{
     presentation::api::rest::{
-        model::Parseable as _, response::ResponseExt as _,
+        response::ResponseExt as _, validation::parseable::Parseable as _,
     },
     tap::Pipe as _,
     uuid::Uuid,
@@ -16,16 +16,16 @@ use lib::{
 
 use crate::{
     ModulesExt,
-    errors::ApiResult,
-    extractors::{Json, Path, Query, session::UserSession},
-    models::{
+    dto::{
         pagination::Paginated,
         transaction::{
-            CreateJsonTransaction, JsonTransaction,
-            decision::JsonTransactionDecision,
+            CreateTransactionDto, TransactionDto,
+            decision::TransactionDecisionDto,
             pagination::QueryTransactionPagination,
         },
     },
+    errors::ApiResult,
+    extractors::{Json, Path, Query, session::UserSession},
 };
 
 pub fn router<M: ModulesExt>() -> Router<M> {
@@ -41,21 +41,24 @@ pub fn router<M: ModulesExt>() -> Router<M> {
 pub async fn create_transaction<M>(
     modules: State<M>,
     creator: UserSession,
-    Json(input): Json<CreateJsonTransaction>,
+    Json(input): Json<CreateTransactionDto>,
 ) -> ApiResult<impl IntoResponse>
 where
     M: ModulesExt,
 {
     let input = {
         let transaction_user_id = input.user_id.clone();
-        (input.parse(), transaction_user_id.into())
+        (
+            input.parse().map_err(Into::into),
+            transaction_user_id.into(),
+        )
     };
 
     modules
         .transaction_usecase()
         .create(creator.into(), input)
         .await
-        .map(JsonTransactionDecision::from)
+        .map(TransactionDecisionDto::from)
         .map(Json)?
         .into_response()
         .with_status(StatusCode::CREATED)
@@ -73,7 +76,7 @@ where
 {
     let input = {
         let user_id = pagination.user_id.clone();
-        (pagination.parse(), user_id.into())
+        (pagination.parse().map_err(Into::into), user_id.into())
     };
 
     let (transactions, count) = modules
@@ -81,7 +84,7 @@ where
         .list(requester.into(), input.clone())
         .await?;
 
-    Paginated::<JsonTransaction>::from_pagination(
+    Paginated::<TransactionDto>::from_pagination(
         input.0?.pagination,
         transactions,
         count,
@@ -105,7 +108,7 @@ where
         .transaction_usecase()
         .get_by_id(requester.into(), transaction_id.into())
         .await
-        .map(JsonTransactionDecision::from)
+        .map(TransactionDecisionDto::from)
         .map(Json)?
         .into_response()
         .pipe(Ok)

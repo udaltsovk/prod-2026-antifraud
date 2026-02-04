@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use lib::domain::{Id, validation::Optional};
+use lib::domain::Id;
 
 use crate::{
     fraud_rule::result::{FraudRuleResult, status::FraudRuleResultStatus},
@@ -52,14 +52,14 @@ pub struct CreateTransaction {
     pub user_id: TransactionUserId,
     pub amount: TransactionAmount,
     pub currency: TransactionCurrency,
-    pub merchant_id: Optional<TransactionMerchantId>,
-    pub merchant_category_code: Optional<TransactionMerchantCategoryCode>,
+    pub merchant_id: Option<TransactionMerchantId>,
+    pub merchant_category_code: Option<TransactionMerchantCategoryCode>,
     pub timestamp: TransactionTimestamp,
-    pub ip_address: Optional<TransactionIpAddress>,
-    pub device_id: Optional<TransactionDeviceId>,
-    pub channel: Optional<TransactionChannel>,
+    pub ip_address: Option<TransactionIpAddress>,
+    pub device_id: Option<TransactionDeviceId>,
+    pub channel: Option<TransactionChannel>,
     pub location: TransactionLocation,
-    pub metadata: Optional<TransactionMetadata>,
+    pub metadata: Option<TransactionMetadata>,
 }
 
 impl CreateTransaction {
@@ -94,14 +94,14 @@ impl CreateTransaction {
             amount,
             currency,
             status,
-            merchant_id: merchant_id.into_option(),
-            merchant_category_code: merchant_category_code.into_option(),
+            merchant_id,
+            merchant_category_code,
             timestamp,
-            ip_address: ip_address.into_option(),
-            device_id: device_id.into_option(),
-            channel: channel.into_option(),
+            ip_address,
+            device_id,
+            channel,
             location,
-            metadata: metadata.into_option(),
+            metadata,
             created_at: Utc::now(),
         }
     }

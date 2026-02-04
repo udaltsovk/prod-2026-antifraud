@@ -8,19 +8,19 @@ use axum::{
 };
 use lib::{
     presentation::api::rest::{
-        model::Parseable as _, response::ResponseExt as _,
+        response::ResponseExt as _, validation::parseable::Parseable as _,
     },
     tap::Pipe as _,
 };
 
 use crate::{
     ModulesExt,
+    dto::fraud_rule::{
+        CreateFraudRuleDto, FraudRuleDslExpressionDto, FraudRuleDto,
+        ValidatedFraudRuleDto,
+    },
     errors::ApiResult,
     extractors::{Json, session::AdminSession},
-    models::fraud_rule::{
-        CreateJsonFraudRule, JsonFraudRule, JsonFraudRuleDslExpression,
-        ValidatedJsonFraudRule,
-    },
 };
 
 pub mod by_id;
@@ -47,18 +47,18 @@ pub async fn create_fraud_rule<M>(
         user_role: requester_role,
         ..
     }: AdminSession,
-    Json(source): Json<CreateJsonFraudRule>,
+    Json(source): Json<CreateFraudRuleDto>,
 ) -> ApiResult<impl IntoResponse>
 where
     M: ModulesExt,
 {
-    let source = source.parse();
+    let source = source.parse().map_err(Into::into);
 
     modules
         .fraud_rule_usecase()
         .create(requester_role, source)
         .await
-        .map(JsonFraudRule::from)
+        .map(FraudRuleDto::from)
         .map(Json)?
         .into_response()
         .with_status(StatusCode::CREATED)
@@ -81,7 +81,7 @@ where
         .list(requester_role, None)
         .await?
         .into_iter()
-        .map(JsonFraudRule::from)
+        .map(FraudRuleDto::from)
         .collect::<Vec<_>>()
         .pipe(Json)
         .pipe(Ok)
@@ -94,17 +94,17 @@ pub async fn validate_fraud_rule<M>(
         user_role: requester_role,
         ..
     }: AdminSession,
-    Json(expression): Json<JsonFraudRuleDslExpression>,
+    Json(expression): Json<FraudRuleDslExpressionDto>,
 ) -> ApiResult<impl IntoResponse>
 where
     M: ModulesExt,
 {
-    let dsl_expression = expression.parse();
+    let dsl_expression = expression.parse().map_err(Into::into);
 
     modules
         .fraud_rule_usecase()
         .normalize_dsl_expression(requester_role, dsl_expression)
-        .map(ValidatedJsonFraudRule::from)?
+        .map(ValidatedFraudRuleDto::from)?
         .pipe(Json)
         .pipe(Ok)
 }

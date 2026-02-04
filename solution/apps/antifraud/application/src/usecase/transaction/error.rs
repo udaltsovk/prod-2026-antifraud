@@ -1,30 +1,21 @@
 use domain::{transaction::Transaction, user::User};
 use lib::{
     application::application_result,
-    domain::{Id, validation::error::ValidationErrors},
+    domain::{Id, validation::error::ValidationErrorsWithFields},
 };
 
-use crate::{repository::RepositoriesModuleExt, service::ServicesModuleExt};
-
 #[derive(thiserror::Error, Debug)]
-pub enum TransactionUseCaseError<R, S>
-where
-    R: RepositoriesModuleExt,
-    S: ServicesModuleExt,
-{
-    #[error("Repository error: {0}")]
-    Repository(R::Error),
+pub enum TransactionUseCaseError {
+    #[error(transparent)]
+    Infrastructure(#[from] lib::anyhow::Error),
 
     #[error(transparent)]
-    Service(S::Error),
-
-    #[error(transparent)]
-    Validation(ValidationErrors),
+    Validation(ValidationErrorsWithFields),
 
     #[error("Пользователь деактивирован")]
     UserDeactivated,
 
-    #[error("Пользователь не найдена")]
+    #[error("Пользователь не найден")]
     UserNotFoundById(Id<User>),
 
     #[error("Транзакция не найдена")]
@@ -34,4 +25,4 @@ where
     MissingPermissions,
 }
 
-application_result!(TransactionUseCase<R, S>);
+application_result!(TransactionUseCase);

@@ -1,5 +1,3 @@
-use lib::domain::validation::Optional;
-
 use crate::transaction::location::{
     city::TransactionLocationCity, country::TransactionLocationCountry,
     latitude::TransactionLocationLatitude,
@@ -13,8 +11,8 @@ pub mod longitude;
 
 #[cfg_attr(debug_assertions, derive(Debug))]
 pub struct TransactionLocation {
-    pub country: Optional<TransactionLocationCountry>,
-    pub city: Optional<TransactionLocationCity>,
-    pub latitude: Optional<TransactionLocationLatitude>,
-    pub longitude: Optional<TransactionLocationLongitude>,
+    pub country: Option<TransactionLocationCountry>,
+    pub city: Option<TransactionLocationCity>,
+    pub latitude: Option<TransactionLocationLatitude>,
+    pub longitude: Option<TransactionLocationLongitude>,
 }

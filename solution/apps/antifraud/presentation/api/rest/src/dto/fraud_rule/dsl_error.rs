@@ -4,7 +4,7 @@ use serde::Serialize;
 #[derive(Serialize)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[serde(rename_all = "camelCase")]
-pub struct JsonDslError {
+pub struct DslErrorDto {
     pub code: &'static str,
 
     pub message: String,
@@ -16,7 +16,7 @@ pub struct JsonDslError {
     pub position: Option<u64>,
 }
 
-impl From<DslServiceError> for JsonDslError {
+impl From<DslServiceError> for DslErrorDto {
     fn from(error: DslServiceError) -> Self {
         let DslServiceError {
             kind,

@@ -1,12 +1,9 @@
 use chrono::{DateTime, Utc};
-use lib::domain::{
-    Id,
-    validation::{Nullable, Optional},
-};
+use lib::domain::Id;
 
 use crate::{
     email::Email,
-    password_hash::PasswordHash,
+    password::PasswordHash,
     user::{
         age::UserAge, full_name::UserFullName, gender::UserGender,
         marital_status::UserMaritalStatus, password::UserPassword,
@@ -44,29 +41,25 @@ pub struct CreateUser {
     pub email: Email,
     pub full_name: UserFullName,
     pub password: UserPassword,
-    pub age: Optional<UserAge>,
-    pub gender: Optional<UserGender>,
-    pub marital_status: Optional<UserMaritalStatus>,
-    pub region: Optional<UserRegion>,
+    pub age: Option<UserAge>,
+    pub gender: Option<UserGender>,
+    pub marital_status: Option<UserMaritalStatus>,
+    pub region: Option<UserRegion>,
     pub role: UserRole,
 }
 
 #[cfg_attr(debug_assertions, derive(Debug))]
 pub struct UserUpdate {
     pub full_name: UserFullName,
-    pub age: Nullable<UserAge>,
-    pub gender: Nullable<UserGender>,
-    pub marital_status: Nullable<UserMaritalStatus>,
-    pub region: Nullable<UserRegion>,
-    pub status: Optional<UserStatus>,
-    pub role: Optional<UserRole>,
+    pub age: Option<UserAge>,
+    pub gender: Option<UserGender>,
+    pub marital_status: Option<UserMaritalStatus>,
+    pub region: Option<UserRegion>,
+    pub status: Option<UserStatus>,
+    pub role: Option<UserRole>,
 }
 
 impl PartialEq<User> for UserUpdate {
-    #[expect(
-        clippy::suspicious_operation_groupings,
-        reason = "I'm sure there's no mistake"
-    )]
     fn eq(&self, other: &User) -> bool {
         let User {
             full_name: current_full_name,
@@ -90,12 +83,12 @@ impl PartialEq<User> for UserUpdate {
         } = self;
 
         new_full_name == current_full_name
-            && new_age.as_option() == current_age.as_ref()
-            && new_gender.as_option() == current_gender.as_ref()
-            && new_marital_status.as_option() == current_marital_status.as_ref()
-            && new_region.as_option() == current_region.as_ref()
-            && new_role.as_option() == Some(current_role)
-            && new_status.as_option() == Some(current_status)
+            && new_age == current_age
+            && new_gender == current_gender
+            && new_marital_status == current_marital_status
+            && new_region == current_region
+            && new_role.as_ref() == Some(current_role)
+            && new_status.as_ref() == Some(current_status)
     }
 }
 
@@ -128,10 +121,10 @@ impl UserUpdate {
             email: current_email,
             full_name: full_name_update,
             password_hash: current_password_hash,
-            age: age_update.into(),
-            gender: gender_update.into(),
-            marital_status: marital_status_update.into(),
-            region: region_update.into(),
+            age: age_update,
+            gender: gender_update,
+            marital_status: marital_status_update,
+            region: region_update,
             role: role_update.unwrap_or(current_role),
             status: status_update.unwrap_or(current_status),
             created_at: current_created_at,

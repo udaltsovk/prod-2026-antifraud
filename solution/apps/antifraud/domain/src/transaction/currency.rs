@@ -21,7 +21,7 @@ static TRANSACTION_CURRENCY_REGEX: LazyLock<Regex> = LazyLock::new(|| {
 });
 
 static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
-    Constraints::builder("currency")
+    Constraints::builder()
         .add_constraint(constraints::Matches(
             TRANSACTION_CURRENCY_REGEX.clone(),
         ))
@@ -38,6 +38,5 @@ impl TryFrom<String> for TransactionCurrency {
 
 impl_try_from_external_input!(
     domain_type = TransactionCurrency,
-    input_type = String,
-    constraints = CONSTRAINTS
+    input_type = String
 );

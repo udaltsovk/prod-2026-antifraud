@@ -17,7 +17,7 @@ use serde_value::Value;
 pub struct TransactionMetadata(Value);
 
 static CONSTRAINTS: LazyLock<Constraints<Value>> =
-    LazyLock::new(|| Constraints::builder("metadata").build());
+    LazyLock::new(|| Constraints::builder().build());
 
 impl TryFrom<Value> for TransactionMetadata {
     type Error = ValidationErrors;
@@ -29,8 +29,7 @@ impl TryFrom<Value> for TransactionMetadata {
 
 impl_try_from_external_input!(
     domain_type = TransactionMetadata,
-    input_type = Value,
-    constraints = CONSTRAINTS
+    input_type = Value
 );
 
 #[doc(hidden)]
@@ -39,9 +38,7 @@ impl TryFrom<serde_json::Value> for TransactionMetadata {
 
     fn try_from(value: serde_json::Value) -> Result<Self, Self::Error> {
         serde_value::to_value(&value)
-            .map_err(|issue| {
-                ValidationErrors::with_error(CONSTRAINTS.name(), issue, value)
-            })
+            .map_err(|issue| ValidationErrors::with_error(issue, value))
             .map(Self)
     }
 }

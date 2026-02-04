@@ -19,7 +19,7 @@ pub struct TransactionTimestamp(DateTime<Utc>);
 
 static CONSTRAINTS: LazyLock<Constraints<DateTime<Utc>>> =
     LazyLock::new(|| {
-        Constraints::builder("timestamp")
+        Constraints::builder()
             .add_constraint(TimedeltaLessThan(TimeDelta::minutes(5)))
             .build()
     });
@@ -34,8 +34,7 @@ impl TryFrom<DateTime<Utc>> for TransactionTimestamp {
 
 impl_try_from_external_input!(
     domain_type = TransactionTimestamp,
-    input_type = DateTime<Utc>,
-    constraints = CONSTRAINTS
+    input_type = DateTime<Utc>
 );
 
 struct TimedeltaLessThan(TimeDelta);

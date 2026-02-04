@@ -17,7 +17,7 @@ use lib::{
 pub struct TransactionLocationCountry(String);
 
 static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
-    Constraints::builder("country")
+    Constraints::builder()
         .add_constraint(constraints::length::Min(2))
         .add_constraint(constraints::length::Max(2))
         .add_constraint(IsUppercase)
@@ -35,8 +35,7 @@ impl TryFrom<String> for TransactionLocationCountry {
 
 impl_try_from_external_input!(
     domain_type = TransactionLocationCountry,
-    input_type = String,
-    constraints = CONSTRAINTS
+    input_type = String
 );
 
 struct IsUppercase;

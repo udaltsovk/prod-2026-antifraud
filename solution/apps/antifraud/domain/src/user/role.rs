@@ -10,6 +10,5 @@ pub enum UserRole {
 }
 
 impl_try_from_string!(
-    enum = UserRole,
-    field = "role"
+    enum = UserRole
 );

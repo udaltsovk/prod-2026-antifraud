@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use lib::domain::{Id, validation::Optional};
+use lib::domain::Id;
 
 use crate::fraud_rule::{
     description::FraudRuleDescription,
@@ -63,26 +63,22 @@ impl FraudRule {
 #[cfg_attr(debug_assertions, derive(Debug))]
 pub struct CreateFraudRule {
     pub name: FraudRuleName,
-    pub description: Optional<FraudRuleDescription>,
+    pub description: Option<FraudRuleDescription>,
     pub dsl_expression: FraudRuleDslExpression,
-    pub status: Optional<FraudRuleStatus>,
-    pub priority: Optional<FraudRulePriority>,
+    pub status: Option<FraudRuleStatus>,
+    pub priority: Option<FraudRulePriority>,
 }
 
 #[cfg_attr(debug_assertions, derive(Debug))]
 pub struct FraudRuleUpdate {
     pub name: FraudRuleName,
-    pub description: Optional<FraudRuleDescription>,
+    pub description: Option<FraudRuleDescription>,
     pub dsl_expression: FraudRuleDslExpression,
     pub status: FraudRuleStatus,
     pub priority: FraudRulePriority,
 }
 
 impl PartialEq<FraudRule> for FraudRuleUpdate {
-    #[expect(
-        clippy::suspicious_operation_groupings,
-        reason = "I'm sure there's no mistake"
-    )]
     fn eq(&self, other: &FraudRule) -> bool {
         let FraudRule {
             name: current_name,
@@ -102,7 +98,7 @@ impl PartialEq<FraudRule> for FraudRuleUpdate {
         } = self;
 
         current_name == new_name
-            && new_description.as_option() == current_description.as_ref()
+            && new_description == current_description
             && new_dsl_expression == current_dsl_expression
             && new_status == current_status
             && new_priority == current_priority
@@ -134,7 +130,7 @@ impl FraudRuleUpdate {
         FraudRule {
             id: current_id,
             name: new_name,
-            description: new_description.into(),
+            description: new_description,
             dsl_expression: new_dsl_expression,
             status: new_status,
             priority: new_priority,

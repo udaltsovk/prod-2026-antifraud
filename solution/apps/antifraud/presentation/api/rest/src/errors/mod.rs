@@ -5,10 +5,8 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
-use domain::error::DomainError;
-use lib::{
-    domain::validation::error::ValidationErrors,
-    presentation::api::rest::errors::{InternalErrorStringExt as _, JsonError},
+use lib::presentation::api::rest::errors::{
+    InternalErrorStringExt as _, JsonError, validation::FieldErrors,
 };
 use serde_json::Value;
 use tracing::{error, warn};
@@ -26,7 +24,7 @@ mod validation;
 #[derive(thiserror::Error, Debug)]
 pub enum ApiError {
     #[error(transparent)]
-    Validation(#[from] ValidationErrors),
+    Validation(#[from] FieldErrors),
 
     #[error(transparent)]
     JsonRejection(#[from] JsonRejection),
@@ -68,15 +66,6 @@ impl ApiError {
 }
 
 pub type ApiResult<T> = Result<T, ApiError>;
-
-impl From<DomainError> for ApiError {
-    fn from(error: DomainError) -> Self {
-        use DomainError as DE;
-        match error {
-            DE::Validation(err) => Self::Validation(err),
-        }
-    }
-}
 
 impl ApiError {
     fn log(&self) {

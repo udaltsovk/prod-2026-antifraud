@@ -1,14 +1,14 @@
-use domain::transaction::channel::TransactionChannel;
+use domain::user::marital_status::UserMaritalStatus;
 use lib::model_mapper::Mapper;
 use serde::{Deserialize, Serialize};
 
 #[derive(Mapper, Deserialize, Serialize)]
 #[cfg_attr(debug_assertions, derive(Debug))]
-#[mapper(ty = TransactionChannel, from, into)]
+#[mapper(ty = UserMaritalStatus, from, into)]
 #[serde(rename_all = "UPPERCASE")]
-pub enum JsonTransactionChannel {
-    Web,
-    Mobile,
-    Pos,
-    Other,
+pub enum UserMaritalStatusDto {
+    Single,
+    Married,
+    Divorced,
+    Widowed,
 }

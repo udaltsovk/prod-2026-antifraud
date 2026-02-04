@@ -8,17 +8,13 @@ use domain::{
 };
 use lib::{
     async_trait,
-    domain::{Id, validation::error::ValidationResult},
+    domain::{Id, validation::error::ValidationResultWithFields},
     instrument_all,
     tap::{Pipe as _, Tap as _},
 };
 
 use crate::{
-    repository::{RepositoriesModuleExt, fraud_rule::FraudRuleRepository as _},
-    service::{
-        ServicesModuleExt,
-        dsl::{DslService as _, DslServiceResult},
-    },
+    service::dsl::DslServiceResult,
     usecase::{
         UseCase,
         fraud_rule::{
@@ -30,27 +26,22 @@ use crate::{
 
 #[async_trait]
 #[instrument_all]
-impl<R, S> FraudRuleUseCase<R, S> for UseCase<R, S, FraudRule>
-where
-    R: RepositoriesModuleExt,
-    S: ServicesModuleExt,
-{
+impl FraudRuleUseCase for UseCase<FraudRule> {
     async fn find_by_name(
         &self,
         fraud_rule_name: &FraudRuleName,
-    ) -> FraudRuleUseCaseResult<R, S, Option<FraudRule>> {
+    ) -> FraudRuleUseCaseResult<Option<FraudRule>> {
         self.repositories
             .fraud_rule_repository()
             .find_by_name(fraud_rule_name)
             .await
-            .map_err(R::Error::from)
-            .map_err(FraudRuleUseCaseError::Repository)
+            .map_err(FraudRuleUseCaseError::Infrastructure)
     }
 
     async fn get_by_name(
         &self,
         fraud_rule_name: FraudRuleName,
-    ) -> FraudRuleUseCaseResult<R, S, FraudRule> {
+    ) -> FraudRuleUseCaseResult<FraudRule> {
         self.find_by_name(&fraud_rule_name)
             .await?
             .ok_or(FraudRuleUseCaseError::NotFoundByName(fraud_rule_name))
@@ -59,8 +50,8 @@ where
     async fn create(
         &self,
         creator_role: UserRole,
-        source: ValidationResult<CreateFraudRule>,
-    ) -> FraudRuleUseCaseResult<R, S, FraudRule> {
+        source: ValidationResultWithFields<CreateFraudRule>,
+    ) -> FraudRuleUseCaseResult<FraudRule> {
         if creator_role != UserRole::Admin {
             return FraudRuleUseCaseError::MissingPermissions.pipe(Err);
         }
@@ -76,15 +67,14 @@ where
             .fraud_rule_repository()
             .create((Id::generate(), source))
             .await
-            .map_err(R::Error::from)
-            .map_err(FraudRuleUseCaseError::Repository)
+            .map_err(FraudRuleUseCaseError::Infrastructure)
     }
 
     async fn find_by_id(
         &self,
         requester_role: UserRole,
         fraud_rule_id: Id<FraudRule>,
-    ) -> FraudRuleUseCaseResult<R, S, Option<FraudRule>> {
+    ) -> FraudRuleUseCaseResult<Option<FraudRule>> {
         if requester_role != UserRole::Admin {
             return FraudRuleUseCaseError::MissingPermissions.pipe(Err);
         }
@@ -93,8 +83,7 @@ where
             .fraud_rule_repository()
             .find_by_id(fraud_rule_id)
             .await
-            .map_err(R::Error::from)
-            .map_err(FraudRuleUseCaseError::Repository)?
+            .map_err(FraudRuleUseCaseError::Infrastructure)?
             .pipe(Ok)
     }
 
@@ -102,7 +91,7 @@ where
         &self,
         requester_role: UserRole,
         fraud_rule_id: Id<FraudRule>,
-    ) -> FraudRuleUseCaseResult<R, S, FraudRule> {
+    ) -> FraudRuleUseCaseResult<FraudRule> {
         self.find_by_id(requester_role, fraud_rule_id)
             .await?
             .ok_or(FraudRuleUseCaseError::NotFoundById(fraud_rule_id))
@@ -112,7 +101,7 @@ where
         &self,
         requester_role: UserRole,
         status: Option<FraudRuleStatus>,
-    ) -> FraudRuleUseCaseResult<R, S, Vec<FraudRule>> {
+    ) -> FraudRuleUseCaseResult<Vec<FraudRule>> {
         if requester_role != UserRole::Admin {
             return FraudRuleUseCaseError::MissingPermissions.pipe(Err);
         }
@@ -121,16 +110,15 @@ where
             .fraud_rule_repository()
             .list(status)
             .await
-            .map_err(R::Error::from)
-            .map_err(FraudRuleUseCaseError::Repository)
+            .map_err(FraudRuleUseCaseError::Infrastructure)
     }
 
     async fn update_by_id(
         &self,
         requester_role: UserRole,
         fraud_rule_id: Id<FraudRule>,
-        update_result: ValidationResult<FraudRuleUpdate>,
-    ) -> FraudRuleUseCaseResult<R, S, FraudRule> {
+        update_result: ValidationResultWithFields<FraudRuleUpdate>,
+    ) -> FraudRuleUseCaseResult<FraudRule> {
         if requester_role != UserRole::Admin {
             return FraudRuleUseCaseError::MissingPermissions.pipe(Err);
         }
@@ -160,16 +148,14 @@ where
             .fraud_rule_repository()
             .update(updated_fraud_rule)
             .await
-            .map_err(R::Error::from)
-            .map_err(FraudRuleUseCaseError::Repository)
+            .map_err(FraudRuleUseCaseError::Infrastructure)
     }
 
     fn normalize_dsl_expression(
         &self,
         requester_role: UserRole,
-        expression_result: ValidationResult<FraudRuleDslExpression>,
-    ) -> FraudRuleUseCaseResult<R, S, DslServiceResult<FraudRuleDslExpression>>
-    {
+        expression_result: ValidationResultWithFields<FraudRuleDslExpression>,
+    ) -> FraudRuleUseCaseResult<DslServiceResult<FraudRuleDslExpression>> {
         if requester_role != UserRole::Admin {
             return FraudRuleUseCaseError::MissingPermissions.pipe(Err);
         }
@@ -187,7 +173,7 @@ where
         &self,
         requester_role: UserRole,
         fraud_rule_id: Id<FraudRule>,
-    ) -> FraudRuleUseCaseResult<R, S, FraudRule> {
+    ) -> FraudRuleUseCaseResult<FraudRule> {
         if requester_role != UserRole::Admin {
             return FraudRuleUseCaseError::MissingPermissions.pipe(Err);
         }
@@ -206,7 +192,6 @@ where
             .fraud_rule_repository()
             .update(updated_fraud_rule)
             .await
-            .map_err(R::Error::from)
-            .map_err(FraudRuleUseCaseError::Repository)
+            .map_err(FraudRuleUseCaseError::Infrastructure)
     }
 }

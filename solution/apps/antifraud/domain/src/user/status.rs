@@ -8,8 +8,4 @@ pub enum UserStatus {
     Deactivated,
 }
 
-impl_try_from_external_input!(
-    domain_type = UserStatus,
-    input_type = bool,
-    field = "isActive"
-);
+impl_try_from_external_input!(domain_type = UserStatus, input_type = bool);

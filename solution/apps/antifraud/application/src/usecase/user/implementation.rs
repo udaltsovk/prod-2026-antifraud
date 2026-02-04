@@ -8,61 +8,45 @@ use lib::{
     async_trait,
     domain::{
         Id,
-        validation::{ExternalInput, error::ValidationResult},
+        validation::{ExternalInput, error::ValidationResultWithFields},
     },
     instrument_all,
     tap::{Pipe as _, Tap as _},
 };
 
-use crate::{
-    repository::{RepositoriesModuleExt, user::UserRepository as _},
-    service::{ServicesModuleExt, hasher::HasherService as _},
-    usecase::{
-        UseCase,
-        user::{
-            CreateUserSource, GetUserByEmailSource, UserUseCase,
-            error::{UserUseCaseError, UserUseCaseResult},
-        },
+use crate::usecase::{
+    UseCase,
+    user::{
+        CreateUserSource, UserUseCase,
+        error::{UserUseCaseError, UserUseCaseResult},
     },
 };
 
 #[async_trait]
 #[instrument_all]
-impl<R, S> UserUseCase<R, S> for UseCase<R, S, User>
-where
-    R: RepositoriesModuleExt,
-    S: ServicesModuleExt,
-{
+impl UserUseCase for UseCase<User> {
     async fn find_by_email(
         &self,
         user_email: &Email,
-    ) -> UserUseCaseResult<R, S, Option<User>> {
+    ) -> UserUseCaseResult<Option<User>> {
         self.repositories
             .user_repository()
             .find_by_email(user_email)
             .await
-            .map_err(R::Error::from)
-            .map_err(UserUseCaseError::Repository)
+            .map_err(UserUseCaseError::Infrastructure)
     }
 
-    async fn get_by_email(
-        &self,
-        user_email: Email,
-        source: GetUserByEmailSource,
-    ) -> UserUseCaseResult<R, S, User> {
-        self.find_by_email(&user_email).await?.ok_or(
-            UserUseCaseError::NotFoundByEmail {
-                email: user_email,
-                from_auth: source == GetUserByEmailSource::Auth,
-            },
-        )
+    async fn get_by_email(&self, user_email: Email) -> UserUseCaseResult<User> {
+        self.find_by_email(&user_email)
+            .await?
+            .ok_or(UserUseCaseError::NotFoundByEmail(user_email))
     }
 
     async fn create(
         &self,
         source: CreateUserSource,
-        input: ValidationResult<CreateUser>,
-    ) -> UserUseCaseResult<R, S, User> {
+        input: ValidationResultWithFields<CreateUser>,
+    ) -> UserUseCaseResult<User> {
         if source != CreateUserSource::User(UserRole::Admin)
             && source != CreateUserSource::Registration
         {
@@ -79,30 +63,28 @@ where
         let password_hash = self
             .services
             .password_hasher_service()
-            .hash(new_user.password.as_bytes())
-            .map_err(S::Error::from)
-            .map_err(UserUseCaseError::Service)?;
+            .hash(&new_user.password.clone().into())
+            .map_err(UserUseCaseError::Infrastructure)?;
 
         self.repositories
             .user_repository()
-            .create((Id::generate(), new_user, password_hash.into()))
+            .create((Id::generate(), new_user, password_hash))
             .await
-            .map_err(R::Error::from)
-            .map_err(UserUseCaseError::Repository)
+            .map_err(UserUseCaseError::Infrastructure)
     }
 
-    async fn authorize(
-        &self,
-        input: CreateSession,
-    ) -> UserUseCaseResult<R, S, User> {
-        let user = self
-            .get_by_email(input.email, GetUserByEmailSource::Auth)
-            .await?;
+    async fn authorize(&self, input: CreateSession) -> UserUseCaseResult<User> {
+        let user = self.find_by_email(&input.email).await?;
 
         self.services
             .password_hasher_service()
-            .verify(input.password.as_bytes(), &user.password_hash.0)
+            .verify(
+                &input.password.clone().into(),
+                user.as_ref().map(|u| &u.password_hash),
+            )
             .map_err(|_| UserUseCaseError::InvalidPassword)?;
+
+        let user = user.expect("we can't match nonexistent user password successfully so user should be Some at this point");
 
         if user.status != UserStatus::Active {
             return UserUseCaseError::UserDeactivated.pipe(Err);
@@ -115,7 +97,7 @@ where
         &self,
         (requester_id, requester_role): (Id<User>, UserRole),
         user_id: Id<User>,
-    ) -> UserUseCaseResult<R, S, Option<User>> {
+    ) -> UserUseCaseResult<Option<User>> {
         if requester_role != UserRole::Admin && requester_id != user_id {
             return UserUseCaseError::MissingPermissions.pipe(Err);
         }
@@ -124,8 +106,7 @@ where
             .user_repository()
             .find_by_id(user_id)
             .await
-            .map_err(R::Error::from)
-            .map_err(UserUseCaseError::Repository)?
+            .map_err(UserUseCaseError::Infrastructure)?
             .pipe(Ok)
     }
 
@@ -133,7 +114,7 @@ where
         &self,
         requester: (Id<User>, UserRole),
         user_id: Id<User>,
-    ) -> UserUseCaseResult<R, S, User> {
+    ) -> UserUseCaseResult<User> {
         self.find_by_id(requester, user_id)
             .await?
             .ok_or(UserUseCaseError::NotFoundById(user_id))
@@ -142,8 +123,8 @@ where
     async fn list(
         &self,
         requester_role: UserRole,
-        input: ValidationResult<Pagination>,
-    ) -> UserUseCaseResult<R, S, (Vec<User>, u64)> {
+        input: ValidationResultWithFields<Pagination>,
+    ) -> UserUseCaseResult<(Vec<User>, u64)> {
         if requester_role != UserRole::Admin {
             return UserUseCaseError::MissingPermissions.pipe(Err);
         }
@@ -157,16 +138,14 @@ where
             .user_repository()
             .list(limit, offset)
             .await
-            .map_err(R::Error::from)
-            .map_err(UserUseCaseError::Repository)?;
+            .map_err(UserUseCaseError::Infrastructure)?;
 
         let total = self
             .repositories
             .user_repository()
             .count()
             .await
-            .map_err(R::Error::from)
-            .map_err(UserUseCaseError::Repository)?;
+            .map_err(UserUseCaseError::Infrastructure)?;
 
         Ok((items, total.try_into().unwrap_or(u64::MIN)))
     }
@@ -176,11 +155,11 @@ where
         (requester_id, requester_role): (Id<User>, UserRole),
         user_id: Id<User>,
         (update_result, new_status, new_role): (
-            ValidationResult<UserUpdate>,
+            ValidationResultWithFields<UserUpdate>,
             ExternalInput<bool>,
             ExternalInput<String>,
         ),
-    ) -> UserUseCaseResult<R, S, User> {
+    ) -> UserUseCaseResult<User> {
         if requester_role != UserRole::Admin
             && !(new_status.is_missing() && new_role.is_missing())
         {
@@ -204,15 +183,14 @@ where
             .user_repository()
             .update(updated_user)
             .await
-            .map_err(R::Error::from)
-            .map_err(UserUseCaseError::Repository)
+            .map_err(UserUseCaseError::Infrastructure)
     }
 
     async fn deactivate_by_id(
         &self,
         (requester_id, requester_role): (Id<User>, UserRole),
         user_id: Id<User>,
-    ) -> UserUseCaseResult<R, S, User> {
+    ) -> UserUseCaseResult<User> {
         if requester_role != UserRole::Admin {
             return UserUseCaseError::MissingPermissions.pipe(Err);
         }
@@ -232,7 +210,6 @@ where
             .user_repository()
             .update(updated_user)
             .await
-            .map_err(R::Error::from)
-            .map_err(UserUseCaseError::Repository)
+            .map_err(UserUseCaseError::Infrastructure)
     }
 }

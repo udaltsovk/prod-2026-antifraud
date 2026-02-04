@@ -9,35 +9,36 @@ use lib::{
             error::{ValidationErrors, ValidationResult},
         },
     },
+    redact::Secret,
 };
 
-use crate::constraints::PASSWORD_LENGTH_CONSTRAINTS;
+use crate::{constraints::PASSWORD_LENGTH_CONSTRAINTS, password::Password};
 
-#[derive(DomainType)]
+#[derive(DomainType, Clone)]
 #[cfg_attr(debug_assertions, derive(Debug))]
-pub struct SessionPassword(String);
+pub struct SessionPassword(Secret<String>);
 
 static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
-    Constraints::builder_with("password", &PASSWORD_LENGTH_CONSTRAINTS).build()
+    Constraints::builder_with(&PASSWORD_LENGTH_CONSTRAINTS).build()
 });
 
-impl TryFrom<String> for SessionPassword {
+impl TryFrom<Secret<String>> for SessionPassword {
     type Error = ValidationErrors;
 
-    fn try_from(value: String) -> ValidationResult<Self> {
-        CONSTRAINTS.check(&value).into_result(|_| Self(value))
+    fn try_from(value: Secret<String>) -> ValidationResult<Self> {
+        CONSTRAINTS
+            .check(value.expose_secret())
+            .into_result(|_| Self(value))
     }
 }
 
 impl_try_from_external_input!(
     domain_type = SessionPassword,
-    input_type = String,
-    constraints = CONSTRAINTS
+    input_type = Secret<String>
 );
 
-impl SessionPassword {
-    #[must_use]
-    pub const fn as_bytes(&self) -> &[u8] {
-        self.0.as_bytes()
+impl From<SessionPassword> for Password {
+    fn from(password: SessionPassword) -> Self {
+        Self(password.0)
     }
 }

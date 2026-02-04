@@ -5,18 +5,19 @@ use domain::fraud_rule::{
     dsl_expression::FraudRuleDslExpression,
 };
 use lib::{
-    domain::{
-        DomainType as _, into_validators, validation::error::ValidationResult,
-    },
+    domain::DomainType as _,
     model_mapper::Mapper,
     presentation::api::rest::{
-        UserInput, into_nested_validators, model::Parseable,
+        into_validators,
+        validation::{
+            UserInput, parseable::Parseable, validator::ValidatorResult,
+        },
     },
     uuid::Uuid,
 };
 use serde::{Deserialize, Serialize};
 
-use crate::models::fraud_rule::dsl_error::JsonDslError;
+use crate::dto::fraud_rule::dsl_error::DslErrorDto;
 
 pub mod dsl_error;
 
@@ -24,7 +25,7 @@ pub mod dsl_error;
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[mapper(ty = FraudRule, from, ignore_extra)]
 #[serde(rename_all = "camelCase")]
-pub struct JsonFraudRule {
+pub struct FraudRuleDto {
     pub id: Uuid,
 
     pub name: String,
@@ -48,16 +49,18 @@ pub struct JsonFraudRule {
 #[derive(Deserialize)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[serde(rename_all = "camelCase")]
-pub struct JsonFraudRuleDslExpression {
+pub struct FraudRuleDslExpressionDto {
     #[serde(default)]
     pub dsl_expression: UserInput<String>,
 }
 
-impl Parseable<FraudRuleDslExpression> for JsonFraudRuleDslExpression {
-    const FIELD: &str = "dslExpression";
-
-    fn parse(self) -> ValidationResult<FraudRuleDslExpression> {
-        let (errors, dsl_expression) = into_validators!(self.dsl_expression);
+impl Parseable<FraudRuleDslExpression> for FraudRuleDslExpressionDto {
+    fn parse(self) -> ValidatorResult<FraudRuleDslExpression> {
+        let (errors, dsl_expression) = into_validators!(field!(
+            self.dsl_expression,
+            required,
+            "dslExpression"
+        ));
 
         errors.into_result(|ok| dsl_expression.validated(ok))
     }
@@ -66,7 +69,7 @@ impl Parseable<FraudRuleDslExpression> for JsonFraudRuleDslExpression {
 #[derive(Deserialize)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[serde(rename_all = "camelCase")]
-pub struct CreateJsonFraudRule {
+pub struct CreateFraudRuleDto {
     #[serde(default)]
     pub name: UserInput<String>,
 
@@ -74,7 +77,7 @@ pub struct CreateJsonFraudRule {
     pub description: UserInput<String>,
 
     #[serde(flatten)]
-    pub dsl_expression: JsonFraudRuleDslExpression,
+    pub dsl_expression: FraudRuleDslExpressionDto,
 
     #[serde(default)]
     pub enabled: UserInput<bool>,
@@ -83,21 +86,15 @@ pub struct CreateJsonFraudRule {
     pub priority: UserInput<i64>,
 }
 
-impl Parseable<CreateFraudRule> for CreateJsonFraudRule {
-    const FIELD: &str = "fraudRule";
-
-    fn parse(self) -> ValidationResult<CreateFraudRule> {
-        let (mut errors, (name, description, status, priority)) = into_validators!(
-            self.name,
-            self.description,
-            self.enabled,
-            self.priority
+impl Parseable<CreateFraudRule> for CreateFraudRuleDto {
+    fn parse(self) -> ValidatorResult<CreateFraudRule> {
+        let (errors, (name, description, dsl_expression, status, priority)) = into_validators!(
+            field!(self.name, required, "name"),
+            field!(self.description, optional, "description"),
+            field!(self.dsl_expression, nested, None),
+            field!(self.enabled, optional, "enabled"),
+            field!(self.priority, optional, "priority")
         );
-
-        let (nested_errors, dsl_expression) =
-            into_nested_validators!(self.dsl_expression);
-
-        errors.extend(nested_errors);
 
         errors.into_result(|ok| CreateFraudRule {
             name: name.validated(ok),
@@ -112,7 +109,7 @@ impl Parseable<CreateFraudRule> for CreateJsonFraudRule {
 #[derive(Deserialize)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[serde(rename_all = "camelCase")]
-pub struct JsonFraudRuleUpdate {
+pub struct FraudRuleUpdateDto {
     #[serde(default)]
     pub name: UserInput<String>,
 
@@ -120,7 +117,7 @@ pub struct JsonFraudRuleUpdate {
     pub description: UserInput<String>,
 
     #[serde(flatten)]
-    pub dsl_expression: JsonFraudRuleDslExpression,
+    pub dsl_expression: FraudRuleDslExpressionDto,
 
     #[serde(default)]
     pub enabled: UserInput<bool>,
@@ -129,21 +126,15 @@ pub struct JsonFraudRuleUpdate {
     pub priority: UserInput<i64>,
 }
 
-impl Parseable<FraudRuleUpdate> for JsonFraudRuleUpdate {
-    const FIELD: &str = "fraudRule";
-
-    fn parse(self) -> ValidationResult<FraudRuleUpdate> {
-        let (mut errors, (name, description, status, priority)) = into_validators!(
-            self.name,
-            self.description,
-            self.enabled,
-            self.priority
+impl Parseable<FraudRuleUpdate> for FraudRuleUpdateDto {
+    fn parse(self) -> ValidatorResult<FraudRuleUpdate> {
+        let (errors, (name, description, dsl_expression, status, priority)) = into_validators!(
+            field!(self.name, required, "name"),
+            field!(self.description, optional, "description"),
+            field!(self.dsl_expression, nested, None),
+            field!(self.enabled, required, "enabled"),
+            field!(self.priority, required, "priority")
         );
-
-        let (nested_errors, dsl_expression) =
-            into_nested_validators!(self.dsl_expression);
-
-        errors.extend(nested_errors);
 
         errors.into_result(|ok| FraudRuleUpdate {
             name: name.validated(ok),
@@ -158,22 +149,22 @@ impl Parseable<FraudRuleUpdate> for JsonFraudRuleUpdate {
 #[derive(Serialize)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[serde(rename_all = "camelCase")]
-pub struct ValidatedJsonFraudRule {
+pub struct ValidatedFraudRuleDto {
     pub is_valid: bool,
 
     pub normalized_expression: Option<String>,
 
-    pub errors: Vec<JsonDslError>,
+    pub errors: Vec<DslErrorDto>,
 }
 
-impl From<DslServiceResult<FraudRuleDslExpression>> for ValidatedJsonFraudRule {
+impl From<DslServiceResult<FraudRuleDslExpression>> for ValidatedFraudRuleDto {
     fn from(result: DslServiceResult<FraudRuleDslExpression>) -> Self {
         let (is_valid, normalized_expression, errors) = match result {
             Ok(normalized) => (true, Some(normalized.into_inner()), vec![]),
             Err(errors) => (
                 false,
                 None,
-                errors.into_iter().map(JsonDslError::from).collect(),
+                errors.into_iter().map(DslErrorDto::from).collect(),
             ),
         };
 

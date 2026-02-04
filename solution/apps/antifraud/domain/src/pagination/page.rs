@@ -16,7 +16,7 @@ use lib::{
 pub struct PaginationPage(i64);
 
 static CONSTRAINTS: LazyLock<Constraints<i64>> = LazyLock::new(|| {
-    Constraints::builder("page")
+    Constraints::builder()
         .add_constraint(constraints::range::Min(0_i64))
         .build()
 });
@@ -29,11 +29,7 @@ impl TryFrom<i64> for PaginationPage {
     }
 }
 
-impl_try_from_external_input!(
-    domain_type = PaginationPage,
-    input_type = i64,
-    constraints = CONSTRAINTS
-);
+impl_try_from_external_input!(domain_type = PaginationPage, input_type = i64);
 
 impl From<PaginationPage> for u64 {
     fn from(value: PaginationPage) -> Self {

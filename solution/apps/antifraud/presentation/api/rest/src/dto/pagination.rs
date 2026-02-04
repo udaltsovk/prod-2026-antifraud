@@ -1,7 +1,9 @@
 use domain::pagination::Pagination;
-use lib::{
-    domain::{into_validators, validation::error::ValidationResult},
-    presentation::api::rest::{LossyUserInput, model::Parseable},
+use lib::presentation::api::rest::{
+    into_validators,
+    validation::{
+        LossyUserInput, parseable::Parseable, validator::ValidatorResult,
+    },
 };
 use serde::{Deserialize, Serialize};
 
@@ -53,10 +55,11 @@ pub struct QueryPagination {
 }
 
 impl Parseable<Pagination> for QueryPagination {
-    const FIELD: &str = "pagination";
-
-    fn parse(self) -> ValidationResult<Pagination> {
-        let (errors, (page, size)) = into_validators!(self.page, self.size);
+    fn parse(self) -> ValidatorResult<Pagination> {
+        let (errors, (page, size)) = into_validators!(
+            field!(self.page.0, optional, "page"),
+            field!(self.size.0, optional, "size")
+        );
 
         errors.into_result(|ok| Pagination {
             page: page.validated(ok),

@@ -16,7 +16,7 @@ use lib::{
 pub struct TransactionAmount(f64);
 
 static CONSTRAINTS: LazyLock<Constraints<f64>> = LazyLock::new(|| {
-    Constraints::builder("amount")
+    Constraints::builder()
         .add_constraint(constraints::range::Min(0.01_f64))
         .add_constraint(constraints::range::Max(9_999_999_999.99_f64))
         .build()
@@ -33,6 +33,5 @@ impl TryFrom<f64> for TransactionAmount {
 
 impl_try_from_external_input!(
     domain_type = TransactionAmount,
-    input_type = f64,
-    constraints = CONSTRAINTS
+    input_type = f64
 );

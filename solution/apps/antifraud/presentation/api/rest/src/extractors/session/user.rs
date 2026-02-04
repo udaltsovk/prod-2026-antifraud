@@ -13,6 +13,7 @@ use domain::{
 use lib::{
     domain::Id,
     model_mapper::Mapper,
+    redact::Secret,
     tap::{Conv as _, Pipe as _},
 };
 
@@ -49,7 +50,7 @@ where
 
         state
             .session_usecase()
-            .get_from_token(bearer.token())
+            .get_from_token(Secret::new(bearer.token()))
             .map_err(|_| AuthError::InvalidToken)?
             .conv::<Self>()
             .pipe(Ok)

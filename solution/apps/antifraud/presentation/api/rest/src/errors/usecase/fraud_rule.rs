@@ -1,25 +1,16 @@
-use application::{
-    repository::RepositoriesModuleExt, service::ServicesModuleExt,
-    usecase::fraud_rule::error::FraudRuleUseCaseError,
-};
+use application::usecase::fraud_rule::error::FraudRuleUseCaseError;
 use axum::http::StatusCode;
 use serde_json::{Value, json};
 
 use crate::ApiError;
 
-impl<R, S> From<FraudRuleUseCaseError<R, S>> for ApiError
-where
-    R: RepositoriesModuleExt,
-    S: ServicesModuleExt,
-{
-    fn from(error: FraudRuleUseCaseError<R, S>) -> Self {
+impl From<FraudRuleUseCaseError> for ApiError {
+    fn from(error: FraudRuleUseCaseError) -> Self {
         let (status_code, error_code, error, details) = {
             use FraudRuleUseCaseError as E;
             use StatusCode as C;
             match error {
-                E::Repository(_) | E::Service(_) => {
-                    Self::internal_server_error(error)
-                },
+                E::Infrastructure(_) => Self::internal_server_error(error),
 
                 E::Validation(err) => return Self::from(err),
 

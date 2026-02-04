@@ -10,7 +10,7 @@ use domain::{
     session::Session,
     user::{User, role::UserRole},
 };
-use lib::{domain::Id, model_mapper::Mapper, tap::Conv as _};
+use lib::{domain::Id, model_mapper::Mapper, redact::Secret, tap::Conv as _};
 
 use crate::{ApiError, ModulesExt, errors::AuthError};
 
@@ -45,7 +45,7 @@ where
 
         let session = state
             .session_usecase()
-            .get_from_token(bearer.token())
+            .get_from_token(Secret::new(bearer.token()))
             .map_err(|_| AuthError::InvalidToken)?
             .conv::<Self>();
 

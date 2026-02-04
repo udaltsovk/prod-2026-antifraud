@@ -16,7 +16,7 @@ use lib::{
 pub struct FraudRuleDslExpression(String);
 
 static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
-    Constraints::builder("dslExpression")
+    Constraints::builder()
         .add_constraint(constraints::length::Min(3))
         .add_constraint(constraints::length::Max(2000))
         .build()
@@ -32,6 +32,5 @@ impl TryFrom<String> for FraudRuleDslExpression {
 
 impl_try_from_external_input!(
     domain_type = FraudRuleDslExpression,
-    input_type = String,
-    constraints = CONSTRAINTS
+    input_type = String
 );

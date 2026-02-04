@@ -12,6 +12,5 @@ pub enum TransactionChannel {
 }
 
 impl_try_from_string!(
-    enum = TransactionChannel,
-    field = "channel"
+    enum = TransactionChannel
 );

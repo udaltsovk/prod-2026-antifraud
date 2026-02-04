@@ -1,25 +1,16 @@
 use domain::fraud_rule::{FraudRule, name::FraudRuleName};
 use lib::{
     application::application_result,
-    domain::{Id, validation::error::ValidationErrors},
+    domain::{Id, validation::error::ValidationErrorsWithFields},
 };
 
-use crate::{repository::RepositoriesModuleExt, service::ServicesModuleExt};
-
 #[derive(thiserror::Error, Debug)]
-pub enum FraudRuleUseCaseError<R, S>
-where
-    R: RepositoriesModuleExt,
-    S: ServicesModuleExt,
-{
-    #[error("Repository error: {0}")]
-    Repository(R::Error),
+pub enum FraudRuleUseCaseError {
+    #[error(transparent)]
+    Infrastructure(#[from] lib::anyhow::Error),
 
     #[error(transparent)]
-    Service(S::Error),
-
-    #[error(transparent)]
-    Validation(ValidationErrors),
+    Validation(ValidationErrorsWithFields),
 
     #[error("Правило фрода с таким названием уже существует")]
     NameAlreadyUsed(FraudRuleName),
@@ -34,4 +25,4 @@ where
     MissingPermissions,
 }
 
-application_result!(FraudRuleUseCase<R, S>);
+application_result!(FraudRuleUseCase);

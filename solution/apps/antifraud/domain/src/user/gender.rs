@@ -11,5 +11,4 @@ pub enum UserGender {
 
 impl_try_from_string!(
     enum = UserGender,
-    field = "gender"
 );

@@ -16,7 +16,7 @@ use lib::{
 pub struct FraudRuleDescription(String);
 
 static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
-    Constraints::builder("description")
+    Constraints::builder()
         .add_constraint(constraints::length::Max(500))
         .build()
 });
@@ -31,6 +31,5 @@ impl TryFrom<String> for FraudRuleDescription {
 
 impl_try_from_external_input!(
     domain_type = FraudRuleDescription,
-    input_type = String,
-    constraints = CONSTRAINTS
+    input_type = String
 );

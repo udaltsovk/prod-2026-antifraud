@@ -22,7 +22,7 @@ static TRANSCTION_MERCHANT_CATEGORY_CODE_REGEX: LazyLock<Regex> =
     });
 
 static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
-    Constraints::builder("merchantCategoryCode")
+    Constraints::builder()
         .add_constraint(constraints::Matches(
             TRANSCTION_MERCHANT_CATEGORY_CODE_REGEX.clone(),
         ))
@@ -39,6 +39,5 @@ impl TryFrom<String> for TransactionMerchantCategoryCode {
 
 impl_try_from_external_input!(
     domain_type = TransactionMerchantCategoryCode,
-    input_type = String,
-    constraints = CONSTRAINTS
+    input_type = String
 );

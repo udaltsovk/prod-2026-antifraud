@@ -4,9 +4,9 @@ use domain::fraud_rule::{
     name::FraudRuleName, status::FraudRuleStatus,
 };
 use lib::{
+    anyhow::Result,
     async_trait,
     domain::{DomainType as _, Id},
-    infrastructure::persistence::postgres::error::PostgresAdapterError,
     instrument_all,
     tap::Pipe as _,
 };
@@ -19,18 +19,14 @@ use crate::{
 #[async_trait]
 #[instrument_all]
 impl FraudRuleRepository for PostgresRepositoryImpl<FraudRule> {
-    type AdapterError = PostgresAdapterError;
-
     async fn create(
         &self,
         (id, source): (Id<FraudRule>, CreateFraudRule),
-    ) -> Result<FraudRule, Self::AdapterError> {
+    ) -> Result<FraudRule> {
         let id = id.value;
         let name = source.name.into_inner();
-        let description = source
-            .description
-            .map(FraudRuleDescription::into_inner)
-            .into_option();
+        let description =
+            source.description.map(FraudRuleDescription::into_inner);
         let dsl_expression = source.dsl_expression.into_inner();
         let enabled = source.status.unwrap_or_default().to_bool();
         let priority: i64 = source.priority.unwrap_or_default().into_inner();
@@ -54,10 +50,7 @@ impl FraudRuleRepository for PostgresRepositoryImpl<FraudRule> {
         Ok(fraud_rule)
     }
 
-    async fn find_by_id(
-        &self,
-        id: Id<FraudRule>,
-    ) -> Result<Option<FraudRule>, Self::AdapterError> {
+    async fn find_by_id(&self, id: Id<FraudRule>) -> Result<Option<FraudRule>> {
         let mut connection = self.pool.get().await?;
 
         query_file_as!(
@@ -74,7 +67,7 @@ impl FraudRuleRepository for PostgresRepositoryImpl<FraudRule> {
     async fn find_by_name(
         &self,
         name: &FraudRuleName,
-    ) -> Result<Option<FraudRule>, Self::AdapterError> {
+    ) -> Result<Option<FraudRule>> {
         let mut connection = self.pool.get().await?;
 
         query_file_as!(
@@ -91,7 +84,7 @@ impl FraudRuleRepository for PostgresRepositoryImpl<FraudRule> {
     async fn list(
         &self,
         status: Option<FraudRuleStatus>,
-    ) -> Result<Vec<FraudRule>, Self::AdapterError> {
+    ) -> Result<Vec<FraudRule>> {
         let enabled = status.map(FraudRuleStatus::to_bool);
 
         let mut connection = self.pool.get().await?;
@@ -105,10 +98,7 @@ impl FraudRuleRepository for PostgresRepositoryImpl<FraudRule> {
             .pipe(Ok)
     }
 
-    async fn update(
-        &self,
-        source: FraudRule,
-    ) -> Result<FraudRule, Self::AdapterError> {
+    async fn update(&self, source: FraudRule) -> Result<FraudRule> {
         let id = source.id.value;
         let name = source.name.into_inner();
         let description =

@@ -16,7 +16,7 @@ use lib::{
 pub struct TransactionLocationLongitude(f32);
 
 static CONSTRAINTS: LazyLock<Constraints<f32>> = LazyLock::new(|| {
-    Constraints::builder("longitude")
+    Constraints::builder()
         .add_constraint(constraints::range::Min(-180_f32))
         .add_constraint(constraints::range::Max(180_f32))
         .build()
@@ -32,6 +32,5 @@ impl TryFrom<f32> for TransactionLocationLongitude {
 
 impl_try_from_external_input!(
     domain_type = TransactionLocationLongitude,
-    input_type = f32,
-    constraints = CONSTRAINTS
+    input_type = f32
 );

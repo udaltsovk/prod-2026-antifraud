@@ -1,5 +1,5 @@
 use chrono::{DateTime, Days, Utc};
-use lib::domain::{DomainType, Id, validation::Optional};
+use lib::domain::{DomainType, Id};
 
 use crate::{
     pagination::Pagination,
@@ -20,10 +20,10 @@ pub mod to;
 #[derive(Clone)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 pub struct TransactionPagination {
-    pub user_id: Optional<TransactionUserId>,
-    pub status: Optional<TransactionStatus>,
-    pub from: Optional<TransactionPaginationFrom>,
-    pub to: Optional<TransactionPaginationTo>,
+    pub user_id: Option<TransactionUserId>,
+    pub status: Option<TransactionStatus>,
+    pub from: Option<TransactionPaginationFrom>,
+    pub to: Option<TransactionPaginationTo>,
     pub pagination: Pagination,
 }
 
@@ -46,17 +46,19 @@ impl TransactionPagination {
             .user_id
             .map(DomainType::into_inner)
             .map(Id::from)
-            .into_option()
             .or_else(|| {
                 requester_role.ne(&UserRole::Admin).then_some(requester_id)
             });
 
-        let status = self.status.into_option();
+        let status = self.status;
         let to = self.to.unwrap_or_default().into_inner();
-        let from = self.from.map(DomainType::into_inner).unwrap_or_else(|| {
-            to.checked_sub_days(Days::new(90))
-                .unwrap_or(DateTime::<Utc>::MIN_UTC)
-        });
+        let from = self.from.map_or_else(
+            || {
+                to.checked_sub_days(Days::new(90))
+                    .unwrap_or(DateTime::<Utc>::MIN_UTC)
+            },
+            DomainType::into_inner,
+        );
         let (limit, offset) = self.pagination.into_limit_offset();
 
         (user_id, status, to, from, limit, offset)

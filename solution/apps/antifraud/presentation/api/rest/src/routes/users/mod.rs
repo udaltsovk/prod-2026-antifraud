@@ -8,19 +8,19 @@ use axum::{
 };
 use lib::{
     presentation::api::rest::{
-        model::Parseable as _, response::ResponseExt as _,
+        response::ResponseExt as _, validation::parseable::Parseable as _,
     },
     tap::Pipe as _,
 };
 
 use crate::{
     ModulesExt,
+    dto::{
+        pagination::{Paginated, QueryPagination},
+        user::{CreateUserWithRoleDto, UserDto},
+    },
     errors::ApiResult,
     extractors::{Json, Query, session::AdminSession},
-    models::{
-        pagination::{Paginated, QueryPagination},
-        user::{CreateJsonUserWithRole, JsonUser},
-    },
 };
 
 pub mod by_id;
@@ -51,18 +51,18 @@ pub async fn register_user<M>(
         user_role: creator_role,
         ..
     }: AdminSession,
-    Json(source): Json<CreateJsonUserWithRole>,
+    Json(source): Json<CreateUserWithRoleDto>,
 ) -> ApiResult<impl IntoResponse>
 where
     M: ModulesExt,
 {
-    let source = source.parse();
+    let source = source.parse().map_err(Into::into);
 
     modules
         .user_usecase()
         .create(creator_role.into(), source)
         .await
-        .map(JsonUser::from)
+        .map(UserDto::from)
         .map(Json)?
         .into_response()
         .with_status(StatusCode::CREATED)
@@ -81,14 +81,14 @@ pub async fn list_users<M>(
 where
     M: ModulesExt,
 {
-    let pagination = pagination.parse();
+    let pagination = pagination.parse().map_err(Into::into);
 
     let (users, count) = modules
         .user_usecase()
         .list(requester_role, pagination.clone())
         .await?;
 
-    Paginated::<JsonUser>::from_pagination(pagination?, users, count)
+    Paginated::<UserDto>::from_pagination(pagination?, users, count)
         .pipe(Json)
         .into_response()
         .with_status(StatusCode::OK)

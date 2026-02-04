@@ -16,7 +16,7 @@ use lib::{
 pub struct TransactionMerchantId(String);
 
 static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
-    Constraints::builder("merchantId")
+    Constraints::builder()
         .add_constraint(constraints::length::Max(64))
         .build()
 });
@@ -31,6 +31,5 @@ impl TryFrom<String> for TransactionMerchantId {
 
 impl_try_from_external_input!(
     domain_type = TransactionMerchantId,
-    input_type = String,
-    constraints = CONSTRAINTS
+    input_type = String
 );

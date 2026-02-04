@@ -1,18 +1,9 @@
 use lib::application::application_result;
 
-use crate::{repository::RepositoriesModuleExt, service::ServicesModuleExt};
-
 #[derive(thiserror::Error, Debug)]
-pub enum SessionUseCaseError<R, S>
-where
-    R: RepositoriesModuleExt,
-    S: ServicesModuleExt,
-{
-    #[error("Repository error: {0}")]
-    Repository(R::Error),
-
+pub enum SessionUseCaseError {
     #[error(transparent)]
-    Service(S::Error),
+    Infrastructure(#[from] lib::anyhow::Error),
 }
 
-application_result!(SessionUseCase<R, S>);
+application_result!(SessionUseCase);

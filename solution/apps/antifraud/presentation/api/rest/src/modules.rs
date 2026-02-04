@@ -1,32 +1,14 @@
-use application::{
-    repository::RepositoriesModuleExt,
-    service::ServicesModuleExt,
-    usecase::{
-        fraud_rule::FraudRuleUseCase, session::SessionUseCase,
-        transaction::TransactionUseCase, user::UserUseCase,
-    },
+use application::usecase::{
+    fraud_rule::FraudRuleUseCase, session::SessionUseCase,
+    transaction::TransactionUseCase, user::UserUseCase,
 };
-use lib::presentation::usecase_impl_type;
 
 pub trait ModulesExt: Clone + Send + Sync + 'static {
-    type RepositoriesModule: RepositoriesModuleExt;
-    type ServicesModule: ServicesModuleExt;
+    fn user_usecase(&self) -> &impl UserUseCase;
 
-    fn user_usecase(
-        &self,
-    ) -> &impl UserUseCase<Self::RepositoriesModule, Self::ServicesModule>;
+    fn session_usecase(&self) -> &impl SessionUseCase;
 
-    fn session_usecase(
-        &self,
-    ) -> &impl SessionUseCase<Self::RepositoriesModule, Self::ServicesModule>;
+    fn fraud_rule_usecase(&self) -> &impl FraudRuleUseCase;
 
-    fn fraud_rule_usecase(
-        &self,
-    ) -> &impl FraudRuleUseCase<Self::RepositoriesModule, Self::ServicesModule>;
-
-    fn transaction_usecase(
-        &self,
-    ) -> &impl TransactionUseCase<Self::RepositoriesModule, Self::ServicesModule>;
+    fn transaction_usecase(&self) -> &impl TransactionUseCase;
 }
-
-usecase_impl_type!();

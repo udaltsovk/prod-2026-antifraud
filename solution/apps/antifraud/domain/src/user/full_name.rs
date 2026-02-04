@@ -16,7 +16,7 @@ use lib::{
 pub struct UserFullName(String);
 
 static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
-    Constraints::builder("fullName")
+    Constraints::builder()
         .add_constraint(constraints::length::Min(2))
         .add_constraint(constraints::length::Max(200))
         .build()
@@ -30,8 +30,4 @@ impl TryFrom<String> for UserFullName {
     }
 }
 
-impl_try_from_external_input!(
-    domain_type = UserFullName,
-    input_type = String,
-    constraints = CONSTRAINTS
-);
+impl_try_from_external_input!(domain_type = UserFullName, input_type = String);

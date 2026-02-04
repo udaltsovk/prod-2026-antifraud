@@ -10,8 +10,7 @@ pub enum TransactionStatus {
 }
 
 impl_try_from_string!(
-    enum = TransactionStatus,
-    field = "status"
+    enum = TransactionStatus
 );
 
 impl TransactionStatus {

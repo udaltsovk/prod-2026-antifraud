@@ -15,7 +15,7 @@ use lib::{
 pub struct FraudRuleName(String);
 
 static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
-    Constraints::builder("name")
+    Constraints::builder()
         .add_constraint(constraints::length::Min(3))
         .add_constraint(constraints::length::Max(120))
         .build()
@@ -29,11 +29,7 @@ impl TryFrom<String> for FraudRuleName {
     }
 }
 
-impl_try_from_external_input!(
-    domain_type = FraudRuleName,
-    input_type = String,
-    constraints = CONSTRAINTS
-);
+impl_try_from_external_input!(domain_type = FraudRuleName, input_type = String);
 
 impl fmt::Display for FraudRuleName {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

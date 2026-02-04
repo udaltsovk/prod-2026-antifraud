@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["packages/dsl-parser", "apps/antifraud"]
+members = ["packages/dsl", "apps/antifraud"]
 
 [workspace.package]
 authors = ["Kirill Udaltsov <me@udaltsovk.ru>"]
