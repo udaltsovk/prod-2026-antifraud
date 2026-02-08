@@ -28,15 +28,15 @@ impl ServicesModule {
 }
 
 impl ServicesModuleExt for ServicesModule {
-    fn password_hasher_service(&self) -> &dyn HasherService {
+    fn password_hasher(&self) -> &dyn HasherService {
         &self.password_hasher
     }
 
-    fn token_service(&self) -> &dyn TokenService {
+    fn token(&self) -> &dyn TokenService {
         &self.token
     }
 
-    fn dsl_service(&self) -> &dyn DslService {
+    fn dsl(&self) -> &dyn DslService {
         &self.dsl
     }
 }

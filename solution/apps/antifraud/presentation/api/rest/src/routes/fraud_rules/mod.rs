@@ -40,11 +40,9 @@ where
         .route("/validate", post(validate_fraud_rule::<M>))
 }
 
-#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn create_fraud_rule<M>(
     modules: State<M>,
     AdminSession {
-        user_role: requester_role,
         ..
     }: AdminSession,
     Json(source): Json<CreateFraudRuleDto>,
@@ -52,24 +50,22 @@ pub async fn create_fraud_rule<M>(
 where
     M: ModulesExt,
 {
-    let source = source.parse().map_err(Into::into);
+    let source = source.parse()?;
 
     modules
         .fraud_rule_usecase()
-        .create(requester_role, source)
-        .await
-        .map(FraudRuleDto::from)
-        .map(Json)?
+        .create(source)
+        .await?
+        .pipe(FraudRuleDto::from)
+        .pipe(Json)
         .into_response()
         .with_status(StatusCode::CREATED)
         .pipe(Ok)
 }
 
-#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn list_fraud_rules<M>(
     modules: State<M>,
     AdminSession {
-        user_role: requester_role,
         ..
     }: AdminSession,
 ) -> ApiResult<impl IntoResponse>
@@ -78,7 +74,7 @@ where
 {
     modules
         .fraud_rule_usecase()
-        .list(requester_role, None)
+        .list(None)
         .await?
         .into_iter()
         .map(FraudRuleDto::from)
@@ -87,11 +83,9 @@ where
         .pipe(Ok)
 }
 
-#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn validate_fraud_rule<M>(
     modules: State<M>,
     AdminSession {
-        user_role: requester_role,
         ..
     }: AdminSession,
     Json(expression): Json<FraudRuleDslExpressionDto>,
@@ -99,12 +93,12 @@ pub async fn validate_fraud_rule<M>(
 where
     M: ModulesExt,
 {
-    let dsl_expression = expression.parse().map_err(Into::into);
+    let dsl_expression = expression.parse()?;
 
     modules
         .fraud_rule_usecase()
-        .normalize_dsl_expression(requester_role, dsl_expression)
-        .map(ValidatedFraudRuleDto::from)?
+        .normalize_dsl_expression(dsl_expression)?
+        .pipe(ValidatedFraudRuleDto::from)
         .pipe(Json)
         .pipe(Ok)
 }

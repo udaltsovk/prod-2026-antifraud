@@ -12,6 +12,7 @@ use crate::{
 };
 
 pub mod age;
+pub mod filter;
 pub mod full_name;
 pub mod gender;
 pub mod marital_status;
@@ -132,3 +133,5 @@ impl UserUpdate {
         }
     }
 }
+
+pub struct UserActivity;

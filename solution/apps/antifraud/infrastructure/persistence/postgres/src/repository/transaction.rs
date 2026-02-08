@@ -1,8 +1,7 @@
 use application::repository::transaction::TransactionRepository;
-use chrono::{DateTime, Utc};
 use domain::{
-    transaction::{Transaction, status::TransactionStatus},
-    user::User,
+    pagination::{Pagination, time_based::TimeBasedPagination},
+    transaction::{Transaction, filter::TransactionFilter},
 };
 use lib::{
     anyhow::Result,
@@ -75,12 +74,20 @@ impl TransactionRepository for PostgresRepositoryImpl<Transaction> {
 
     async fn list(
         &self,
-        requester_id: Option<Id<User>>,
-        status: Option<TransactionStatus>,
-        from: DateTime<Utc>,
-        to: DateTime<Utc>,
-        limit: i64,
-        offset: i64,
+        TransactionFilter {
+            requester_id,
+            status,
+            time_based_pagination:
+                TimeBasedPagination {
+                    from,
+                    to,
+                },
+            pagination:
+                Pagination {
+                    limit,
+                    offset,
+                },
+        }: TransactionFilter,
     ) -> Result<Vec<Transaction>> {
         let requester_id = requester_id.map(Uuid::from);
         let verdict = status.map(StoredTransactionVerdict::from);
@@ -107,10 +114,16 @@ impl TransactionRepository for PostgresRepositoryImpl<Transaction> {
 
     async fn count(
         &self,
-        requester_id: Option<Id<User>>,
-        status: Option<TransactionStatus>,
-        from: DateTime<Utc>,
-        to: DateTime<Utc>,
+        TransactionFilter {
+            requester_id,
+            status,
+            time_based_pagination:
+                TimeBasedPagination {
+                    from,
+                    to,
+                },
+            ..
+        }: TransactionFilter,
     ) -> Result<i64> {
         let requester_id = requester_id.map(Uuid::from);
         let verdict = status.map(StoredTransactionVerdict::from);

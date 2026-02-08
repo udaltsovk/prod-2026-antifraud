@@ -23,8 +23,7 @@ use crate::{
         transaction::{
             BulkCreateTransactionsDto, BulkTransactionDto,
             CreateTransactionDto, TransactionDto,
-            decision::TransactionDecisionDto,
-            pagination::QueryTransactionPagination,
+            decision::TransactionDecisionDto, filter::TransactionFilterQuery,
         },
     },
     errors::{ApiError, ApiResult},
@@ -60,9 +59,9 @@ where
     modules
         .transaction_usecase()
         .create(creator.into(), input)
-        .await
-        .map(TransactionDecisionDto::from)
-        .map(Json)?
+        .await?
+        .pipe(TransactionDecisionDto::from)
+        .pipe(Json)
         .into_response()
         .with_status(StatusCode::CREATED)
         .pipe(Ok)
@@ -71,14 +70,14 @@ where
 pub async fn list_transactions<M>(
     modules: State<M>,
     requester: UserSession,
-    Query(pagination): Query<QueryTransactionPagination>,
+    Query(filter): Query<TransactionFilterQuery>,
 ) -> ApiResult<impl IntoResponse>
 where
     M: ModulesExt,
 {
     let input = {
-        let user_id = pagination.user_id.clone();
-        (pagination.parse().map_err(Into::into), user_id.into())
+        let user_id = filter.user_id.clone();
+        (filter.parse().map_err(Into::into), user_id.into())
     };
 
     let (transactions, count) = modules
@@ -108,9 +107,9 @@ where
     modules
         .transaction_usecase()
         .get_by_id(requester.into(), transaction_id.into())
-        .await
-        .map(TransactionDecisionDto::from)
-        .map(Json)?
+        .await?
+        .pipe(TransactionDecisionDto::from)
+        .pipe(Json)
         .into_response()
         .pipe(Ok)
 }

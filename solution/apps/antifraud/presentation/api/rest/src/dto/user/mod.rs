@@ -18,6 +18,7 @@ use crate::dto::user::{
     role::UserRoleDto,
 };
 
+pub mod filter;
 pub mod gender;
 pub mod marital_status;
 pub mod role;

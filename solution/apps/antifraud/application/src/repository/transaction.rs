@@ -1,8 +1,4 @@
-use chrono::{DateTime, Utc};
-use domain::{
-    transaction::{Transaction, status::TransactionStatus},
-    user::User,
-};
+use domain::transaction::{Transaction, filter::TransactionFilter};
 use lib::{anyhow::Result, async_trait, domain::Id};
 
 #[async_trait]
@@ -19,21 +15,8 @@ pub trait TransactionRepository {
         id: Id<Transaction>,
     ) -> Result<Option<Transaction>>;
 
-    async fn list(
-        &self,
-        requester_id: Option<Id<User>>,
-        status: Option<TransactionStatus>,
-        from: DateTime<Utc>,
-        to: DateTime<Utc>,
-        limit: i64,
-        offset: i64,
-    ) -> Result<Vec<Transaction>>;
+    async fn list(&self, filter: TransactionFilter)
+    -> Result<Vec<Transaction>>;
 
-    async fn count(
-        &self,
-        requester_id: Option<Id<User>>,
-        status: Option<TransactionStatus>,
-        from: DateTime<Utc>,
-        to: DateTime<Utc>,
-    ) -> Result<i64>;
+    async fn count(&self, filter: TransactionFilter) -> Result<i64>;
 }

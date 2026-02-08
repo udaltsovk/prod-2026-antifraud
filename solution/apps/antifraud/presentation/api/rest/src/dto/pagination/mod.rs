@@ -1,4 +1,4 @@
-use domain::pagination::Pagination;
+use domain::pagination::PaginationInput;
 use lib::presentation::api::rest::{
     into_validators,
     validation::{
@@ -6,6 +6,9 @@ use lib::presentation::api::rest::{
     },
 };
 use serde::{Deserialize, Serialize};
+
+mod time_based;
+pub use time_based::TimeBasedPaginationQuery;
 
 #[derive(Serialize)]
 #[cfg_attr(debug_assertions, derive(Debug))]
@@ -24,10 +27,10 @@ where
     T: Serialize,
 {
     pub fn from_pagination<I>(
-        Pagination {
+        PaginationInput {
             page,
             size,
-        }: Pagination,
+        }: PaginationInput,
         items: Vec<I>,
         total: u64,
     ) -> Self
@@ -46,7 +49,7 @@ where
 #[derive(Deserialize, Clone, Default)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[serde(rename_all = "camelCase")]
-pub struct QueryPagination {
+pub struct PaginationQuery {
     #[serde(default)]
     pub page: LossyUserInput<i64>,
 
@@ -54,14 +57,14 @@ pub struct QueryPagination {
     pub size: LossyUserInput<i64>,
 }
 
-impl Parseable<Pagination> for QueryPagination {
-    fn parse(self) -> ValidatorResult<Pagination> {
+impl Parseable<PaginationInput> for PaginationQuery {
+    fn parse(self) -> ValidatorResult<PaginationInput> {
         let (errors, (page, size)) = into_validators!(
-            field!(self.page.0, optional, "page"),
-            field!(self.size.0, optional, "size")
+            field!(self.page, optional, "page"),
+            field!(self.size, optional, "size")
         );
 
-        errors.into_result(|ok| Pagination {
+        errors.into_result(|ok| PaginationInput {
             page: page.validated(ok),
             size: size.validated(ok),
         })

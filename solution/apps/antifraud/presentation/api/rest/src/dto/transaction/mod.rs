@@ -28,8 +28,8 @@ use crate::dto::transaction::{
 
 pub mod channel;
 pub mod decision;
+pub mod filter;
 pub mod location;
-pub mod pagination;
 pub mod status;
 
 #[derive(Mapper, Serialize)]

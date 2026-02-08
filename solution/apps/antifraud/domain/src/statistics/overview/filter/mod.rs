@@ -1,0 +1,28 @@
+use crate::pagination::time_based::{
+    TimeBasedPagination, TimeBasedPaginationFromBase, TimeBasedPaginationInput,
+};
+
+#[derive(Clone)]
+#[cfg_attr(debug_assertions, derive(Debug))]
+pub struct StatsOverviewFilterInput {
+    pub time_based_pagination: TimeBasedPaginationInput,
+}
+
+#[derive(Clone, Copy)]
+#[cfg_attr(debug_assertions, derive(Debug))]
+pub struct StatsOverviewFilter {
+    pub time_based_pagination: TimeBasedPagination,
+}
+
+impl StatsOverviewFilterInput {
+    #[must_use]
+    pub fn normalize(self) -> StatsOverviewFilter {
+        let time_based_pagination = self
+            .time_based_pagination
+            .normalize(TimeBasedPaginationFromBase::Now, 30);
+
+        StatsOverviewFilter {
+            time_based_pagination,
+        }
+    }
+}

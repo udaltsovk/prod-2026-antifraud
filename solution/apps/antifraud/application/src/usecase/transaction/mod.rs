@@ -1,7 +1,7 @@
 use domain::{
     transaction::{
         CreateTransaction, Transaction, decision::TransactionDecision,
-        pagination::TransactionPagination,
+        filter::TransactionFilterInput,
     },
     user::{User, role::UserRole},
 };
@@ -57,7 +57,7 @@ pub trait TransactionUseCase {
         &self,
         requester: (Id<User>, UserRole),
         input: (
-            ValidationResultWithFields<TransactionPagination>,
+            ValidationResultWithFields<TransactionFilterInput>,
             ExternalInput<Uuid>,
         ),
     ) -> TransactionUseCaseResult<(Vec<Transaction>, u64)>;

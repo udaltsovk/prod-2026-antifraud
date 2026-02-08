@@ -11,14 +11,13 @@ use lib::{
 use crate::{
     ModulesExt,
     dto::user::{UserDto, UserUpdateDto},
-    errors::{ApiError, ApiResult},
+    errors::ApiResult,
     extractors::{
         Json, Path,
         session::{AdminSession, UserSession},
     },
 };
 
-#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn get_user_by_id<M>(
     modules: State<M>,
     requester: UserSession,
@@ -30,15 +29,14 @@ where
     modules
         .user_usecase()
         .get_by_id(requester.into(), user_id.into())
-        .await
-        .map(UserDto::from)
-        .map(Json)?
+        .await?
+        .pipe(UserDto::from)
+        .pipe(Json)
         .into_response()
         .with_status(StatusCode::OK)
         .pipe(Ok)
 }
 
-#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn update_user_by_id<M>(
     modules: State<M>,
     requester: UserSession,
@@ -61,15 +59,14 @@ where
     modules
         .user_usecase()
         .update_by_id(requester.into(), user_id.into(), input)
-        .await
-        .map(UserDto::from)
-        .map(Json)?
+        .await?
+        .pipe(UserDto::from)
+        .pipe(Json)
         .into_response()
         .with_status(StatusCode::OK)
         .pipe(Ok)
 }
 
-#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn deactivate_user_by_id<M>(
     modules: State<M>,
     requester: AdminSession,
@@ -81,7 +78,7 @@ where
     modules
         .user_usecase()
         .deactivate_by_id(requester.into(), user_id.into())
-        .await
-        .map_err(ApiError::from)
-        .map(|_| StatusCode::NO_CONTENT)
+        .await?;
+
+    StatusCode::NO_CONTENT.pipe(Ok)
 }

@@ -1,0 +1,49 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH filtered_tx AS (\n    SELECT\n        merchant_id,\n        merchant_category_code,\n        amount,\n        verdict\n    FROM\n        transactions\n    WHERE\n        specified_timestamp >= $1\n        AND specified_timestamp < $2\n        AND merchant_id IS NOT NULL\n        AND (\n            $3::text IS NULL\n            OR merchant_category_code = $3\n        )\n)\nSELECT\n    merchant_id AS \"merchant_id!\",\n    merchant_category_code,\n    COUNT(*)::bigint AS \"tx_count!\",\n    COALESCE(SUM(amount), 0)::double precision AS \"gmv!\",\n    COALESCE(\n        SUM(\n            CASE\n                WHEN verdict = 'DECLINED' THEN 1\n                ELSE 0\n            END\n        )::float / NULLIF(COUNT(*), 0),\n        0\n    )::real AS \"decline_rate!\"\nFROM\n    filtered_tx\nGROUP BY\n    merchant_id,\n    merchant_category_code\nORDER BY\n    \"decline_rate!\" DESC,\n    \"tx_count!\" DESC\nLIMIT\n    $4;\n",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "merchant_id!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "merchant_category_code",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "tx_count!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 3,
+        "name": "gmv!",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 4,
+        "name": "decline_rate!",
+        "type_info": "Float4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "Timestamptz",
+        "Text",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      true,
+      true,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "4137e954851668c89109717fea8170033c92cf76c1bc7ccc1061d779fcddd546"
+}

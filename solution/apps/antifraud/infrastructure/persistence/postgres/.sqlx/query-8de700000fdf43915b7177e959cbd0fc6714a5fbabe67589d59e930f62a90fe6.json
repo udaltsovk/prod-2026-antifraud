@@ -1,0 +1,64 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH tx_24h AS (\n    SELECT\n        id AS tx_id,\n        amount AS amount_24h,\n        device_id AS device_id_24h,\n        ip_address AS ip_address_24h,\n        (location).city AS city_24h,\n        specified_timestamp AS ts_24h\n    FROM\n        transactions\n    WHERE\n        user_id = $1\n        AND specified_timestamp >= NOW() - INTERVAL '24 hours'\n),\ntx_30d AS (\n    SELECT\n        id AS tx_id,\n        verdict AS verdict_30d\n    FROM\n        transactions\n    WHERE\n        user_id = $1\n        AND specified_timestamp >= NOW() - INTERVAL '30 days'\n)\nSELECT\n    $1 AS \"user_id!\",\n    COALESCE(COUNT(tx_24h.tx_id), 0)::bigint AS \"tx_count_24h!\",\n    COALESCE(SUM(tx_24h.amount_24h), 0)::double precision AS \"gmv_24h!\",\n    COALESCE(COUNT(DISTINCT tx_24h.device_id_24h), 0)::bigint AS \"distinct_devices_24h!\",\n    COALESCE(COUNT(DISTINCT tx_24h.ip_address_24h), 0)::bigint AS \"distinct_ips_24h!\",\n    COALESCE(COUNT(DISTINCT tx_24h.city_24h), 0)::bigint AS \"distinct_cities_24h!\",\n    COALESCE(\n        SUM(\n            CASE\n                WHEN tx_30d.verdict_30d = 'DECLINED' THEN 1\n                ELSE 0\n            END\n        )::float / NULLIF(COUNT(tx_30d.tx_id), 0),\n        0\n    )::real AS \"decline_rate_30d!\",\n    NULL::timestamptz AS last_seen_at\nFROM\n    tx_24h\n    FULL OUTER JOIN tx_30d ON tx_24h.tx_id = tx_30d.tx_id;\n",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "user_id!",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "tx_count_24h!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 2,
+        "name": "gmv_24h!",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 3,
+        "name": "distinct_devices_24h!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 4,
+        "name": "distinct_ips_24h!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 5,
+        "name": "distinct_cities_24h!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 6,
+        "name": "decline_rate_30d!",
+        "type_info": "Float4"
+      },
+      {
+        "ordinal": 7,
+        "name": "last_seen_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "8de700000fdf43915b7177e959cbd0fc6714a5fbabe67589d59e930f62a90fe6"
+}

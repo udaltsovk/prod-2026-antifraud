@@ -15,7 +15,7 @@ serde-value.workspace = true
 strum = { workspace = true, features = ["derive"] }
 thiserror.workspace = true
 
-
+chrono-tz = { version = "0.10", features = ["serde"] }
 result-like = "0.5"
 rust_iso3166 = "0.1"
 

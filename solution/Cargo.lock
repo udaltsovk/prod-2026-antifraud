@@ -89,6 +89,7 @@ name = "antifraud-domain"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "chrono-tz",
  "derive_more",
  "lib",
  "result-like",
@@ -495,6 +496,17 @@ dependencies = [
  "serde",
  "wasm-bindgen",
  "windows-link",
+]
+
+[[package]]
+name = "chrono-tz"
+version = "0.10.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a6139a8597ed92cf816dfb33f5dd6cf0bb93a6adc938f11039f371bc5bcd26c3"
+dependencies = [
+ "chrono",
+ "phf 0.12.1",
+ "serde",
 ]
 
 [[package]]
@@ -1461,7 +1473,7 @@ dependencies = [
 [[package]]
 name = "lib"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
+source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1486,7 +1498,7 @@ dependencies = [
 [[package]]
 name = "lib-application"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
+source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
 dependencies = [
  "derive-where",
  "pastey",
@@ -1495,7 +1507,7 @@ dependencies = [
 [[package]]
 name = "lib-bootstrap"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
+source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
 dependencies = [
  "dotenvy",
  "fromenv",
@@ -1507,7 +1519,7 @@ dependencies = [
 [[package]]
 name = "lib-domain"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
+source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
 dependencies = [
  "derive-where",
  "num-traits",
@@ -1522,7 +1534,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
+source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
 dependencies = [
  "lib-infrastructure-persistence",
 ]
@@ -1530,7 +1542,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-instrumentation"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
+source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
 dependencies = [
  "lib-infrastructure-instrumentation-stdout",
 ]
@@ -1538,7 +1550,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-instrumentation-stdout"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
+source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
 dependencies = [
  "tracing",
  "tracing-subscriber",
@@ -1547,7 +1559,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-persistence"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
+source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
 dependencies = [
  "derive-where",
  "lib-domain",
@@ -1559,12 +1571,12 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-persistence-redis"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
+source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
 
 [[package]]
 name = "lib-macros"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
+source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
 dependencies = [
  "lib-macros-proc",
 ]
@@ -1572,7 +1584,7 @@ dependencies = [
 [[package]]
 name = "lib-macros-proc"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
+source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1582,7 +1594,7 @@ dependencies = [
 [[package]]
 name = "lib-presentation"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
+source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
 dependencies = [
  "lib-presentation-api",
 ]
@@ -1590,7 +1602,7 @@ dependencies = [
 [[package]]
 name = "lib-presentation-api"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
+source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
 dependencies = [
  "lib-presentation-api-rest",
 ]
@@ -1598,7 +1610,7 @@ dependencies = [
 [[package]]
 name = "lib-presentation-api-rest"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#dde89ad190dd1d52f5954d6416fd3889e64a958d"
+source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
 dependencies = [
  "axum",
  "chrono",
@@ -2063,7 +2075,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1fd6780a80ae0c52cc120a26a1a42c1ae51b247a253e4e06113d23d2c2edd078"
 dependencies = [
  "phf_macros",
- "phf_shared",
+ "phf_shared 0.11.3",
+]
+
+[[package]]
+name = "phf"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "913273894cec178f401a31ec4b656318d95473527be05c0752cc41cdc32be8b7"
+dependencies = [
+ "phf_shared 0.12.1",
 ]
 
 [[package]]
@@ -2072,7 +2093,7 @@ version = "0.11.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c80231409c20246a13fddb31776fb942c38553c51e871f8cbd687a4cfb5843d"
 dependencies = [
- "phf_shared",
+ "phf_shared 0.11.3",
  "rand 0.8.5",
 ]
 
@@ -2083,7 +2104,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f84ac04429c13a7ff43785d75ad27569f2951ce0ffd30a3321230db2fc727216"
 dependencies = [
  "phf_generator",
- "phf_shared",
+ "phf_shared 0.11.3",
  "proc-macro2",
  "quote",
  "syn",
@@ -2094,6 +2115,15 @@ name = "phf_shared"
 version = "0.11.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67eabc2ef2a60eb7faa00097bd1ffdb5bd28e62bf39990626a582201b7a754e5"
+dependencies = [
+ "siphasher",
+]
+
+[[package]]
+name = "phf_shared"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "06005508882fb681fd97892ecff4b7fd0fee13ef1aa569f8695dae7ab9099981"
 dependencies = [
  "siphasher",
 ]
@@ -2491,7 +2521,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df0d3a0089ee08071ea1baaba83f2265c97f7646c53c3f92b205eb2cdaab72b1"
 dependencies = [
  "js-sys",
- "phf",
+ "phf 0.11.3",
  "prettytable-rs",
  "wasm-bindgen",
 ]

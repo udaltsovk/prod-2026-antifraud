@@ -4,6 +4,7 @@ use sqlx::Postgres;
 
 mod fraud_rule;
 mod fraud_rule_result;
+mod statistics;
 mod transaction;
 mod user;
 

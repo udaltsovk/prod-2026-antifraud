@@ -1,8 +1,11 @@
+use chrono::{DateTime, Utc};
 use domain::{
     email::Email,
-    pagination::Pagination,
     session::CreateSession,
-    user::{CreateUser, User, UserUpdate, role::UserRole, status::UserStatus},
+    user::{
+        CreateUser, User, UserUpdate, filter::UserFilterInput, role::UserRole,
+        status::UserStatus,
+    },
 };
 use lib::{
     async_trait,
@@ -30,7 +33,7 @@ impl UserUseCase for UseCase<User> {
         user_email: &Email,
     ) -> UserUseCaseResult<Option<User>> {
         self.repositories
-            .user_repository()
+            .user()
             .find_by_email(user_email)
             .await
             .map_err(UserUseCaseError::Infrastructure)
@@ -62,12 +65,12 @@ impl UserUseCase for UseCase<User> {
 
         let password_hash = self
             .services
-            .password_hasher_service()
+            .password_hasher()
             .hash(&new_user.password.clone().into())
             .map_err(UserUseCaseError::Infrastructure)?;
 
         self.repositories
-            .user_repository()
+            .user()
             .create((Id::generate(), new_user, password_hash))
             .await
             .map_err(UserUseCaseError::Infrastructure)
@@ -77,7 +80,7 @@ impl UserUseCase for UseCase<User> {
         let user = self.find_by_email(&input.email).await?;
 
         self.services
-            .password_hasher_service()
+            .password_hasher()
             .verify(
                 &input.password.clone().into(),
                 user.as_ref().map(|u| &u.password_hash),
@@ -103,7 +106,7 @@ impl UserUseCase for UseCase<User> {
         }
 
         self.repositories
-            .user_repository()
+            .user()
             .find_by_id(user_id)
             .await
             .map_err(UserUseCaseError::Infrastructure)?
@@ -123,27 +126,26 @@ impl UserUseCase for UseCase<User> {
     async fn list(
         &self,
         requester_role: UserRole,
-        input: ValidationResultWithFields<Pagination>,
+        input: ValidationResultWithFields<UserFilterInput>,
     ) -> UserUseCaseResult<(Vec<User>, u64)> {
         if requester_role != UserRole::Admin {
             return UserUseCaseError::MissingPermissions.pipe(Err);
         }
 
-        let (limit, offset) = input
-            .map_err(UserUseCaseError::Validation)?
-            .into_limit_offset();
+        let user_filter =
+            input.map_err(UserUseCaseError::Validation)?.normalize();
 
         let items = self
             .repositories
-            .user_repository()
-            .list(limit, offset)
+            .user()
+            .list(user_filter)
             .await
             .map_err(UserUseCaseError::Infrastructure)?;
 
         let total = self
             .repositories
-            .user_repository()
-            .count()
+            .user()
+            .count(user_filter)
             .await
             .map_err(UserUseCaseError::Infrastructure)?;
 
@@ -180,7 +182,7 @@ impl UserUseCase for UseCase<User> {
         let updated_user = user_update.apply_to(user);
 
         self.repositories
-            .user_repository()
+            .user()
             .update(updated_user)
             .await
             .map_err(UserUseCaseError::Infrastructure)
@@ -207,8 +209,19 @@ impl UserUseCase for UseCase<User> {
             user.tap_mut(|user| user.status = UserStatus::Deactivated);
 
         self.repositories
-            .user_repository()
+            .user()
             .update(updated_user)
+            .await
+            .map_err(UserUseCaseError::Infrastructure)
+    }
+
+    async fn record_activity(
+        &self,
+        user_id: Id<User>,
+    ) -> UserUseCaseResult<DateTime<Utc>> {
+        self.repositories
+            .user_activity()
+            .record(user_id)
             .await
             .map_err(UserUseCaseError::Infrastructure)
     }

@@ -4,7 +4,7 @@ use domain::{
     fraud_rule::status::FraudRuleStatus,
     transaction::{
         CreateTransaction, Transaction, decision::TransactionDecision,
-        pagination::TransactionPagination,
+        filter::TransactionFilterInput,
     },
     user::{User, role::UserRole, status::UserStatus},
 };
@@ -41,7 +41,7 @@ impl TransactionUseCase for UseCase<Transaction> {
     ) -> TransactionUseCaseResult<TransactionDecision> {
         let creator = self
             .repositories
-            .user_repository()
+            .user()
             .find_by_id(creator_id)
             .await
             .map_err(TransactionUseCaseError::Infrastructure)?
@@ -57,14 +57,14 @@ impl TransactionUseCase for UseCase<Transaction> {
 
         let fraud_rules = self
             .repositories
-            .fraud_rule_repository()
+            .fraud_rule()
             .list(FraudRuleStatus::Enabled.into())
             .await
             .map_err(TransactionUseCaseError::Infrastructure)?;
 
         let decisions = self
             .services
-            .dsl_service()
+            .dsl()
             .decide(&fraud_rules, vec![(0, decision_tuple)])
             .into_iter()
             .map(|(_index, decision)| self.save_transaction_decision(decision))
@@ -89,7 +89,7 @@ impl TransactionUseCase for UseCase<Transaction> {
     > {
         let creator = self
             .repositories
-            .user_repository()
+            .user()
             .find_by_id(creator_id)
             .await
             .map_err(TransactionUseCaseError::Infrastructure)?
@@ -119,7 +119,7 @@ impl TransactionUseCase for UseCase<Transaction> {
 
         let fraud_rules = self
             .repositories
-            .fraud_rule_repository()
+            .fraud_rule()
             .list(FraudRuleStatus::Enabled.into())
             .await
             .map_err(TransactionUseCaseError::Infrastructure)?;
@@ -128,7 +128,7 @@ impl TransactionUseCase for UseCase<Transaction> {
 
         let (decisions, new_errors): (Vec<_>, Vec<_>) = self
             .services
-            .dsl_service()
+            .dsl()
             .decide(&fraud_rules, decision_tuples)
             .into_iter()
             .map(async |(index, decision)| {
@@ -169,7 +169,7 @@ impl TransactionUseCase for UseCase<Transaction> {
     ) -> TransactionUseCaseResult<Option<TransactionDecision>> {
         let transaction = self
             .repositories
-            .transaction_repository()
+            .transaction()
             .find_by_id(transaction_id)
             .await
             .map_err(TransactionUseCaseError::Infrastructure)?;
@@ -184,7 +184,7 @@ impl TransactionUseCase for UseCase<Transaction> {
         if let Some(transaction) = transaction {
             let rule_results = self
                 .repositories
-                .fraud_rule_result_repository()
+                .fraud_rule_result()
                 .find_all_by_transaction_id(transaction.id)
                 .await
                 .map_err(TransactionUseCaseError::Infrastructure)?;
@@ -214,7 +214,7 @@ impl TransactionUseCase for UseCase<Transaction> {
         &self,
         (requester_id, requester_role): (Id<User>, UserRole),
         (pagination_result, raw_user_id): (
-            ValidationResultWithFields<TransactionPagination>,
+            ValidationResultWithFields<TransactionFilterInput>,
             ExternalInput<Uuid>,
         ),
     ) -> TransactionUseCaseResult<(Vec<Transaction>, u64)> {
@@ -222,21 +222,21 @@ impl TransactionUseCase for UseCase<Transaction> {
             return TransactionUseCaseError::MissingPermissions.pipe(Err);
         }
 
-        let (user_id, status, from, to, limit, offset) = pagination_result
+        let transaction_filter = pagination_result
             .map_err(TransactionUseCaseError::Validation)?
-            .into_parts((requester_id, requester_role));
+            .normalize((requester_id, requester_role));
 
         let items = self
             .repositories
-            .transaction_repository()
-            .list(user_id, status, from, to, limit, offset)
+            .transaction()
+            .list(transaction_filter)
             .await
             .map_err(TransactionUseCaseError::Infrastructure)?;
 
         let total = self
             .repositories
-            .transaction_repository()
-            .count(user_id, status, from, to)
+            .transaction()
+            .count(transaction_filter)
             .await
             .map_err(TransactionUseCaseError::Infrastructure)?;
 
@@ -287,7 +287,7 @@ impl UseCase<Transaction> {
             let user_id = (*input.user_id.as_ref()).into();
             let user_opt = self
                 .repositories
-                .user_repository()
+                .user()
                 .find_by_id(user_id)
                 .await
                 .map_err(TransactionUseCaseError::Infrastructure)?
@@ -307,14 +307,14 @@ impl UseCase<Transaction> {
     ) -> TransactionUseCaseResult<TransactionDecision> {
         let transaction = self
             .repositories
-            .transaction_repository()
+            .transaction()
             .save(transaction)
             .await
             .map_err(TransactionUseCaseError::Infrastructure)?;
 
         let rule_results = self
             .repositories
-            .fraud_rule_result_repository()
+            .fraud_rule_result()
             .batch_create((transaction.id, rule_results))
             .await
             .map_err(TransactionUseCaseError::Infrastructure)?;

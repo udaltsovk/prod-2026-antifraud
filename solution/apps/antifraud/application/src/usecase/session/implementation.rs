@@ -28,7 +28,7 @@ impl SessionUseCase for UseCase<Session> {
         };
 
         self.services
-            .token_service()
+            .token()
             .generate(session)
             .map_err(SessionUseCaseError::Infrastructure)
     }
@@ -38,7 +38,7 @@ impl SessionUseCase for UseCase<Session> {
         token: Secret<&str>,
     ) -> SessionUseCaseResult<Session> {
         self.services
-            .token_service()
+            .token()
             .parse(token)
             .map_err(SessionUseCaseError::Infrastructure)?
             .pipe(Ok)

@@ -12,8 +12,6 @@ impl From<FraudRuleUseCaseError> for ApiError {
             match error {
                 E::Infrastructure(_) => Self::internal_server_error(error),
 
-                E::Validation(err) => return Self::from(err),
-
                 E::NameAlreadyUsed(ref name) => (
                     C::CONFLICT,
                     "RULE_NAME_ALREADY_EXISTS",
@@ -26,10 +24,6 @@ impl From<FraudRuleUseCaseError> for ApiError {
 
                 E::NotFoundByName(..) | E::NotFoundById(..) => {
                     (C::NOT_FOUND, "NOT_FOUND", error.to_string(), Value::Null)
-                },
-
-                E::MissingPermissions => {
-                    (C::FORBIDDEN, "FORBIDDEN", error.to_string(), Value::Null)
                 },
             }
         };

@@ -1,0 +1,62 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH base_tx AS (\n    SELECT\n        specified_timestamp AT TIME ZONE $3 AS ts_local,\n        verdict,\n        amount,\n        channel\n    FROM\n        transactions\n    WHERE\n        specified_timestamp >= $1\n        AND specified_timestamp < $2\n        AND (\n            $4::transaction_channel IS NULL\n            OR channel = $4\n        )\n),\nbucketed AS (\n    SELECT\n        date_trunc($5, ts_local) AS bucket_start_local,\n        verdict,\n        amount\n    FROM\n        base_tx\n)\nSELECT\n    bucket_start_local AT TIME ZONE $3 AS \"bucket_start!\",\n    COUNT(*)::bigint AS \"tx_count!\",\n    COALESCE(SUM(amount), 0)::double precision AS \"gmv!\",\n    COALESCE(\n        SUM(\n            CASE\n                WHEN verdict = 'APPROVED' THEN 1\n                ELSE 0\n            END\n        )::float / NULLIF(COUNT(*), 0),\n        0\n    )::real AS \"approval_rate!\",\n    COALESCE(\n        SUM(\n            CASE\n                WHEN verdict = 'DECLINED' THEN 1\n                ELSE 0\n            END\n        )::float / NULLIF(COUNT(*), 0),\n        0\n    )::real AS \"decline_rate!\"\nFROM\n    bucketed\nGROUP BY\n    bucket_start_local\nORDER BY\n    bucket_start_local;\n",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "bucket_start!",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 1,
+        "name": "tx_count!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 2,
+        "name": "gmv!",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 3,
+        "name": "approval_rate!",
+        "type_info": "Float4"
+      },
+      {
+        "ordinal": 4,
+        "name": "decline_rate!",
+        "type_info": "Float4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "Timestamptz",
+        "Text",
+        {
+          "Custom": {
+            "name": "transaction_channel",
+            "kind": {
+              "Enum": [
+                "WEB",
+                "MOBILE",
+                "POS",
+                "OTHER"
+              ]
+            }
+          }
+        },
+        "Text"
+      ]
+    },
+    "nullable": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "0b3abf8f370a4100b99bfc0060d47094481127546d2bd2782da4509062543623"
+}

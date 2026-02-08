@@ -1,8 +1,10 @@
+use chrono::{DateTime, Utc};
 use domain::{
     email::Email,
-    pagination::Pagination,
     session::CreateSession,
-    user::{CreateUser, User, UserUpdate, role::UserRole},
+    user::{
+        CreateUser, User, UserUpdate, filter::UserFilterInput, role::UserRole,
+    },
 };
 use lib::{
     async_trait,
@@ -62,7 +64,7 @@ pub trait UserUseCase {
     async fn list(
         &self,
         requester_role: UserRole,
-        input: ValidationResultWithFields<Pagination>,
+        input: ValidationResultWithFields<UserFilterInput>,
     ) -> UserUseCaseResult<(Vec<User>, u64)>;
 
     async fn update_by_id(
@@ -81,4 +83,9 @@ pub trait UserUseCase {
         requester: (Id<User>, UserRole),
         user_id: Id<User>,
     ) -> UserUseCaseResult<User>;
+
+    async fn record_activity(
+        &self,
+        user_id: Id<User>,
+    ) -> UserUseCaseResult<DateTime<Utc>>;
 }

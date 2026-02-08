@@ -29,7 +29,6 @@ pub fn router<M: ModulesExt>() -> Router<M> {
         .route("/login", post(login::<M>))
 }
 
-#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn register<M: ModulesExt>(
     modules: State<M>,
     Json(source): Json<CreateUserDto>,
@@ -50,7 +49,6 @@ pub async fn register<M: ModulesExt>(
         .pipe(Ok)
 }
 
-#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn login<M: ModulesExt>(
     modules: State<M>,
     Json(source): Json<CreateSessionDto>,

@@ -1,8 +1,9 @@
 use application::repository::user::UserRepository;
 use domain::{
     email::Email,
+    pagination::Pagination,
     password::PasswordHash,
-    user::{CreateUser, User, region::UserRegion},
+    user::{CreateUser, User, filter::UserFilter, region::UserRegion},
 };
 use lib::{
     anyhow::Result,
@@ -81,7 +82,16 @@ impl UserRepository for PostgresRepositoryImpl<User> {
             .pipe(Ok)
     }
 
-    async fn list(&self, limit: i64, offset: i64) -> Result<Vec<User>> {
+    async fn list(
+        &self,
+        UserFilter {
+            pagination:
+                Pagination {
+                    limit,
+                    offset,
+                },
+        }: UserFilter,
+    ) -> Result<Vec<User>> {
         let mut connection = self.pool.get().await?;
 
         query_file_as!(StoredUser, "sql/user/list.sql", limit, offset,)
@@ -93,7 +103,12 @@ impl UserRepository for PostgresRepositoryImpl<User> {
             .pipe(Ok)
     }
 
-    async fn count(&self) -> Result<i64> {
+    async fn count(
+        &self,
+        UserFilter {
+            ..
+        }: UserFilter,
+    ) -> Result<i64> {
         let mut connection = self.pool.get().await?;
 
         query_file_scalar!("sql/user/count.sql")

@@ -1,10 +1,11 @@
 use application::usecase::{
     UseCase, fraud_rule::FraudRuleUseCase, session::SessionUseCase,
-    transaction::TransactionUseCase, user::UserUseCase,
+    statistics::StatisticsUseCase, transaction::TransactionUseCase,
+    user::UserUseCase,
 };
 use domain::{
-    fraud_rule::FraudRule, session::Session, transaction::Transaction,
-    user::User,
+    fraud_rule::FraudRule, session::Session, statistics::Statistics,
+    transaction::Transaction, user::User,
 };
 use presentation::api::rest::ModulesExt;
 
@@ -27,6 +28,7 @@ pub struct Modules {
     session_usecase: UseCase<Session>,
     fraud_rule_usecase: UseCase<FraudRule>,
     transaction_usecase: UseCase<Transaction>,
+    statistics_usecase: UseCase<Statistics>,
 }
 
 impl ModulesExt for Modules {
@@ -45,6 +47,10 @@ impl ModulesExt for Modules {
     fn transaction_usecase(&self) -> &impl TransactionUseCase {
         &self.transaction_usecase
     }
+
+    fn statistics_usecase(&self) -> &impl StatisticsUseCase {
+        &self.statistics_usecase
+    }
 }
 
 impl Modules {
@@ -60,6 +66,8 @@ impl Modules {
             UseCase::new(&repositories_module, &services_module);
         let transaction_usecase =
             UseCase::new(&repositories_module, &services_module);
+        let statistics_usecase =
+            UseCase::new(&repositories_module, &services_module);
 
         Self {
             repositories_module,
@@ -68,6 +76,7 @@ impl Modules {
             session_usecase,
             fraud_rule_usecase,
             transaction_usecase,
+            statistics_usecase,
         }
     }
 }

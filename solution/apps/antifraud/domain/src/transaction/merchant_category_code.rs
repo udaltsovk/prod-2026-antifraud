@@ -12,7 +12,7 @@ use lib::{
     },
 };
 
-#[derive(DomainType, PartialEq, Eq)]
+#[derive(DomainType, Clone, PartialEq, Eq)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 pub struct TransactionMerchantCategoryCode(String);
 

@@ -2,9 +2,10 @@ use domain::user::{CreateUser, role::UserRole};
 use fromenv::FromEnv;
 use lib::{
     presentation::api::rest::{
-        errors::validation::FieldErrors, into_validators,
+        errors::validation::FieldErrors, into_validators, validation::UserInput,
     },
     redact::Secret,
+    tap::Conv as _,
 };
 
 #[derive(FromEnv)]
@@ -26,9 +27,21 @@ impl TryFrom<&InitialStateAdminConfig> for CreateUser {
 
     fn try_from(config: &InitialStateAdminConfig) -> Result<Self, Self::Error> {
         let (errors, (email, full_name, password)) = into_validators!(
-            field!(config.email.clone().into(), required, "email"),
-            field!(config.fullname.clone().into(), required, "fullname"),
-            field!(config.password.clone().into(), required, "password")
+            field!(
+                config.email.clone().conv::<UserInput<_>>(),
+                required,
+                "email"
+            ),
+            field!(
+                config.fullname.clone().conv::<UserInput<_>>(),
+                required,
+                "fullname"
+            ),
+            field!(
+                config.password.clone().conv::<UserInput<_>>(),
+                required,
+                "password"
+            )
         );
 
         errors.into_result(|ok| Self {

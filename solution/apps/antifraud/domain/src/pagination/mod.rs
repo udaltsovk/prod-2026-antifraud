@@ -2,19 +2,31 @@ use crate::pagination::{page::PaginationPage, size::PaginationSize};
 
 pub mod page;
 pub mod size;
+pub mod time_based;
 
 #[derive(Clone, Copy)]
 #[cfg_attr(debug_assertions, derive(Debug))]
-pub struct Pagination {
+pub struct PaginationInput {
     pub page: Option<PaginationPage>,
     pub size: Option<PaginationSize>,
 }
 
-impl Pagination {
+#[derive(Clone, Copy)]
+#[cfg_attr(debug_assertions, derive(Debug))]
+pub struct Pagination {
+    pub limit: i64,
+    pub offset: i64,
+}
+
+impl PaginationInput {
     #[must_use]
-    pub fn into_limit_offset(self) -> (i64, i64) {
+    pub fn normalize(self) -> Pagination {
         let limit: i64 = self.size.unwrap_or_default().into();
         let offset = limit.saturating_mul(self.page.unwrap_or_default().into());
-        (limit, offset)
+
+        Pagination {
+            limit,
+            offset,
+        }
     }
 }

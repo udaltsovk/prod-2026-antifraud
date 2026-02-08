@@ -14,12 +14,12 @@ use lib::{
 
 #[derive(DomainType, Clone)]
 #[cfg_attr(debug_assertions, derive(Debug))]
-pub struct TransactionPaginationFrom(DateTime<Utc>);
+pub struct TimeBasedPaginationFrom(DateTime<Utc>);
 
 static CONSTRAINTS: LazyLock<Constraints<DateTime<Utc>>> =
     LazyLock::new(|| Constraints::builder().build());
 
-impl TryFrom<DateTime<Utc>> for TransactionPaginationFrom {
+impl TryFrom<DateTime<Utc>> for TimeBasedPaginationFrom {
     type Error = ValidationErrors;
 
     fn try_from(value: DateTime<Utc>) -> ValidationResult<Self> {
@@ -28,6 +28,6 @@ impl TryFrom<DateTime<Utc>> for TransactionPaginationFrom {
 }
 
 impl_try_from_external_input!(
-    domain_type = TransactionPaginationFrom,
+    domain_type = TimeBasedPaginationFrom,
     input_type = DateTime<Utc>
 );

@@ -1,6 +1,7 @@
 use application::usecase::{
     fraud_rule::FraudRuleUseCase, session::SessionUseCase,
-    transaction::TransactionUseCase, user::UserUseCase,
+    statistics::StatisticsUseCase, transaction::TransactionUseCase,
+    user::UserUseCase,
 };
 
 pub trait ModulesExt: Clone + Send + Sync + 'static {
@@ -11,4 +12,6 @@ pub trait ModulesExt: Clone + Send + Sync + 'static {
     fn fraud_rule_usecase(&self) -> &impl FraudRuleUseCase;
 
     fn transaction_usecase(&self) -> &impl TransactionUseCase;
+
+    fn statistics_usecase(&self) -> &impl StatisticsUseCase;
 }

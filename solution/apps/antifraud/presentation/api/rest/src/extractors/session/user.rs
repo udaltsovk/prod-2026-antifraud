@@ -1,4 +1,6 @@
-use application::usecase::session::SessionUseCase as _;
+use application::usecase::{
+    session::SessionUseCase as _, user::UserUseCase as _,
+};
 use axum::{
     RequestPartsExt as _, extract::FromRequestParts, http::request::Parts,
 };
@@ -48,11 +50,17 @@ where
             .await
             .map_err(|_| AuthError::InvalidToken)?;
 
-        state
+        let session = state
             .session_usecase()
             .get_from_token(Secret::new(bearer.token()))
             .map_err(|_| AuthError::InvalidToken)?
-            .conv::<Self>()
-            .pipe(Ok)
+            .conv::<Self>();
+
+        state
+            .user_usecase()
+            .record_activity(session.user_id)
+            .await?;
+
+        session.pipe(Ok)
     }
 }

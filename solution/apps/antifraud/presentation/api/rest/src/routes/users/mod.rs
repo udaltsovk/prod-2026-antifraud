@@ -16,8 +16,8 @@ use lib::{
 use crate::{
     ModulesExt,
     dto::{
-        pagination::{Paginated, QueryPagination},
-        user::{CreateUserWithRoleDto, UserDto},
+        pagination::Paginated,
+        user::{CreateUserWithRoleDto, UserDto, filter::UserFilterQuery},
     },
     errors::ApiResult,
     extractors::{Json, Query, session::AdminSession},
@@ -44,7 +44,6 @@ where
         .route("/", post(register_user::<M>).get(list_users::<M>))
 }
 
-#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn register_user<M>(
     modules: State<M>,
     AdminSession {
@@ -61,34 +60,33 @@ where
     modules
         .user_usecase()
         .create(creator_role.into(), source)
-        .await
-        .map(UserDto::from)
-        .map(Json)?
+        .await?
+        .pipe(UserDto::from)
+        .pipe(Json)
         .into_response()
         .with_status(StatusCode::CREATED)
         .pipe(Ok)
 }
 
-#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn list_users<M>(
     modules: State<M>,
     AdminSession {
         user_role: requester_role,
         ..
     }: AdminSession,
-    Query(pagination): Query<QueryPagination>,
+    Query(filter): Query<UserFilterQuery>,
 ) -> ApiResult<impl IntoResponse>
 where
     M: ModulesExt,
 {
-    let pagination = pagination.parse().map_err(Into::into);
+    let input = filter.parse().map_err(Into::into);
 
     let (users, count) = modules
         .user_usecase()
-        .list(requester_role, pagination.clone())
+        .list(requester_role, input.clone())
         .await?;
 
-    Paginated::<UserDto>::from_pagination(pagination?, users, count)
+    Paginated::<UserDto>::from_pagination(input?.pagination, users, count)
         .pipe(Json)
         .into_response()
         .with_status(StatusCode::OK)

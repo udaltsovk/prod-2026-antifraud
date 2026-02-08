@@ -8,7 +8,6 @@ use crate::{
     routes::users::by_id,
 };
 
-#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn get_current_user<M>(
     modules: State<M>,
     user_session: UserSession,
@@ -20,7 +19,6 @@ where
     by_id::get_user_by_id(modules, user_session, user_id).await
 }
 
-#[cfg_attr(debug_assertions, tracing::instrument(skip(modules)))]
 pub async fn update_current_user<M>(
     modules: State<M>,
     user_session: UserSession,

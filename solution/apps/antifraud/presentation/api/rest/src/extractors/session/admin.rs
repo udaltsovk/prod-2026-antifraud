@@ -1,4 +1,6 @@
-use application::usecase::session::SessionUseCase as _;
+use application::usecase::{
+    session::SessionUseCase as _, user::UserUseCase as _,
+};
 use axum::{
     RequestPartsExt as _, extract::FromRequestParts, http::request::Parts,
 };
@@ -48,6 +50,11 @@ where
             .get_from_token(Secret::new(bearer.token()))
             .map_err(|_| AuthError::InvalidToken)?
             .conv::<Self>();
+
+        state
+            .user_usecase()
+            .record_activity(session.user_id)
+            .await?;
 
         session
             .user_role
