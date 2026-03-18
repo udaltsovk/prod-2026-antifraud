@@ -17,8 +17,20 @@ pub struct TransactionLocationLongitude(f32);
 
 static CONSTRAINTS: LazyLock<Constraints<f32>> = LazyLock::new(|| {
     Constraints::builder()
-        .add_constraint(constraints::range::Min(-180_f32))
-        .add_constraint(constraints::range::Max(180_f32))
+        .add_constraint(
+            constraints::range::Min::with_err(|_, limit| {
+                format!("can't be less than {limit}")
+            })
+            .limit(-180_f32)
+            .build(),
+        )
+        .add_constraint(
+            constraints::range::Max::with_err(|_, limit| {
+                format!("can't be greater than {limit}")
+            })
+            .limit(180_f32)
+            .build(),
+        )
         .build()
 });
 

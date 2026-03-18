@@ -451,6 +451,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "bon"
+version = "3.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f47dbe92550676ee653353c310dfb9cf6ba17ee70396e1f7cf0a2020ad49b2fe"
+dependencies = [
+ "bon-macros",
+ "rustversion",
+]
+
+[[package]]
+name = "bon-macros"
+version = "3.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "519bd3116aeeb42d5372c29d982d16d0170d3d4a5ed85fc7dd91642ffff3c67c"
+dependencies = [
+ "darling 0.21.3",
+ "ident_case",
+ "prettyplease",
+ "proc-macro2",
+ "quote",
+ "rustversion",
+ "syn",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1473,7 +1498,7 @@ dependencies = [
 [[package]]
 name = "lib"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
+source = "git+https://github.com/udaltsovk/rust-backend-template#20bbfc68cc6e592c5718ad7fb4f62370f8db9d9a"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1498,7 +1523,7 @@ dependencies = [
 [[package]]
 name = "lib-application"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
+source = "git+https://github.com/udaltsovk/rust-backend-template#20bbfc68cc6e592c5718ad7fb4f62370f8db9d9a"
 dependencies = [
  "derive-where",
  "pastey",
@@ -1507,7 +1532,7 @@ dependencies = [
 [[package]]
 name = "lib-bootstrap"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
+source = "git+https://github.com/udaltsovk/rust-backend-template#20bbfc68cc6e592c5718ad7fb4f62370f8db9d9a"
 dependencies = [
  "dotenvy",
  "fromenv",
@@ -1519,8 +1544,9 @@ dependencies = [
 [[package]]
 name = "lib-domain"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
+source = "git+https://github.com/udaltsovk/rust-backend-template#20bbfc68cc6e592c5718ad7fb4f62370f8db9d9a"
 dependencies = [
+ "bon",
  "derive-where",
  "num-traits",
  "pastey",
@@ -1534,7 +1560,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
+source = "git+https://github.com/udaltsovk/rust-backend-template#20bbfc68cc6e592c5718ad7fb4f62370f8db9d9a"
 dependencies = [
  "lib-infrastructure-persistence",
 ]
@@ -1542,7 +1568,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-instrumentation"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
+source = "git+https://github.com/udaltsovk/rust-backend-template#20bbfc68cc6e592c5718ad7fb4f62370f8db9d9a"
 dependencies = [
  "lib-infrastructure-instrumentation-stdout",
 ]
@@ -1550,7 +1576,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-instrumentation-stdout"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
+source = "git+https://github.com/udaltsovk/rust-backend-template#20bbfc68cc6e592c5718ad7fb4f62370f8db9d9a"
 dependencies = [
  "tracing",
  "tracing-subscriber",
@@ -1559,7 +1585,7 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-persistence"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
+source = "git+https://github.com/udaltsovk/rust-backend-template#20bbfc68cc6e592c5718ad7fb4f62370f8db9d9a"
 dependencies = [
  "derive-where",
  "lib-domain",
@@ -1571,12 +1597,12 @@ dependencies = [
 [[package]]
 name = "lib-infrastructure-persistence-redis"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
+source = "git+https://github.com/udaltsovk/rust-backend-template#20bbfc68cc6e592c5718ad7fb4f62370f8db9d9a"
 
 [[package]]
 name = "lib-macros"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
+source = "git+https://github.com/udaltsovk/rust-backend-template#20bbfc68cc6e592c5718ad7fb4f62370f8db9d9a"
 dependencies = [
  "lib-macros-proc",
 ]
@@ -1584,7 +1610,7 @@ dependencies = [
 [[package]]
 name = "lib-macros-proc"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
+source = "git+https://github.com/udaltsovk/rust-backend-template#20bbfc68cc6e592c5718ad7fb4f62370f8db9d9a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1594,7 +1620,7 @@ dependencies = [
 [[package]]
 name = "lib-presentation"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
+source = "git+https://github.com/udaltsovk/rust-backend-template#20bbfc68cc6e592c5718ad7fb4f62370f8db9d9a"
 dependencies = [
  "lib-presentation-api",
 ]
@@ -1602,7 +1628,7 @@ dependencies = [
 [[package]]
 name = "lib-presentation-api"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
+source = "git+https://github.com/udaltsovk/rust-backend-template#20bbfc68cc6e592c5718ad7fb4f62370f8db9d9a"
 dependencies = [
  "lib-presentation-api-rest",
 ]
@@ -1610,7 +1636,7 @@ dependencies = [
 [[package]]
 name = "lib-presentation-api-rest"
 version = "0.1.0"
-source = "git+https://github.com/udaltsovk/rust-backend-template#353d9ec8b8c7f33eb4491bdb02097ecb41c2ce96"
+source = "git+https://github.com/udaltsovk/rust-backend-template#20bbfc68cc6e592c5718ad7fb4f62370f8db9d9a"
 dependencies = [
  "axum",
  "chrono",
@@ -2206,6 +2232,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "85eae3c4ed2f50dcfe72643da4befc30deadb458a9b590d720cde2f2b1e97da9"
 dependencies = [
  "zerocopy",
+]
+
+[[package]]
+name = "prettyplease"
+version = "0.2.37"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "479ca8adacdd7ce8f1fb39ce9ecccbfe93a3f1344b3d0d97f20bc0196208f62b"
+dependencies = [
+ "proc-macro2",
+ "syn",
 ]
 
 [[package]]

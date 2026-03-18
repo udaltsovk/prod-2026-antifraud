@@ -51,7 +51,7 @@ impl_try_from_external_input!(
 struct IsValidTimezone;
 
 impl Constraint<String> for IsValidTimezone {
-    fn error_msg(&self) -> String {
+    fn error_msg(&self, _rejected_value: &String) -> String {
         "must not be a valid timezone".to_string()
     }
 

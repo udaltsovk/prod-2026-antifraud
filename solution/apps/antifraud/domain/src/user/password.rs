@@ -20,8 +20,18 @@ pub struct UserPassword(Secret<String>);
 
 static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
     Constraints::builder_with(&PASSWORD_LENGTH_CONSTRAINTS)
-        .add_constraint(constraints::has::Letter)
-        .add_constraint(constraints::has::Digit)
+        .add_constraint(
+            constraints::has::Letter::with_err(|_| {
+                "must contain at least one letter".into()
+            })
+            .build(),
+        )
+        .add_constraint(
+            constraints::has::Digit::with_err(|_| {
+                "must contain at least one digit".to_string()
+            })
+            .build(),
+        )
         .build()
 });
 

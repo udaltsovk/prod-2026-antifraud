@@ -17,8 +17,20 @@ pub struct TransactionAmount(f64);
 
 static CONSTRAINTS: LazyLock<Constraints<f64>> = LazyLock::new(|| {
     Constraints::builder()
-        .add_constraint(constraints::range::Min(0.01_f64))
-        .add_constraint(constraints::range::Max(9_999_999_999.99_f64))
+        .add_constraint(
+            constraints::range::Min::with_err(|_, limit| {
+                format!("can't be less than {limit}")
+            })
+            .limit(0.01_f64)
+            .build(),
+        )
+        .add_constraint(
+            constraints::range::Max::with_err(|_, limit| {
+                format!("can't be greater than {limit}")
+            })
+            .limit(9_999_999_999.99_f64)
+            .build(),
+        )
         .build()
 });
 

@@ -17,7 +17,13 @@ pub struct PaginationPage(i64);
 
 static CONSTRAINTS: LazyLock<Constraints<i64>> = LazyLock::new(|| {
     Constraints::builder()
-        .add_constraint(constraints::range::Min(0_i64))
+        .add_constraint(
+            constraints::range::Min::with_err(|_, limit| {
+                format!("can't be less than {limit}")
+            })
+            .limit(0_i64)
+            .build(),
+        )
         .build()
 });
 

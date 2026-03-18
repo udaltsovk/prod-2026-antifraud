@@ -18,8 +18,20 @@ pub struct TransactionLocationCountry(String);
 
 static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
     Constraints::builder()
-        .add_constraint(constraints::length::Min(2))
-        .add_constraint(constraints::length::Max(2))
+        .add_constraint(
+            constraints::length::Min::with_err(|_, len_limit| {
+                format!("can't be shorter than {len_limit} characters")
+            })
+            .limit(2)
+            .build(),
+        )
+        .add_constraint(
+            constraints::length::Max::with_err(|_, len_limit| {
+                format!("can't be longer than {len_limit} characters")
+            })
+            .limit(2)
+            .build(),
+        )
         .add_constraint(IsUppercase)
         .add_constraint(IsIso3166Alpha2CountryCode)
         .build()
@@ -45,7 +57,7 @@ impl Constraint<String> for IsUppercase {
         value.chars().all(char::is_uppercase)
     }
 
-    fn error_msg(&self) -> String {
+    fn error_msg(&self, _rejected_value: &String) -> String {
         "must be uppercase".into()
     }
 }
@@ -57,7 +69,7 @@ impl Constraint<String> for IsIso3166Alpha2CountryCode {
         rust_iso3166::from_alpha2(value).is_some()
     }
 
-    fn error_msg(&self) -> String {
+    fn error_msg(&self, _rejected_value: &String) -> String {
         "must a valid ISO 3166-1 alpha-2 country code".into()
     }
 }

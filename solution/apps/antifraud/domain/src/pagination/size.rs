@@ -18,8 +18,20 @@ pub struct PaginationSize(u8);
 
 static CONSTRAINTS: LazyLock<Constraints<i64>> = LazyLock::new(|| {
     Constraints::builder()
-        .add_constraint(constraints::range::Min(1_i64))
-        .add_constraint(constraints::range::Max(100_i64))
+        .add_constraint(
+            constraints::range::Min::with_err(|_, limit| {
+                format!("can't be less than {limit}")
+            })
+            .limit(1_i64)
+            .build(),
+        )
+        .add_constraint(
+            constraints::range::Max::with_err(|_, limit| {
+                format!("can't be greater than {limit}")
+            })
+            .limit(100_i64)
+            .build(),
+        )
         .build()
 });
 impl TryFrom<i64> for PaginationSize {

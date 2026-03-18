@@ -191,8 +191,20 @@ pub struct BulkCreateTransactionsDto {
 
 static CONSTRAINTS: LazyLock<Constraints<Vec<()>>> = LazyLock::new(|| {
     Constraints::builder()
-        .add_constraint(constraints::length::Min(1))
-        .add_constraint(constraints::length::Max(500))
+        .add_constraint(
+            constraints::length::Min::with_err(|_, len_limit| {
+                format!("can't contain less than {len_limit} items")
+            })
+            .limit(1)
+            .build(),
+        )
+        .add_constraint(
+            constraints::length::Max::with_err(|_, len_limit| {
+                format!("can't contain more than {len_limit} items")
+            })
+            .limit(500)
+            .build(),
+        )
         .build()
 });
 

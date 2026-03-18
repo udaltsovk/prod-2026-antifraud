@@ -17,8 +17,20 @@ pub struct FraudRuleDslExpression(String);
 
 static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
     Constraints::builder()
-        .add_constraint(constraints::length::Min(3))
-        .add_constraint(constraints::length::Max(2000))
+        .add_constraint(
+            constraints::length::Min::with_err(|_, len_limit| {
+                format!("can't be shorter than {len_limit} characters")
+            })
+            .limit(3)
+            .build(),
+        )
+        .add_constraint(
+            constraints::length::Max::with_err(|_, len_limit| {
+                format!("can't be longer than {len_limit} characters")
+            })
+            .limit(2000)
+            .build(),
+        )
         .build()
 });
 

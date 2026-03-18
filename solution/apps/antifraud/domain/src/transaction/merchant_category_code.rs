@@ -23,9 +23,13 @@ static TRANSCTION_MERCHANT_CATEGORY_CODE_REGEX: LazyLock<Regex> =
 
 static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
     Constraints::builder()
-        .add_constraint(constraints::Matches(
-            TRANSCTION_MERCHANT_CATEGORY_CODE_REGEX.clone(),
-        ))
+        .add_constraint(
+            constraints::Matches::with_err(|_, pattern| {
+                format!("must match pattern `{pattern}`")
+            })
+            .regex(TRANSCTION_MERCHANT_CATEGORY_CODE_REGEX.clone())
+            .build(),
+        )
         .build()
 });
 

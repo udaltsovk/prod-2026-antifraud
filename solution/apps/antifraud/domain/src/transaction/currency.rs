@@ -22,9 +22,13 @@ static TRANSACTION_CURRENCY_REGEX: LazyLock<Regex> = LazyLock::new(|| {
 
 static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
     Constraints::builder()
-        .add_constraint(constraints::Matches(
-            TRANSACTION_CURRENCY_REGEX.clone(),
-        ))
+        .add_constraint(
+            constraints::Matches::with_err(|_, pattern| {
+                format!("must match pattern `{pattern}`")
+            })
+            .regex(TRANSACTION_CURRENCY_REGEX.clone())
+            .build(),
+        )
         .build()
 });
 

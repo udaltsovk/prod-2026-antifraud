@@ -43,7 +43,7 @@ impl<Tz> Constraint<DateTime<Tz>> for TimedeltaLessThan
 where
     Tz: TimeZone,
 {
-    fn error_msg(&self) -> String {
+    fn error_msg(&self, _rejected_value: &DateTime<Tz>) -> String {
         format!(
             "must not be further in the future by more than `{}`",
             self.0

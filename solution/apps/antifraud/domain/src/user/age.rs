@@ -37,10 +37,20 @@ impl UserAge {
         T::FromStrRadixErr: Debug,
     {
         Constraints::builder()
-            .add_constraint(constraints::range::Min(T::zero()))
-            .add_constraint(constraints::range::Max(
-                T::from_str_radix("120", 10).expect("a valid number"),
-            ))
+            .add_constraint(
+                constraints::range::Min::with_err(|_, limit| {
+                    format!("can't be less than {limit}")
+                })
+                .limit(T::zero())
+                .build(),
+            )
+            .add_constraint(
+                constraints::range::Max::with_err(|_, limit| {
+                    format!("can't be greater than {limit}")
+                })
+                .limit(T::from_str_radix("120", 10).expect("a valid number"))
+                .build(),
+            )
             .build()
     }
 }

@@ -17,7 +17,13 @@ pub struct TransactionMerchantId(String);
 
 static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {
     Constraints::builder()
-        .add_constraint(constraints::length::Max(64))
+        .add_constraint(
+            constraints::length::Max::with_err(|_, len_limit| {
+                format!("can't be longer than {len_limit} characters")
+            })
+            .limit(64)
+            .build(),
+        )
         .build()
 });
 
