@@ -12,14 +12,19 @@ pub struct UserRiskProfileDto {
 
     pub tx_count_24h: i64,
 
+    #[serde(rename = "gmv_24h")]
     pub gmv_24h: f64,
 
+    #[serde(rename = "distinctDevices_24h")]
     pub distinct_devices_24h: i64,
 
+    #[serde(rename = "distinctIps_24h")]
     pub distinct_ips_24h: i64,
 
+    #[serde(rename = "distinctCities_24h")]
     pub distinct_cities_24h: i64,
 
+    #[serde(rename = "declineRate_30d")]
     pub decline_rate_30d: f32,
 
     #[serde(skip_serializing_if = "Option::is_none")]

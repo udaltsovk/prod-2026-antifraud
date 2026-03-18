@@ -14,7 +14,7 @@ use crate::dto::pagination::TimeBasedPaginationQuery;
 #[serde(rename_all = "camelCase")]
 pub struct MerchantsRiskStatsFilterQuery {
     #[serde(default, flatten)]
-    pub time_based_pagination: TimeBasedPaginationQuery,
+    pub time_based_pagination: TimeBasedPaginationQuery<90>,
 
     #[serde(default)]
     pub merchant_category_code: LossyUserInput<String>,

@@ -12,14 +12,14 @@ use crate::{
     ModulesExt,
     dto::fraud_rule::{FraudRuleDto, FraudRuleUpdateDto},
     errors::ApiResult,
-    extractors::{Json, Path, session::UserSession},
+    extractors::{Json, Path, session::AdminSession},
 };
 
 pub async fn get_fraud_rule_by_id<M>(
     modules: State<M>,
-    UserSession {
+    AdminSession {
         ..
-    }: UserSession,
+    }: AdminSession,
     Path(((), fraud_rule_id)): Path<((), Uuid)>,
 ) -> ApiResult<impl IntoResponse>
 where
@@ -38,9 +38,9 @@ where
 
 pub async fn update_fraud_rule_by_id<M>(
     modules: State<M>,
-    UserSession {
+    AdminSession {
         ..
-    }: UserSession,
+    }: AdminSession,
     Path(((), fraud_rule_id)): Path<((), Uuid)>,
     Json(update): Json<FraudRuleUpdateDto>,
 ) -> ApiResult<impl IntoResponse>
@@ -62,9 +62,9 @@ where
 
 pub async fn disable_fraud_rule_by_id<M>(
     modules: State<M>,
-    UserSession {
+    AdminSession {
         ..
-    }: UserSession,
+    }: AdminSession,
     Path(((), fraud_rule_id)): Path<((), Uuid)>,
 ) -> ApiResult<impl IntoResponse>
 where

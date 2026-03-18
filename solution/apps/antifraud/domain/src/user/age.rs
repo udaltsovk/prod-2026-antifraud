@@ -41,7 +41,7 @@ impl UserAge {
                 constraints::range::Min::with_err(|_, limit| {
                     format!("can't be less than {limit}")
                 })
-                .limit(T::zero())
+                .limit(T::from_str_radix("18", 10).expect("a valid number"))
                 .build(),
             )
             .add_constraint(

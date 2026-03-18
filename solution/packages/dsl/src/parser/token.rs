@@ -33,17 +33,17 @@ pub enum Token<'src> {
     #[token(")")]
     RParen,
 
-    #[token(">")]
-    Gt,
-
     #[token(">=")]
     Gte,
 
-    #[token("<")]
-    Lt,
+    #[token(">")]
+    Gt,
 
     #[token("<=")]
     Lte,
+
+    #[token("<")]
+    Lt,
 
     #[token("=")]
     Eq,

@@ -86,6 +86,13 @@ impl StatisticsUseCase for UseCase<Statistics> {
             return StatisticsUseCaseError::MissingPermissions.pipe(Err);
         }
 
+        self.repositories
+            .user()
+            .find_by_id(user_id)
+            .await
+            .map_err(StatisticsUseCaseError::Infrastructure)?
+            .ok_or(StatisticsUseCaseError::UserNotFoundById(user_id))?;
+
         let mut risk_profile = self
             .repositories
             .statistics()

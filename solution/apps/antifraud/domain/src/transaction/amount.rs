@@ -28,7 +28,7 @@ static CONSTRAINTS: LazyLock<Constraints<f64>> = LazyLock::new(|| {
             constraints::range::Max::with_err(|_, limit| {
                 format!("can't be greater than {limit}")
             })
-            .limit(9_999_999_999.99_f64)
+            .limit(999_999_999.99_f64)
             .build(),
         )
         .build()

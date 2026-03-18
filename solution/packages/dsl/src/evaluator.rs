@@ -42,14 +42,21 @@ impl<'src> Expression<'src> {
                             (lhs - rhs).abs() >= Self::ERROR_MARGIN
                         },
                     },
-                    (Literal::Number(None), Literal::Number(Some(_))) => false,
-                    (Literal::String(lhs), Literal::String(rhs)) => match op {
+
+                    (
+                        Literal::String(Some(lhs)),
+                        Literal::String(Some(rhs)),
+                    ) => match op {
                         Operator::Equal => lhs == rhs,
                         Operator::NotEqual => lhs != rhs,
 
                         _ => unreachable!(
                             "Other ops were rejected at validation"
                         ),
+                    },
+                    (Literal::Number(None), Literal::Number(Some(_)))
+                    | (Literal::String(None), Literal::String(Some(_))) => {
+                        false
                     },
                     _ => unreachable!(
                         "Mixed types should be impossible due to validation"

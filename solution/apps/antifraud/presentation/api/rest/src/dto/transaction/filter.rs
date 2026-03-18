@@ -26,7 +26,7 @@ pub struct TransactionFilterQuery {
     pub is_fraud: LossyUserInput<bool>,
 
     #[serde(default, flatten)]
-    pub time_based_pagination: TimeBasedPaginationQuery,
+    pub time_based_pagination: TimeBasedPaginationQuery<90>,
 
     #[serde(default, flatten)]
     pub pagination: PaginationQuery,

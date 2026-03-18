@@ -4,6 +4,7 @@ use strum::{EnumString, VariantNames};
 
 #[derive(BoolLike, EnumString, VariantNames, PartialEq, Eq, Clone, Copy)]
 #[cfg_attr(debug_assertions, derive(Debug))]
+#[strum(serialize_all = "UPPERCASE")]
 pub enum TransactionStatus {
     Approved,
     Declined,

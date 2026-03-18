@@ -130,7 +130,7 @@ impl Parseable<FraudRuleUpdate> for FraudRuleUpdateDto {
     fn parse(self) -> ValidatorResult<FraudRuleUpdate> {
         let (errors, (name, description, dsl_expression, status, priority)) = into_validators!(
             field!(self.name, required, "name"),
-            field!(self.description, optional, "description"),
+            field!(self.description, optional_nullable, "description"),
             field!(self.dsl_expression, nested, None),
             field!(self.enabled, required, "enabled"),
             field!(self.priority, required, "priority")
@@ -138,7 +138,7 @@ impl Parseable<FraudRuleUpdate> for FraudRuleUpdateDto {
 
         errors.into_result(|ok| FraudRuleUpdate {
             name: name.validated(ok),
-            description: description.validated(ok),
+            description: description.validated(ok).flatten(),
             dsl_expression: dsl_expression.validated(ok),
             status: status.validated(ok),
             priority: priority.validated(ok),

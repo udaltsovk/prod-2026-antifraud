@@ -14,7 +14,7 @@ use crate::dto::pagination::TimeBasedPaginationQuery;
 #[serde(rename_all = "camelCase")]
 pub struct RulesMatchesStatsFilterQuery {
     #[serde(default, flatten)]
-    pub time_based_pagination: TimeBasedPaginationQuery,
+    pub time_based_pagination: TimeBasedPaginationQuery<90>,
 
     #[serde(default)]
     pub top: LossyUserInput<i64>,

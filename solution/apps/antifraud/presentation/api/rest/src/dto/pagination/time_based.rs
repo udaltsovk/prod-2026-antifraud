@@ -13,7 +13,7 @@ use serde::Deserialize;
 #[derive(Deserialize, Clone, Default)]
 #[cfg_attr(debug_assertions, derive(Debug))]
 #[serde(rename_all = "camelCase")]
-pub struct TimeBasedPaginationQuery {
+pub struct TimeBasedPaginationQuery<const MAX_PERIOD_DAYS: u64> {
     #[serde(default)]
     pub from: LossyUserInput<DateTime<Utc>>,
 
@@ -21,15 +21,16 @@ pub struct TimeBasedPaginationQuery {
     pub to: LossyUserInput<DateTime<Utc>>,
 }
 
-impl Parseable<TimeBasedPaginationInput> for TimeBasedPaginationQuery {
+impl<const MAX_PERIOD_DAYS: u64> Parseable<TimeBasedPaginationInput>
+    for TimeBasedPaginationQuery<MAX_PERIOD_DAYS>
+{
     fn parse(self) -> ValidatorResult<TimeBasedPaginationInput> {
-        let mut errors = match (&self.from, &self.to) {
-            (
-                LossyUserInput(UserInput::Ok(from)),
-                LossyUserInput(UserInput::Ok(to)),
-            ) => validate_to_and_from(from, to),
-            (LossyUserInput(UserInput::Ok(from)), _) => {
-                validate_to_and_from(from, &Utc::now())
+        let mut errors = match (&self.from.0, &self.to.0) {
+            (UserInput::Ok(from), UserInput::Ok(to)) => {
+                Self::validate_to_and_from(from, to)
+            },
+            (UserInput::Ok(from), _) => {
+                Self::validate_to_and_from(from, &Utc::now())
             },
             (_, _) => FieldErrors::new(),
         };
@@ -48,25 +49,39 @@ impl Parseable<TimeBasedPaginationInput> for TimeBasedPaginationQuery {
     }
 }
 
-fn validate_to_and_from(
-    from: &DateTime<Utc>,
-    to: &DateTime<Utc>,
-) -> FieldErrors {
-    let mut errors = FieldErrors::new();
+impl<const MAX_PERIOD_DAYS: u64> TimeBasedPaginationQuery<MAX_PERIOD_DAYS> {
+    fn validate_to_and_from(
+        from: &DateTime<Utc>,
+        to: &DateTime<Utc>,
+    ) -> FieldErrors {
+        let mut errors = FieldErrors::new();
 
-    if from >= to {
-        errors.push("from", "must be less than `to`", from);
-        errors.push("to", "must be greater than `from`", to);
+        if from >= to {
+            errors.push("from", "must be less than `to`", from);
+            errors.push("to", "must be greater than `from`", to);
+        }
+
+        if from
+            .checked_add_days(Days::new(MAX_PERIOD_DAYS))
+            .unwrap_or(DateTime::<Utc>::MAX_UTC)
+            < *to
+        {
+            errors.push(
+                "from",
+                format!(
+                    "must not be earlier than {MAX_PERIOD_DAYS} days from `to`"
+                ),
+                from,
+            );
+            errors.push(
+                "to",
+                format!(
+                    "must not be later than {MAX_PERIOD_DAYS} days from `from`"
+                ),
+                to,
+            );
+        }
+
+        errors
     }
-
-    if from
-        .checked_add_days(Days::new(90))
-        .unwrap_or(DateTime::<Utc>::MAX_UTC)
-        < *to
-    {
-        errors.push("from", "must not be earlier than 90 days from `to`", from);
-        errors.push("to", "must not be later than 90 days from `from`", to);
-    }
-
-    errors
 }
