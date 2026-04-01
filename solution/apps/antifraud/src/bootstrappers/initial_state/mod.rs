@@ -1,7 +1,9 @@
-use application::usecase::user::{CreateUserSource, UserUseCase as _};
+use application::usecase::user::{
+    CreateUserSource, CreateUserUsecase, FindUserByEmailUsecase,
+};
 use domain::user::CreateUser;
+use entrait::Impl;
 use lib::{anyhow::Result, async_trait};
-use presentation::api::rest::ModulesExt as _;
 
 pub use crate::bootstrappers::initial_state::config::InitialStateConfig;
 use crate::{Modules, bootstrappers::BootstrapperExt};
@@ -11,24 +13,20 @@ mod config;
 pub struct InitialState;
 
 impl InitialState {
-    async fn bootstrap_fallible(
+    async fn bootstrap_fallible<App>(
+        app: &App,
         config: &<Self as BootstrapperExt>::Config,
-        modules: Modules,
-    ) -> Result<()> {
+    ) -> Result<()>
+    where
+        App: Send + Sync + FindUserByEmailUsecase + CreateUserUsecase,
+    {
         let user = CreateUser::try_from(&config.admin)?;
 
-        if modules
-            .user_usecase()
-            .find_by_email(&user.email)
-            .await?
-            .is_some()
-        {
+        if app.find_user_by_email(&user.email).await?.is_some() {
             return Ok(());
         }
 
-        modules
-            .user_usecase()
-            .create(CreateUserSource::Registration, Ok(user))
+        app.create_user(CreateUserSource::Registration, Ok(user))
             .await?;
 
         Ok(())
@@ -39,8 +37,8 @@ impl InitialState {
 impl BootstrapperExt for InitialState {
     type Config = InitialStateConfig;
 
-    async fn bootstrap(config: &Self::Config, modules: Modules) {
-        if let Some(err) = Self::bootstrap_fallible(config, modules).await.err()
+    async fn bootstrap(config: &Self::Config, modules: &Impl<Modules>) {
+        if let Some(err) = Self::bootstrap_fallible(modules, config).await.err()
         {
             tracing::error!("Failed to initialize state: {err}");
         }

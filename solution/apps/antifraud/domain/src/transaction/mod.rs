@@ -29,7 +29,7 @@ pub mod status;
 pub mod timestamp;
 pub mod user_id;
 
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Debug)]
 pub struct Transaction {
     pub id: Id<Self>,
     pub user_id: TransactionUserId,
@@ -47,7 +47,7 @@ pub struct Transaction {
     pub created_at: DateTime<Utc>,
 }
 
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Debug)]
 pub struct CreateTransaction {
     pub user_id: TransactionUserId,
     pub amount: TransactionAmount,

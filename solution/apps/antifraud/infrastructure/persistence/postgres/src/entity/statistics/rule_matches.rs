@@ -1,12 +1,9 @@
 use domain::statistics::rules::RuleMatchesStats;
-use lib::{
-    infrastructure::persistence::entity::DomainTypeFromDb,
-    model_mapper::Mapper, uuid::Uuid,
-};
+use lib::{infrastructure::persistence::entity::DomainTypeFromDb, uuid::Uuid};
+use model_mapper::Mapper;
 use sqlx::FromRow;
 
-#[derive(Mapper, FromRow)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Mapper, FromRow, Debug)]
 #[mapper(derive(ty = RuleMatchesStats, into))]
 pub struct StoredRuleMatchesStats {
     pub rule_id: Uuid,

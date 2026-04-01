@@ -1,17 +1,12 @@
 use domain::transaction::location::TransactionLocation;
-use lib::{
-    model_mapper::Mapper,
-    presentation::api::rest::{
-        into_validators,
-        validation::{
-            UserInput, parseable::Parseable, validator::ValidatorResult,
-        },
-    },
+use lib::presentation::api::rest::{
+    into_validators,
+    validation::{UserInput, parseable::Parseable, validator::ValidatorResult},
 };
+use model_mapper::Mapper;
 use serde::{Deserialize, Serialize};
 
-#[derive(Mapper, Serialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Mapper, Serialize, Debug)]
 #[mapper(ty = TransactionLocation, from)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionLocationDto {
@@ -32,8 +27,7 @@ pub struct TransactionLocationDto {
     pub longitude: Option<f32>,
 }
 
-#[derive(Deserialize, Default)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Deserialize, Default, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateTransactionLocationDto {
     #[serde(default)]

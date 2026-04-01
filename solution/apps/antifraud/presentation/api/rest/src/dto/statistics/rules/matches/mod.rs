@@ -1,11 +1,11 @@
 use domain::statistics::rules::RuleMatchesStats;
-use lib::{model_mapper::Mapper, uuid::Uuid};
+use lib::uuid::Uuid;
+use model_mapper::Mapper;
 use serde::Serialize;
 
 pub mod filter;
 
-#[derive(Mapper, Serialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Mapper, Serialize, Debug)]
 #[mapper(ty = RuleMatchesStats, from)]
 #[serde(rename_all = "camelCase")]
 pub struct RuleMatchesStatsDto {

@@ -12,6 +12,7 @@ domain = { path = "../domain", package = "antifraud-domain" }
 
 chrono.workspace = true
 derive-where.workspace = true
+entrait.workspace = true
 pastey.workspace = true
 tracing.workspace = true
 thiserror.workspace = true

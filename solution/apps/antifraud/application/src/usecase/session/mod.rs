@@ -1,24 +1,15 @@
-use domain::{
-    session::Session,
-    user::{User, role::UserRole},
-};
-use lib::{async_trait, domain::Id, redact::Secret};
+use lib::application::application_result;
 
-use crate::usecase::session::error::SessionUseCaseResult;
+mod create;
+mod get_from_token;
 
-pub mod error;
-pub mod implementation;
+pub use create::CreateSessionUsecase;
+pub use get_from_token::GetSessionFromTokenUsecase;
 
-#[async_trait]
-pub trait SessionUseCase {
-    fn create(
-        &self,
-        user_id: Id<User>,
-        user_role: UserRole,
-    ) -> SessionUseCaseResult<Secret<String>>;
-
-    fn get_from_token(
-        &self,
-        token: Secret<&str>,
-    ) -> SessionUseCaseResult<Session>;
+#[derive(thiserror::Error, Debug)]
+pub enum SessionUseCaseError {
+    #[error(transparent)]
+    Infrastructure(#[from] lib::anyhow::Error),
 }
+
+application_result!(SessionUseCase);

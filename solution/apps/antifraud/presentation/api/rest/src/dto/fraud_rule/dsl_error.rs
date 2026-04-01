@@ -1,8 +1,7 @@
 use application::service::dsl::{DslServiceError, DslServiceErrorKind};
 use serde::Serialize;
 
-#[derive(Serialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DslErrorDto {
     pub code: &'static str,

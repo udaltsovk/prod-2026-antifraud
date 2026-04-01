@@ -2,14 +2,12 @@ use crate::pagination::time_based::{
     TimeBasedPagination, TimeBasedPaginationFromBase, TimeBasedPaginationInput,
 };
 
-#[derive(Clone)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Clone, Debug)]
 pub struct StatsOverviewFilterInput {
     pub time_based_pagination: TimeBasedPaginationInput,
 }
 
-#[derive(Clone, Copy)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Clone, Copy, Debug)]
 pub struct StatsOverviewFilter {
     pub time_based_pagination: TimeBasedPagination,
 }

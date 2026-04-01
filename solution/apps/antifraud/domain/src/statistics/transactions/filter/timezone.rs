@@ -14,8 +14,7 @@ use lib::{
     tap::Pipe as _,
 };
 
-#[derive(DomainType, Clone)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(DomainType, Clone, Debug)]
 pub struct TransactionsTimeseriesPointFilterTimezone(Tz);
 
 impl Default for TransactionsTimeseriesPointFilterTimezone {

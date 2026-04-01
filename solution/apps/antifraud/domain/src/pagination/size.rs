@@ -12,8 +12,7 @@ use lib::{
     tap::{Pipe as _, TryConv as _},
 };
 
-#[derive(DomainType, Clone, Copy)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(DomainType, Clone, Copy, Debug)]
 pub struct PaginationSize(u8);
 
 static CONSTRAINTS: LazyLock<Constraints<i64>> = LazyLock::new(|| {

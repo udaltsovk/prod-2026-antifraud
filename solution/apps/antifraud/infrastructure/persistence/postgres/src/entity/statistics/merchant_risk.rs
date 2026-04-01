@@ -1,11 +1,9 @@
 use domain::statistics::merchants::MerchantRiskStats;
-use lib::{
-    infrastructure::persistence::entity::DomainTypeFromDb, model_mapper::Mapper,
-};
+use lib::infrastructure::persistence::entity::DomainTypeFromDb;
+use model_mapper::Mapper;
 use sqlx::{FromRow, Type};
 
-#[derive(Mapper, Type, FromRow)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Mapper, Type, FromRow, Debug)]
 #[mapper(derive(ty = MerchantRiskStats, into))]
 #[sqlx(type_name = "merchant_risk_stats")]
 pub struct StoredMerchantRiskStats {

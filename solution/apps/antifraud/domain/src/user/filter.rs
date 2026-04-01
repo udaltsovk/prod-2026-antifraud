@@ -1,13 +1,11 @@
 use crate::pagination::{Pagination, PaginationInput};
 
-#[derive(Clone)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Clone, Debug)]
 pub struct UserFilterInput {
     pub pagination: PaginationInput,
 }
 
-#[derive(Clone, Copy)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Clone, Copy, Debug)]
 pub struct UserFilter {
     pub pagination: Pagination,
 }

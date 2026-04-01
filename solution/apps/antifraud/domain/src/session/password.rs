@@ -14,8 +14,7 @@ use lib::{
 
 use crate::{constraints::PASSWORD_LENGTH_CONSTRAINTS, password::Password};
 
-#[derive(DomainType, Clone)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(DomainType, Clone, Debug)]
 pub struct SessionPassword(Secret<String>);
 
 static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {

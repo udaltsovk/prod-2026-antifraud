@@ -9,11 +9,13 @@ lib = { workspace = true, features = ["infrastructure-services"] }
 domain = { path = "../../../../domain", package = "antifraud-domain" }
 application = { path = "../../../../application", package = "antifraud-application" }
 
+entrait.workspace = true
+model-mapper.workspace = true
 serde = { workspace = true, features = ["derive"] }
 thiserror.workspace = true
 tracing.workspace = true
 
-jsonwebtoken = "9.3"
+jsonwebtoken = "10.3"
 
 [lints]
 workspace = true

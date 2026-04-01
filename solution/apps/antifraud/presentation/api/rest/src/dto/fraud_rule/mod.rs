@@ -6,7 +6,6 @@ use domain::fraud_rule::{
 };
 use lib::{
     domain::DomainType as _,
-    model_mapper::Mapper,
     presentation::api::rest::{
         into_validators,
         validation::{
@@ -15,14 +14,14 @@ use lib::{
     },
     uuid::Uuid,
 };
+use model_mapper::Mapper;
 use serde::{Deserialize, Serialize};
 
 use crate::dto::fraud_rule::dsl_error::DslErrorDto;
 
 pub mod dsl_error;
 
-#[derive(Mapper, Serialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Mapper, Serialize, Debug)]
 #[mapper(ty = FraudRule, from, ignore_extra)]
 #[serde(rename_all = "camelCase")]
 pub struct FraudRuleDto {
@@ -46,8 +45,7 @@ pub struct FraudRuleDto {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Deserialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct FraudRuleDslExpressionDto {
     #[serde(default)]
@@ -66,8 +64,7 @@ impl Parseable<FraudRuleDslExpression> for FraudRuleDslExpressionDto {
     }
 }
 
-#[derive(Deserialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateFraudRuleDto {
     #[serde(default)]
@@ -106,8 +103,7 @@ impl Parseable<CreateFraudRule> for CreateFraudRuleDto {
     }
 }
 
-#[derive(Deserialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct FraudRuleUpdateDto {
     #[serde(default)]
@@ -146,8 +142,7 @@ impl Parseable<FraudRuleUpdate> for FraudRuleUpdateDto {
     }
 }
 
-#[derive(Serialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ValidatedFraudRuleDto {
     pub is_valid: bool,

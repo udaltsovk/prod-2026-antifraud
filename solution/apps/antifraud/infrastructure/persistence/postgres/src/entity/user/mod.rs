@@ -1,9 +1,7 @@
 use chrono::{DateTime, Utc};
 use domain::user::User;
-use lib::{
-    infrastructure::persistence::entity::DomainTypeFromDb,
-    model_mapper::Mapper, uuid::Uuid,
-};
+use lib::{infrastructure::persistence::entity::DomainTypeFromDb, uuid::Uuid};
+use model_mapper::Mapper;
 use sqlx::FromRow;
 
 use crate::entity::user::{
@@ -15,8 +13,7 @@ pub mod gender;
 pub mod marital_status;
 pub mod role;
 
-#[derive(Mapper, FromRow)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Mapper, FromRow, Debug)]
 #[mapper(derive(ty = User, into))]
 pub struct StoredUser {
     pub id: Uuid,

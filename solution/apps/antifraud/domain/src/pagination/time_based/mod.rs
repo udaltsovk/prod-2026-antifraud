@@ -8,22 +8,19 @@ use crate::pagination::time_based::{
 pub mod from;
 pub mod to;
 
-#[derive(Clone)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Clone, Debug)]
 pub struct TimeBasedPaginationInput {
     pub from: Option<TimeBasedPaginationFrom>,
     pub to: Option<TimeBasedPaginationTo>,
 }
 
-#[derive(Clone, Copy)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Clone, Copy, Debug)]
 pub struct TimeBasedPagination {
     pub from: DateTime<Utc>,
     pub to: DateTime<Utc>,
 }
 
-#[derive(Clone, Copy)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Clone, Copy, Debug)]
 pub enum TimeBasedPaginationFromBase {
     Now,
     To,

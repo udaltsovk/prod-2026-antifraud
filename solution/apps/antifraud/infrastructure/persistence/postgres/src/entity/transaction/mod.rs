@@ -2,10 +2,8 @@ use std::net::IpAddr;
 
 use chrono::{DateTime, Utc};
 use domain::transaction::Transaction;
-use lib::{
-    infrastructure::persistence::entity::DomainTypeFromDb,
-    model_mapper::Mapper, uuid::Uuid,
-};
+use lib::{infrastructure::persistence::entity::DomainTypeFromDb, uuid::Uuid};
+use model_mapper::Mapper;
 use serde_json::Value;
 use sqlx::FromRow;
 
@@ -18,8 +16,7 @@ pub mod channel;
 pub mod location;
 pub mod verdict;
 
-#[derive(Mapper, FromRow)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Mapper, FromRow, Debug)]
 #[mapper(derive(ty = Transaction, into))]
 pub struct StoredTransaction {
     pub id: Uuid,

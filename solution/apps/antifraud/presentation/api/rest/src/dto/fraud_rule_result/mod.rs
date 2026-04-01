@@ -1,9 +1,9 @@
 use domain::fraud_rule::result::FraudRuleResult;
-use lib::{model_mapper::Mapper, uuid::Uuid};
+use lib::uuid::Uuid;
+use model_mapper::Mapper;
 use serde::Serialize;
 
-#[derive(Mapper, Serialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Mapper, Serialize, Debug)]
 #[mapper(ty = FraudRuleResult, from)]
 #[serde(rename_all = "camelCase")]
 pub struct FraudRuleResultDto {

@@ -1,48 +1,34 @@
-use domain::{
-    statistics::{
-        merchants::{MerchantRiskStats, filter::MerchantsRiskStatsFilterInput},
-        overview::{StatsOverview, filter::StatsOverviewFilterInput},
-        rules::{RuleMatchesStats, filter::RulesMatchesStatsFilterInput},
-        transactions::{
-            TransactionsTimeseriesPoint,
-            filter::TransactionsTimeseriesPointFilterInput,
-        },
-        users::UserRiskProfile,
-    },
-    user::{User, role::UserRole},
+use domain::user::User;
+use lib::{
+    application::application_result,
+    domain::{Id, validation::error::ValidationErrorsWithFields},
 };
-use lib::{async_trait, domain::Id};
 
-use crate::usecase::statistics::error::StatisticsUseCaseResult;
+mod merchants_risk;
+mod overview;
+mod rules_matches;
+mod transactions_timeseries;
+mod user_risk_profile;
 
-pub mod error;
-pub mod implementation;
+pub use merchants_risk::StatisticsMerchantsRiskUsecase;
+pub use overview::StatisticsOverviewUsecase;
+pub use rules_matches::StatisticsRulesMatchesUsecase;
+pub use transactions_timeseries::StatisticsTransactionsTimeseriesUsecase;
+pub use user_risk_profile::StatisticsUserRiskProfileUsecase;
 
-#[async_trait]
-pub trait StatisticsUseCase {
-    async fn overview(
-        &self,
-        filter: StatsOverviewFilterInput,
-    ) -> StatisticsUseCaseResult<StatsOverview>;
+#[derive(thiserror::Error, Debug)]
+pub enum StatisticsUseCaseError {
+    #[error(transparent)]
+    Infrastructure(#[from] lib::anyhow::Error),
 
-    async fn transactions_timeseries(
-        &self,
-        filter: TransactionsTimeseriesPointFilterInput,
-    ) -> StatisticsUseCaseResult<Vec<TransactionsTimeseriesPoint>>;
+    #[error(transparent)]
+    Validation(ValidationErrorsWithFields),
 
-    async fn rules_matches(
-        &self,
-        filter: RulesMatchesStatsFilterInput,
-    ) -> StatisticsUseCaseResult<Vec<RuleMatchesStats>>;
+    #[error("Пользователь не найден")]
+    UserNotFoundById(Id<User>),
 
-    async fn merchants_risk(
-        &self,
-        filter: MerchantsRiskStatsFilterInput,
-    ) -> StatisticsUseCaseResult<Vec<MerchantRiskStats>>;
-
-    async fn user_risk_profile(
-        &self,
-        requester: (Id<User>, UserRole),
-        user_id: Id<User>,
-    ) -> StatisticsUseCaseResult<UserRiskProfile>;
+    #[error("Недостаточно прав для выполнения операции")]
+    MissingPermissions,
 }
+
+application_result!(StatisticsUseCase);

@@ -1,16 +1,19 @@
 use std::sync::LazyLock;
 
-use application::repository::user_activity::UserActivityRepository;
-use domain::user::{User, UserActivity};
+use application::repository::user_activity::UserActivityRepositoryImpl;
+use domain::user::User;
+use entrait::entrait;
 use lib::{
     anyhow::Result,
+    application::di::Has,
     async_trait,
     chrono::{DateTime, Utc},
     domain::Id,
-    infrastructure::persistence::redis::Namespace,
+    infrastructure::persistence::{HasPoolExt as _, redis::Namespace},
     instrument_all,
     tap::Pipe as _,
 };
+use mobc_redis::{RedisConnectionManager, mobc::Pool};
 use redis::AsyncTypedCommands as _;
 
 use crate::repository::{META_NAMESPACE, RedisRepositoryImpl};
@@ -18,13 +21,20 @@ use crate::repository::{META_NAMESPACE, RedisRepositoryImpl};
 static NAMESPACE: LazyLock<Namespace> =
     LazyLock::new(|| META_NAMESPACE.nest("user_activity"));
 
+#[entrait(ref)]
 #[async_trait]
 #[instrument_all]
-impl UserActivityRepository for RedisRepositoryImpl<UserActivity> {
-    async fn record(&self, user_id: Id<User>) -> Result<DateTime<Utc>> {
+impl UserActivityRepositoryImpl for RedisRepositoryImpl {
+    async fn record_activity<Deps>(
+        deps: &Deps,
+        user_id: Id<User>,
+    ) -> Result<DateTime<Utc>>
+    where
+        Deps: Has<Pool<RedisConnectionManager>>,
+    {
         let timestamp = Utc::now();
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = deps.get_connection().await?;
 
         connection
             .set(
@@ -36,11 +46,14 @@ impl UserActivityRepository for RedisRepositoryImpl<UserActivity> {
         Ok(timestamp)
     }
 
-    async fn find_by_user(
-        &self,
+    async fn find_activity_by_user<Deps>(
+        deps: &Deps,
         user_id: Id<User>,
-    ) -> Result<Option<DateTime<Utc>>> {
-        let mut connection = self.pool.get().await?;
+    ) -> Result<Option<DateTime<Utc>>>
+    where
+        Deps: Has<Pool<RedisConnectionManager>>,
+    {
+        let mut connection = deps.get_connection().await?;
 
         connection
             .get_int(NAMESPACE.key(&user_id.to_string()))

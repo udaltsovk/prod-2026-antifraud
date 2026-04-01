@@ -12,8 +12,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::dto::user::UserDto;
 
-#[derive(Serialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct UserSessionDto {
     #[serde(serialize_with = "expose_secret")]
@@ -34,8 +33,7 @@ impl From<(Secret<String>, UserDto)> for UserSessionDto {
     }
 }
 
-#[derive(Deserialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Deserialize, Debug)]
 pub struct CreateSessionDto {
     email: UserInput<String>,
 

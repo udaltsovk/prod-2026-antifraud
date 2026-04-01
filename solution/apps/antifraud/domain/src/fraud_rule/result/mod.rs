@@ -12,7 +12,7 @@ use crate::fraud_rule::{
 pub mod description;
 pub mod status;
 
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Debug)]
 pub struct FraudRuleResult {
     pub rule_id: Id<FraudRule>,
     pub rule_name: FraudRuleName,

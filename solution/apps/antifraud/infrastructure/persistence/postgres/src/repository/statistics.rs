@@ -1,8 +1,7 @@
-use application::repository::statistics::StatisticsRepository;
+use application::repository::statistics::StatisticsRepositoryImpl;
 use domain::{
     pagination::time_based::TimeBasedPagination,
     statistics::{
-        Statistics,
         merchants::{MerchantRiskStats, filter::MerchantsRiskStatsFilter},
         overview::{StatsOverview, filter::StatsOverviewFilter},
         rules::{RuleMatchesStats, filter::RulesMatchesStatsFilter},
@@ -14,14 +13,18 @@ use domain::{
     },
     user::User,
 };
+use entrait::entrait;
 use lib::{
     anyhow::Result,
+    application::di::Has,
     async_trait,
     domain::{DomainType, Id},
+    infrastructure::persistence::HasPoolExt as _,
     instrument_all,
     tap::Pipe as _,
 };
-use sqlx::query_file_as;
+use mobc_sqlx::{SqlxConnectionManager, mobc::Pool};
+use sqlx::{Postgres, query_file_as};
 
 use crate::{
     entity::{
@@ -37,11 +40,12 @@ use crate::{
     repository::PostgresRepositoryImpl,
 };
 
+#[entrait(ref)]
 #[async_trait]
 #[instrument_all]
-impl StatisticsRepository for PostgresRepositoryImpl<Statistics> {
-    async fn overview(
-        &self,
+impl StatisticsRepositoryImpl for PostgresRepositoryImpl {
+    async fn statistics_overview<Deps>(
+        deps: &Deps,
         StatsOverviewFilter {
             time_based_pagination:
                 TimeBasedPagination {
@@ -49,8 +53,11 @@ impl StatisticsRepository for PostgresRepositoryImpl<Statistics> {
                     to,
                 },
         }: StatsOverviewFilter,
-    ) -> Result<StatsOverview> {
-        let mut connection = self.pool.get().await?;
+    ) -> Result<StatsOverview>
+    where
+        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+    {
+        let mut connection = deps.get_connection().await?;
 
         sqlx::query_file_as!(
             StoredStatsOverview,
@@ -64,8 +71,8 @@ impl StatisticsRepository for PostgresRepositoryImpl<Statistics> {
         .pipe(Ok)
     }
 
-    async fn transactions_timeseries(
-        &self,
+    async fn statistics_transactions_timeseries<Deps>(
+        deps: &Deps,
         TransactionsTimeseriesPointFilter {
             time_based_pagination:
                 TimeBasedPagination {
@@ -76,12 +83,15 @@ impl StatisticsRepository for PostgresRepositoryImpl<Statistics> {
             timezone,
             channel,
         }: TransactionsTimeseriesPointFilter,
-    ) -> Result<Vec<TransactionsTimeseriesPoint>> {
+    ) -> Result<Vec<TransactionsTimeseriesPoint>>
+    where
+        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+    {
         let group_by = group_by.to_string();
         let timezone = timezone.into_inner().name();
         let channel = channel.map(StoredTransactionChannel::from);
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = deps.get_connection().await?;
 
         query_file_as!(
             StoredTransactionsTimeseriesPoint,
@@ -100,8 +110,8 @@ impl StatisticsRepository for PostgresRepositoryImpl<Statistics> {
         .pipe(Ok)
     }
 
-    async fn rules_matches(
-        &self,
+    async fn statistics_rules_matches<Deps>(
+        deps: &Deps,
         RulesMatchesStatsFilter {
             time_based_pagination:
                 TimeBasedPagination {
@@ -110,10 +120,13 @@ impl StatisticsRepository for PostgresRepositoryImpl<Statistics> {
                 },
             top,
         }: RulesMatchesStatsFilter,
-    ) -> Result<Vec<RuleMatchesStats>> {
+    ) -> Result<Vec<RuleMatchesStats>>
+    where
+        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+    {
         let top: i64 = top.into();
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = deps.get_connection().await?;
 
         sqlx::query_file_as!(
             StoredRuleMatchesStats,
@@ -130,8 +143,8 @@ impl StatisticsRepository for PostgresRepositoryImpl<Statistics> {
         .pipe(Ok)
     }
 
-    async fn merchants_risk(
-        &self,
+    async fn statistics_merchants_risk<Deps>(
+        deps: &Deps,
         MerchantsRiskStatsFilter {
             time_based_pagination:
                 TimeBasedPagination {
@@ -141,12 +154,15 @@ impl StatisticsRepository for PostgresRepositoryImpl<Statistics> {
             merchant_category_code,
             top,
         }: MerchantsRiskStatsFilter,
-    ) -> Result<Vec<MerchantRiskStats>> {
+    ) -> Result<Vec<MerchantRiskStats>>
+    where
+        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+    {
         let merchant_category_code =
             merchant_category_code.map(DomainType::into_inner);
         let top: i64 = top.into();
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = deps.get_connection().await?;
 
         query_file_as!(
             StoredMerchantRiskStats,
@@ -164,11 +180,14 @@ impl StatisticsRepository for PostgresRepositoryImpl<Statistics> {
         .pipe(Ok)
     }
 
-    async fn user_risk_profile(
-        &self,
+    async fn statistics_user_risk_profile<Deps>(
+        deps: &Deps,
         user_id: Id<User>,
-    ) -> Result<UserRiskProfile> {
-        let mut connection = self.pool.get().await?;
+    ) -> Result<UserRiskProfile>
+    where
+        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+    {
+        let mut connection = deps.get_connection().await?;
 
         sqlx::query_file_as!(
             StoredUserRiskProfile,

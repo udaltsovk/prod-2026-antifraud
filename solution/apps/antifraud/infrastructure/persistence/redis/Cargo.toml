@@ -10,6 +10,7 @@ domain = { path = "../../../domain", package = "antifraud-domain" }
 application = { path = "../../../application", package = "antifraud-application" }
 
 derive-where.workspace = true
+entrait.workspace = true
 mobc-redis.workspace = true
 thiserror.workspace = true
 tracing.workspace = true

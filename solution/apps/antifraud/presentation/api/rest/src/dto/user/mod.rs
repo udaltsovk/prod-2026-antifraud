@@ -1,7 +1,6 @@
 use chrono::{DateTime, Utc};
 use domain::user::{CreateUser, User, UserUpdate, role::UserRole};
 use lib::{
-    model_mapper::Mapper,
     presentation::api::rest::{
         into_validators,
         validation::{
@@ -11,6 +10,7 @@ use lib::{
     redact::Secret,
     uuid::Uuid,
 };
+use model_mapper::Mapper;
 use serde::{Deserialize, Serialize};
 
 use crate::dto::user::{
@@ -23,8 +23,7 @@ pub mod gender;
 pub mod marital_status;
 pub mod role;
 
-#[derive(Mapper, Serialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Mapper, Serialize, Debug)]
 #[mapper(ty = User, from, ignore_extra)]
 #[serde(rename_all = "camelCase")]
 pub struct UserDto {
@@ -60,8 +59,7 @@ pub struct UserDto {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Deserialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateUserDto {
     #[serde(default)]
@@ -114,8 +112,7 @@ impl Parseable<CreateUser> for CreateUserDto {
     }
 }
 
-#[derive(Deserialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateUserWithRoleDto {
     #[serde(flatten)]
@@ -138,8 +135,7 @@ impl Parseable<CreateUser> for CreateUserWithRoleDto {
     }
 }
 
-#[derive(Deserialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct UserUpdateDto {
     #[serde(default)]

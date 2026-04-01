@@ -5,7 +5,7 @@ use crate::transaction::{
 
 pub mod filter;
 
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Debug)]
 pub struct MerchantRiskStats {
     pub merchant_id: TransactionMerchantId,
     pub merchant_category_code: Option<TransactionMerchantCategoryCode>,

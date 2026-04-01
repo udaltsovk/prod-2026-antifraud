@@ -1,18 +1,22 @@
-use application::repository::user::UserRepository;
+use application::repository::user::UserRepositoryImpl;
 use domain::{
     email::Email,
     pagination::Pagination,
     password::PasswordHash,
     user::{CreateUser, User, filter::UserFilter, region::UserRegion},
 };
+use entrait::entrait;
 use lib::{
     anyhow::Result,
+    application::di::Has,
     async_trait,
     domain::{DomainType as _, Id},
+    infrastructure::persistence::HasPoolExt as _,
     instrument_all,
     tap::Pipe as _,
 };
-use sqlx::{query_file_as, query_file_scalar};
+use mobc_sqlx::{SqlxConnectionManager, mobc::Pool};
+use sqlx::{Postgres, query_file_as, query_file_scalar};
 
 use crate::{
     entity::user::{
@@ -22,13 +26,17 @@ use crate::{
     repository::PostgresRepositoryImpl,
 };
 
+#[entrait(ref)]
 #[async_trait]
 #[instrument_all]
-impl UserRepository for PostgresRepositoryImpl<User> {
-    async fn create(
-        &self,
+impl UserRepositoryImpl for PostgresRepositoryImpl {
+    async fn create_user<Deps>(
+        deps: &Deps,
         (id, source, password_hash): (Id<User>, CreateUser, PasswordHash),
-    ) -> Result<User> {
+    ) -> Result<User>
+    where
+        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+    {
         let id = id.value;
         let email = source.email.into_inner();
         let full_name = source.full_name.into_inner();
@@ -40,7 +48,7 @@ impl UserRepository for PostgresRepositoryImpl<User> {
         let region = source.region.map(UserRegion::into_inner);
         let role: StoredUserRole = source.role.into();
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = deps.get_connection().await?;
 
         let user = query_file_as!(
             StoredUser,
@@ -62,8 +70,14 @@ impl UserRepository for PostgresRepositoryImpl<User> {
         Ok(user)
     }
 
-    async fn find_by_id(&self, id: Id<User>) -> Result<Option<User>> {
-        let mut connection = self.pool.get().await?;
+    async fn find_user_by_id<Deps>(
+        deps: &Deps,
+        id: Id<User>,
+    ) -> Result<Option<User>>
+    where
+        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+    {
+        let mut connection = deps.get_connection().await?;
 
         query_file_as!(StoredUser, "sql/user/find_by_id.sql", id.value)
             .fetch_optional(&mut *connection)
@@ -72,8 +86,14 @@ impl UserRepository for PostgresRepositoryImpl<User> {
             .pipe(Ok)
     }
 
-    async fn find_by_email(&self, email: &Email) -> Result<Option<User>> {
-        let mut connection = self.pool.get().await?;
+    async fn find_user_by_email<Deps>(
+        deps: &Deps,
+        email: &Email,
+    ) -> Result<Option<User>>
+    where
+        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+    {
+        let mut connection = deps.get_connection().await?;
 
         query_file_as!(StoredUser, "sql/user/find_by_email.sql", email.as_ref())
             .fetch_optional(&mut *connection)
@@ -82,8 +102,8 @@ impl UserRepository for PostgresRepositoryImpl<User> {
             .pipe(Ok)
     }
 
-    async fn list(
-        &self,
+    async fn list_users<Deps>(
+        deps: &Deps,
         UserFilter {
             pagination:
                 Pagination {
@@ -91,8 +111,11 @@ impl UserRepository for PostgresRepositoryImpl<User> {
                     offset,
                 },
         }: UserFilter,
-    ) -> Result<Vec<User>> {
-        let mut connection = self.pool.get().await?;
+    ) -> Result<Vec<User>>
+    where
+        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+    {
+        let mut connection = deps.get_connection().await?;
 
         query_file_as!(StoredUser, "sql/user/list.sql", limit, offset,)
             .fetch_all(&mut *connection)
@@ -103,13 +126,16 @@ impl UserRepository for PostgresRepositoryImpl<User> {
             .pipe(Ok)
     }
 
-    async fn count(
-        &self,
+    async fn count_users<Deps>(
+        deps: &Deps,
         UserFilter {
             ..
         }: UserFilter,
-    ) -> Result<i64> {
-        let mut connection = self.pool.get().await?;
+    ) -> Result<i64>
+    where
+        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+    {
+        let mut connection = deps.get_connection().await?;
 
         query_file_scalar!("sql/user/count.sql")
             .fetch_one(&mut *connection)
@@ -118,7 +144,10 @@ impl UserRepository for PostgresRepositoryImpl<User> {
             .pipe(Ok)
     }
 
-    async fn update(&self, source: User) -> Result<User> {
+    async fn update_user<Deps>(deps: &Deps, source: User) -> Result<User>
+    where
+        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+    {
         let id = source.id.value;
         let full_name = source.full_name.into_inner();
         let age: Option<i16> = source.age.map(|age| age.into_inner().into());
@@ -129,7 +158,7 @@ impl UserRepository for PostgresRepositoryImpl<User> {
         let role: StoredUserRole = source.role.into();
         let is_active: bool = source.status.into();
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = deps.get_connection().await?;
 
         let user = query_file_as!(
             StoredUser,

@@ -1,4 +1,6 @@
-use application::usecase::statistics::StatisticsUseCase as _;
+use application::{
+    Application, usecase::statistics::StatisticsMerchantsRiskUsecase,
+};
 use axum::{Router, extract::State, response::IntoResponse, routing::get};
 use lib::{
     presentation::api::rest::validation::parseable::Parseable as _,
@@ -7,7 +9,6 @@ use lib::{
 use serde_json::json;
 
 use crate::{
-    ModulesExt,
     dto::statistics::merchants::risk::{
         MerchantRiskStatsDto, filter::MerchantsRiskStatsFilterQuery,
     },
@@ -15,25 +16,27 @@ use crate::{
     extractors::{Json, Query, session::AdminSession},
 };
 
-pub fn router<M: ModulesExt>() -> Router<M> {
-    Router::new().route("/risk", get(merchants_risk::<M>))
+pub fn router<App>() -> Router<App>
+where
+    App: Application,
+{
+    Router::new().route("/risk", get(merchants_risk::<App>))
 }
 
-pub async fn merchants_risk<M>(
-    modules: State<M>,
+pub async fn merchants_risk<App>(
+    app: State<App>,
     AdminSession {
         ..
     }: AdminSession,
     Query(filter): Query<MerchantsRiskStatsFilterQuery>,
 ) -> ApiResult<impl IntoResponse>
 where
-    M: ModulesExt,
+    App: StatisticsMerchantsRiskUsecase,
 {
     let filter = filter.parse()?;
 
-    let stats: Vec<_> = modules
-        .statistics_usecase()
-        .merchants_risk(filter)
+    let stats: Vec<_> = app
+        .statistics_merchants_risk(filter)
         .await?
         .into_iter()
         .map(MerchantRiskStatsDto::from)

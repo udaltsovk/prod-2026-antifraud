@@ -8,15 +8,13 @@ use crate::{
 
 pub mod top;
 
-#[derive(Clone)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Clone, Debug)]
 pub struct RulesMatchesStatsFilterInput {
     pub time_based_pagination: TimeBasedPaginationInput,
     pub top: Option<RuleMatchesStatsFilterTop>,
 }
 
-#[derive(Clone, Copy)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Clone, Copy, Debug)]
 pub struct RulesMatchesStatsFilter {
     pub time_based_pagination: TimeBasedPagination,
     pub top: u8,

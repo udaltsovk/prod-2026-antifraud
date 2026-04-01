@@ -1,12 +1,11 @@
 use chrono::{DateTime, Utc};
 use domain::statistics::transactions::TransactionsTimeseriesPoint;
-use lib::model_mapper::Mapper;
+use model_mapper::Mapper;
 use serde::Serialize;
 
 pub mod filter;
 
-#[derive(Mapper, Serialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Mapper, Serialize, Debug)]
 #[mapper(ty = TransactionsTimeseriesPoint, from)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionsTimeseriesPointDto {

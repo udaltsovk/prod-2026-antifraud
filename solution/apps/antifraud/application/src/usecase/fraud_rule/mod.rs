@@ -1,63 +1,39 @@
-use domain::fraud_rule::{
-    CreateFraudRule, FraudRule, FraudRuleUpdate,
-    dsl_expression::FraudRuleDslExpression, name::FraudRuleName,
-    status::FraudRuleStatus,
-};
-use lib::{async_trait, domain::Id};
+use domain::fraud_rule::{FraudRule, name::FraudRuleName};
+use lib::{application::application_result, domain::Id};
 
-use crate::{
-    service::dsl::DslServiceResult,
-    usecase::fraud_rule::error::FraudRuleUseCaseResult,
-};
+mod create;
+mod disable_by_id;
+mod find_by_id;
+mod find_by_name;
+mod get_by_id;
+mod get_by_name;
+mod list;
+mod normalize_dsl_expression;
+mod update_by_id;
 
-pub mod error;
-pub mod implementation;
+pub use create::CreateFraudRuleUsecase;
+pub use disable_by_id::DisableFraudRuleByIdUsecase;
+pub use find_by_id::FindFraudRuleByIdUsecase;
+pub use find_by_name::FindFraudRuleByNameUsecase;
+pub use get_by_id::GetFraudRuleByIdUsecase;
+pub use get_by_name::GetFraudRuleByNameUsecase;
+pub use list::ListFraudRulesUsecase;
+pub use normalize_dsl_expression::NormalizeDslExpressionUsecase;
+pub use update_by_id::UpdateFraudRuleByIdUsecase;
 
-#[async_trait]
-pub trait FraudRuleUseCase {
-    async fn find_by_name(
-        &self,
-        fraud_rule_name: &FraudRuleName,
-    ) -> FraudRuleUseCaseResult<Option<FraudRule>>;
+#[derive(thiserror::Error, Debug)]
+pub enum FraudRuleUseCaseError {
+    #[error(transparent)]
+    Infrastructure(#[from] lib::anyhow::Error),
 
-    async fn get_by_name(
-        &self,
-        fraud_rule_name: FraudRuleName,
-    ) -> FraudRuleUseCaseResult<FraudRule>;
+    #[error("Правило фрода с таким названием уже существует")]
+    NameAlreadyUsed(FraudRuleName),
 
-    async fn create(
-        &self,
-        source: CreateFraudRule,
-    ) -> FraudRuleUseCaseResult<FraudRule>;
+    #[error("Правило фрода не найдено")]
+    NotFoundByName(FraudRuleName),
 
-    async fn find_by_id(
-        &self,
-        fraud_rule_id: Id<FraudRule>,
-    ) -> FraudRuleUseCaseResult<Option<FraudRule>>;
-
-    async fn get_by_id(
-        &self,
-        fraud_rule_id: Id<FraudRule>,
-    ) -> FraudRuleUseCaseResult<FraudRule>;
-
-    async fn list(
-        &self,
-        status: Option<FraudRuleStatus>,
-    ) -> FraudRuleUseCaseResult<Vec<FraudRule>>;
-
-    async fn update_by_id(
-        &self,
-        fraud_rule_id: Id<FraudRule>,
-        update: FraudRuleUpdate,
-    ) -> FraudRuleUseCaseResult<FraudRule>;
-
-    fn normalize_dsl_expression(
-        &self,
-        expression: FraudRuleDslExpression,
-    ) -> FraudRuleUseCaseResult<DslServiceResult<FraudRuleDslExpression>>;
-
-    async fn disable_by_id(
-        &self,
-        fraud_rule_id: Id<FraudRule>,
-    ) -> FraudRuleUseCaseResult<FraudRule>;
+    #[error("Правило фрода не найдено")]
+    NotFoundById(Id<FraudRule>),
 }
+
+application_result!(FraudRuleUseCase);

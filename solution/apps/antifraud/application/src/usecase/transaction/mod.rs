@@ -1,64 +1,43 @@
-use domain::{
-    transaction::{
-        CreateTransaction, Transaction, decision::TransactionDecision,
-        filter::TransactionFilterInput,
-    },
-    user::{User, role::UserRole},
-};
+use domain::{transaction::Transaction, user::User};
 use lib::{
-    async_trait,
-    domain::{
-        Id,
-        validation::{ExternalInput, error::ValidationResultWithFields},
-    },
-    uuid::Uuid,
+    application::application_result,
+    domain::{Id, validation::error::ValidationErrorsWithFields},
 };
 
-use crate::usecase::transaction::error::TransactionUseCaseResult;
+mod bulk_create;
+mod check_user_by_id;
+mod create;
+mod find_by_id;
+mod get_by_id;
+mod get_decision_tuple;
+mod list;
+mod save_decision;
 
-pub mod error;
-pub mod implementation;
+pub use bulk_create::BulkCreateTransactionsUsecase;
+pub use create::CreateTransactionUsecase;
+pub use find_by_id::FindTransactionByIdUsecase;
+pub use get_by_id::GetTransactionByIdUsecase;
+pub use list::ListTransactionsUsecase;
 
-#[async_trait]
-pub trait TransactionUseCase {
-    async fn create(
-        &self,
-        creator: (Id<User>, UserRole),
-        input: (
-            ValidationResultWithFields<CreateTransaction>,
-            ExternalInput<Uuid>,
-        ),
-    ) -> TransactionUseCaseResult<TransactionDecision>;
+#[derive(thiserror::Error, Debug)]
+pub enum TransactionUseCaseError {
+    #[error(transparent)]
+    Infrastructure(#[from] lib::anyhow::Error),
 
-    async fn bulk_create(
-        &self,
-        creator: (Id<User>, UserRole),
-        input: Vec<(
-            ValidationResultWithFields<CreateTransaction>,
-            ExternalInput<Uuid>,
-        )>,
-    ) -> TransactionUseCaseResult<
-        Vec<(usize, TransactionUseCaseResult<TransactionDecision>)>,
-    >;
+    #[error(transparent)]
+    Validation(ValidationErrorsWithFields),
 
-    async fn find_by_id(
-        &self,
-        requester: (Id<User>, UserRole),
-        transaction_id: Id<Transaction>,
-    ) -> TransactionUseCaseResult<Option<TransactionDecision>>;
+    #[error("Пользователь деактивирован")]
+    UserDeactivated,
 
-    async fn get_by_id(
-        &self,
-        requester: (Id<User>, UserRole),
-        transaction_id: Id<Transaction>,
-    ) -> TransactionUseCaseResult<TransactionDecision>;
+    #[error("Пользователь не найден")]
+    UserNotFoundById(Id<User>),
 
-    async fn list(
-        &self,
-        requester: (Id<User>, UserRole),
-        input: (
-            ValidationResultWithFields<TransactionFilterInput>,
-            ExternalInput<Uuid>,
-        ),
-    ) -> TransactionUseCaseResult<(Vec<Transaction>, u64)>;
+    #[error("Транзакция не найдена")]
+    TransactionNotFoundById(Id<Transaction>),
+
+    #[error("Недостаточно прав для выполнения операции")]
+    MissingPermissions,
 }
+
+application_result!(TransactionUseCase);

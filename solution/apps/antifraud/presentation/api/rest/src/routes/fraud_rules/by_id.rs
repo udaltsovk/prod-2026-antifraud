@@ -1,4 +1,7 @@
-use application::usecase::fraud_rule::FraudRuleUseCase as _;
+use application::usecase::fraud_rule::{
+    DisableFraudRuleByIdUsecase, GetFraudRuleByIdUsecase,
+    UpdateFraudRuleByIdUsecase,
+};
 use axum::{extract::State, http::StatusCode, response::IntoResponse};
 use lib::{
     presentation::api::rest::{
@@ -9,25 +12,22 @@ use lib::{
 };
 
 use crate::{
-    ModulesExt,
     dto::fraud_rule::{FraudRuleDto, FraudRuleUpdateDto},
     errors::ApiResult,
     extractors::{Json, Path, session::AdminSession},
 };
 
-pub async fn get_fraud_rule_by_id<M>(
-    modules: State<M>,
+pub async fn get_fraud_rule_by_id<App>(
+    app: State<App>,
     AdminSession {
         ..
     }: AdminSession,
     Path(((), fraud_rule_id)): Path<((), Uuid)>,
 ) -> ApiResult<impl IntoResponse>
 where
-    M: ModulesExt,
+    App: GetFraudRuleByIdUsecase,
 {
-    modules
-        .fraud_rule_usecase()
-        .get_by_id(fraud_rule_id.into())
+    app.get_fraud_rule_by_id(fraud_rule_id.into())
         .await?
         .pipe(FraudRuleDto::from)
         .pipe(Json)
@@ -36,8 +36,8 @@ where
         .pipe(Ok)
 }
 
-pub async fn update_fraud_rule_by_id<M>(
-    modules: State<M>,
+pub async fn update_fraud_rule_by_id<App>(
+    app: State<App>,
     AdminSession {
         ..
     }: AdminSession,
@@ -45,13 +45,11 @@ pub async fn update_fraud_rule_by_id<M>(
     Json(update): Json<FraudRuleUpdateDto>,
 ) -> ApiResult<impl IntoResponse>
 where
-    M: ModulesExt,
+    App: UpdateFraudRuleByIdUsecase,
 {
     let update_result = update.parse()?;
 
-    modules
-        .fraud_rule_usecase()
-        .update_by_id(fraud_rule_id.into(), update_result)
+    app.update_fraud_rule_by_id(fraud_rule_id.into(), update_result)
         .await?
         .pipe(FraudRuleDto::from)
         .pipe(Json)
@@ -60,20 +58,17 @@ where
         .pipe(Ok)
 }
 
-pub async fn disable_fraud_rule_by_id<M>(
-    modules: State<M>,
+pub async fn disable_fraud_rule_by_id<App>(
+    app: State<App>,
     AdminSession {
         ..
     }: AdminSession,
     Path(((), fraud_rule_id)): Path<((), Uuid)>,
 ) -> ApiResult<impl IntoResponse>
 where
-    M: ModulesExt,
+    App: DisableFraudRuleByIdUsecase,
 {
-    modules
-        .fraud_rule_usecase()
-        .disable_by_id(fraud_rule_id.into())
-        .await?;
+    app.disable_fraud_rule_by_id(fraud_rule_id.into()).await?;
 
     StatusCode::NO_CONTENT.pipe(Ok)
 }

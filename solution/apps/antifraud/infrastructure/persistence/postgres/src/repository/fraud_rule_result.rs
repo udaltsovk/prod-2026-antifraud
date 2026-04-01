@@ -1,13 +1,17 @@
-use application::repository::fraud_rule_result::FraudRuleResultRepository;
+use application::repository::fraud_rule_result::FraudRuleResultRepositoryImpl;
 use domain::{fraud_rule::result::FraudRuleResult, transaction::Transaction};
+use entrait::entrait;
 use lib::{
     anyhow::Result,
+    application::di::Has,
     async_trait,
     domain::{DomainType as _, Id},
+    infrastructure::persistence::HasPoolExt as _,
     instrument_all,
     tap::Pipe as _,
     uuid::Uuid,
 };
+use mobc_sqlx::{SqlxConnectionManager, mobc::Pool};
 use sqlx::{Acquire as _, Executor, Postgres, query_file_as};
 
 use crate::{
@@ -15,27 +19,28 @@ use crate::{
     repository::PostgresRepositoryImpl,
 };
 
+#[entrait(ref)]
 #[async_trait]
 #[instrument_all]
-impl FraudRuleResultRepository for PostgresRepositoryImpl<FraudRuleResult> {
-    async fn batch_create(
-        &self,
+impl FraudRuleResultRepositoryImpl for PostgresRepositoryImpl {
+    async fn batch_create_fraud_rule_results<Deps>(
+        deps: &Deps,
         (transaction_id, sources): (Id<Transaction>, Vec<FraudRuleResult>),
-    ) -> Result<Vec<FraudRuleResult>> {
+    ) -> Result<Vec<FraudRuleResult>>
+    where
+        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+    {
         let transaction_id = transaction_id.value;
 
         let mut fraud_rule_results = Vec::new();
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = deps.get_connection().await?;
         let mut transaction = connection.begin().await?;
 
         for source in sources {
-            Self::save_fraud_rule_result(
-                &mut *transaction,
-                (transaction_id, source),
-            )
-            .await
-            .map(|transaction| fraud_rule_results.push(transaction))?;
+            save_fraud_rule_result(&mut *transaction, (transaction_id, source))
+                .await
+                .map(|transaction| fraud_rule_results.push(transaction))?;
         }
 
         transaction.commit().await?;
@@ -43,13 +48,16 @@ impl FraudRuleResultRepository for PostgresRepositoryImpl<FraudRuleResult> {
         Ok(fraud_rule_results)
     }
 
-    async fn find_all_by_transaction_id(
-        &self,
+    async fn find_all_fraud_rule_results_by_transaction_id<Deps>(
+        deps: &Deps,
         transaction_id: Id<Transaction>,
-    ) -> Result<Vec<FraudRuleResult>> {
+    ) -> Result<Vec<FraudRuleResult>>
+    where
+        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+    {
         let transaction_id = transaction_id.value;
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = deps.get_connection().await?;
 
         query_file_as!(
             StoredFraudRuleResult,
@@ -65,34 +73,31 @@ impl FraudRuleResultRepository for PostgresRepositoryImpl<FraudRuleResult> {
     }
 }
 
-#[instrument_all]
-impl PostgresRepositoryImpl<FraudRuleResult> {
-    async fn save_fraud_rule_result<'c, E>(
-        executor: E,
-        (transaction_id, source): (Uuid, FraudRuleResult),
-    ) -> Result<FraudRuleResult>
-    where
-        E: Executor<'c, Database = Postgres>,
-    {
-        let rule_id = source.rule_id.value;
-        let rule_name = source.rule_name.into_inner();
-        let priority = source.priority.into_inner();
-        let matched = source.status.to_bool();
-        let description = source.description.into_inner();
+async fn save_fraud_rule_result<'c, E>(
+    executor: E,
+    (transaction_id, source): (Uuid, FraudRuleResult),
+) -> Result<FraudRuleResult>
+where
+    E: Executor<'c, Database = Postgres>,
+{
+    let rule_id = source.rule_id.value;
+    let rule_name = source.rule_name.into_inner();
+    let priority = source.priority.into_inner();
+    let matched = source.status.to_bool();
+    let description = source.description.into_inner();
 
-        query_file_as!(
-            StoredFraudRuleResult,
-            "sql/fraud_rule_result/create.sql",
-            transaction_id,
-            rule_id,
-            rule_name,
-            priority,
-            matched,
-            description
-        )
-        .fetch_one(executor)
-        .await
-        .map_err(Into::into)
-        .map(FraudRuleResult::from)
-    }
+    query_file_as!(
+        StoredFraudRuleResult,
+        "sql/fraud_rule_result/create.sql",
+        transaction_id,
+        rule_id,
+        rule_name,
+        priority,
+        matched,
+        description
+    )
+    .fetch_one(executor)
+    .await
+    .map_err(Into::into)
+    .map(FraudRuleResult::from)
 }

@@ -13,8 +13,7 @@ use serde::Deserialize;
 
 use crate::dto::pagination::TimeBasedPaginationQuery;
 
-#[derive(Deserialize, Clone, Default)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Deserialize, Clone, Default, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionsTimeseriesPointFilterQuery {
     #[serde(default, flatten)]
@@ -34,48 +33,52 @@ impl Parseable<TransactionsTimeseriesPointFilterInput>
     for TransactionsTimeseriesPointFilterQuery
 {
     fn parse(self) -> ValidatorResult<TransactionsTimeseriesPointFilterInput> {
-        let (pagination_errors, time_based_pagination) =
-            match self.group_by.0.as_ref().map(|group_by| group_by.parse()) {
-                UserInput::Ok(Ok(
-                    TransactionsTimeseriesPointFilterGroupBy::Hour,
-                )) => {
-                    let TimeBasedPaginationQuery {
+        let (pagination_errors, time_based_pagination) = match self
+            .group_by
+            .0
+            .as_ref()
+            .map(|group_by| str::parse(group_by))
+        {
+            UserInput::Ok(Ok(
+                TransactionsTimeseriesPointFilterGroupBy::Hour,
+            )) => {
+                let TimeBasedPaginationQuery {
+                    from,
+                    to,
+                } = self.time_based_pagination;
+                into_validators!(field!(
+                    TimeBasedPaginationQuery::<7> {
                         from,
-                        to,
-                    } = self.time_based_pagination;
-                    into_validators!(field!(
-                        TimeBasedPaginationQuery::<7> {
-                            from,
-                            to
-                        },
-                        nested,
-                        None
-                    ))
-                },
-                UserInput::Missing
-                | UserInput::Null
-                | UserInput::Ok(Ok(
-                    TransactionsTimeseriesPointFilterGroupBy::Day,
-                )) => {
-                    let TimeBasedPaginationQuery {
-                        from,
-                        to,
-                    } = self.time_based_pagination;
-                    into_validators!(field!(
-                        TimeBasedPaginationQuery::<90> {
-                            from,
-                            to
-                        },
-                        nested,
-                        None
-                    ))
-                },
-                _ => into_validators!(field!(
-                    self.time_based_pagination,
+                        to
+                    },
                     nested,
                     None
-                )),
-            };
+                ))
+            },
+            UserInput::Missing
+            | UserInput::Null
+            | UserInput::Ok(Ok(
+                TransactionsTimeseriesPointFilterGroupBy::Day,
+            )) => {
+                let TimeBasedPaginationQuery {
+                    from,
+                    to,
+                } = self.time_based_pagination;
+                into_validators!(field!(
+                    TimeBasedPaginationQuery::<90> {
+                        from,
+                        to
+                    },
+                    nested,
+                    None
+                ))
+            },
+            _ => into_validators!(field!(
+                self.time_based_pagination,
+                nested,
+                None
+            )),
+        };
 
         let (mut errors, (group_by, timezone, channel)) = into_validators!(
             field!(self.group_by, optional, "groupBy"),

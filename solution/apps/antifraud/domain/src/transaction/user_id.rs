@@ -12,8 +12,7 @@ use lib::{
     uuid::Uuid,
 };
 
-#[derive(DomainType, Clone)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(DomainType, Clone, Debug)]
 pub struct TransactionUserId(Uuid);
 
 static CONSTRAINTS: LazyLock<Constraints<Uuid>> =

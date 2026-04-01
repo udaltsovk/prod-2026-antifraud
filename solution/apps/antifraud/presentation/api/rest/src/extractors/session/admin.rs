@@ -1,5 +1,5 @@
 use application::usecase::{
-    session::SessionUseCase as _, user::UserUseCase as _,
+    session::GetSessionFromTokenUsecase, user::RecordUserActivityUsecase,
 };
 use axum::{
     RequestPartsExt as _, extract::FromRequestParts, http::request::Parts,
@@ -12,12 +12,12 @@ use domain::{
     session::Session,
     user::{User, role::UserRole},
 };
-use lib::{domain::Id, model_mapper::Mapper, redact::Secret, tap::Conv as _};
+use lib::{domain::Id, redact::Secret, tap::Conv as _};
+use model_mapper::Mapper;
 
-use crate::{ApiError, ModulesExt, errors::AuthError};
+use crate::{ApiError, errors::AuthError};
 
-#[derive(Mapper)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Mapper, Debug)]
 #[mapper(ty = Session, from)]
 pub struct AdminSession {
     pub user_id: Id<User>,
@@ -30,31 +30,27 @@ impl From<AdminSession> for (Id<User>, UserRole) {
     }
 }
 
-impl<M> FromRequestParts<M> for AdminSession
+impl<App> FromRequestParts<App> for AdminSession
 where
-    M: ModulesExt,
+    App: Sync + GetSessionFromTokenUsecase + RecordUserActivityUsecase,
 {
     type Rejection = ApiError;
 
     async fn from_request_parts(
         parts: &mut Parts,
-        state: &M,
+        app: &App,
     ) -> Result<Self, Self::Rejection> {
         let TypedHeader(Authorization(bearer)) = parts
             .extract::<TypedHeader<Authorization<Bearer>>>()
             .await
             .map_err(|_| AuthError::InvalidToken)?;
 
-        let session = state
-            .session_usecase()
-            .get_from_token(Secret::new(bearer.token()))
+        let session = app
+            .get_session_from_token(Secret::new(bearer.token()))
             .map_err(|_| AuthError::InvalidToken)?
             .conv::<Self>();
 
-        state
-            .user_usecase()
-            .record_activity(session.user_id)
-            .await?;
+        app.record_user_activity(session.user_id).await?;
 
         session
             .user_role

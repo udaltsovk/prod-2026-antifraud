@@ -13,8 +13,7 @@ use crate::{
 pub mod group_by;
 pub mod timezone;
 
-#[derive(Clone)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Clone, Debug)]
 pub struct TransactionsTimeseriesPointFilterInput {
     pub time_based_pagination: TimeBasedPaginationInput,
     pub group_by: Option<TransactionsTimeseriesPointFilterGroupBy>,
@@ -22,8 +21,7 @@ pub struct TransactionsTimeseriesPointFilterInput {
     pub channel: Option<TransactionChannel>,
 }
 
-#[derive(Clone)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Clone, Debug)]
 pub struct TransactionsTimeseriesPointFilter {
     pub time_based_pagination: TimeBasedPagination,
     pub group_by: TransactionsTimeseriesPointFilterGroupBy,

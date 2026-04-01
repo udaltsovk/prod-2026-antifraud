@@ -1,4 +1,6 @@
-use application::usecase::statistics::StatisticsUseCase as _;
+use application::{
+    Application, usecase::statistics::StatisticsTransactionsTimeseriesUsecase,
+};
 use axum::{Router, extract::State, response::IntoResponse, routing::get};
 use lib::{
     presentation::api::rest::validation::parseable::Parseable as _,
@@ -7,7 +9,6 @@ use lib::{
 use serde_json::json;
 
 use crate::{
-    ModulesExt,
     dto::statistics::transactions::timeseries::{
         TransactionsTimeseriesPointDto,
         filter::TransactionsTimeseriesPointFilterQuery,
@@ -16,25 +17,27 @@ use crate::{
     extractors::{Json, Query, session::AdminSession},
 };
 
-pub fn router<M: ModulesExt>() -> Router<M> {
-    Router::new().route("/timeseries", get(transactions_timeseries::<M>))
+pub fn router<App>() -> Router<App>
+where
+    App: Application,
+{
+    Router::new().route("/timeseries", get(transactions_timeseries::<App>))
 }
 
-pub async fn transactions_timeseries<M>(
-    modules: State<M>,
+pub async fn transactions_timeseries<App>(
+    app: State<App>,
     AdminSession {
         ..
     }: AdminSession,
     Query(filter): Query<TransactionsTimeseriesPointFilterQuery>,
 ) -> ApiResult<impl IntoResponse>
 where
-    M: ModulesExt,
+    App: StatisticsTransactionsTimeseriesUsecase,
 {
     let filter = filter.parse()?;
 
-    let points: Vec<_> = modules
-        .statistics_usecase()
-        .transactions_timeseries(filter)
+    let points: Vec<_> = app
+        .statistics_transactions_timeseries(filter)
         .await?
         .into_iter()
         .map(TransactionsTimeseriesPointDto::from)

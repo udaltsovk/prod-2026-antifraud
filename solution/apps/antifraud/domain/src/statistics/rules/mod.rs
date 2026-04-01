@@ -4,7 +4,7 @@ use crate::fraud_rule::{FraudRule, name::FraudRuleName};
 
 pub mod filter;
 
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Debug)]
 pub struct RuleMatchesStats {
     pub rule_id: Id<FraudRule>,
     pub rule_name: FraudRuleName,

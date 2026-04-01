@@ -1,4 +1,10 @@
-use application::usecase::fraud_rule::FraudRuleUseCase as _;
+use application::{
+    Application,
+    usecase::fraud_rule::{
+        CreateFraudRuleUsecase, ListFraudRulesUsecase,
+        NormalizeDslExpressionUsecase,
+    },
+};
 use axum::{
     Router,
     extract::State,
@@ -14,7 +20,6 @@ use lib::{
 };
 
 use crate::{
-    ModulesExt,
     dto::fraud_rule::{
         CreateFraudRuleDto, FraudRuleDslExpressionDto, FraudRuleDto,
         ValidatedFraudRuleDto,
@@ -25,36 +30,37 @@ use crate::{
 
 pub mod by_id;
 
-pub fn router<M>() -> Router<M>
+pub fn router<App>() -> Router<App>
 where
-    M: ModulesExt,
+    App: Application,
 {
     Router::new()
-        .route("/", post(create_fraud_rule::<M>).get(list_fraud_rules::<M>))
+        .route(
+            "/",
+            post(create_fraud_rule::<App>).get(list_fraud_rules::<App>),
+        )
         .route(
             "/{fraud_rule_id}",
-            get(by_id::get_fraud_rule_by_id::<M>)
-                .put(by_id::update_fraud_rule_by_id::<M>)
-                .delete(by_id::disable_fraud_rule_by_id::<M>),
+            get(by_id::get_fraud_rule_by_id::<App>)
+                .put(by_id::update_fraud_rule_by_id::<App>)
+                .delete(by_id::disable_fraud_rule_by_id::<App>),
         )
-        .route("/validate", post(validate_fraud_rule::<M>))
+        .route("/validate", post(validate_fraud_rule::<App>))
 }
 
-pub async fn create_fraud_rule<M>(
-    modules: State<M>,
+pub async fn create_fraud_rule<App>(
+    app: State<App>,
     AdminSession {
         ..
     }: AdminSession,
     Json(source): Json<CreateFraudRuleDto>,
 ) -> ApiResult<impl IntoResponse>
 where
-    M: ModulesExt,
+    App: CreateFraudRuleUsecase,
 {
     let source = source.parse()?;
 
-    modules
-        .fraud_rule_usecase()
-        .create(source)
+    app.create_fraud_rule(source)
         .await?
         .pipe(FraudRuleDto::from)
         .pipe(Json)
@@ -63,18 +69,16 @@ where
         .pipe(Ok)
 }
 
-pub async fn list_fraud_rules<M>(
-    modules: State<M>,
+pub async fn list_fraud_rules<App>(
+    app: State<App>,
     AdminSession {
         ..
     }: AdminSession,
 ) -> ApiResult<impl IntoResponse>
 where
-    M: ModulesExt,
+    App: ListFraudRulesUsecase,
 {
-    modules
-        .fraud_rule_usecase()
-        .list(None)
+    app.list_fraud_rules(None)
         .await?
         .into_iter()
         .map(FraudRuleDto::from)
@@ -83,21 +87,19 @@ where
         .pipe(Ok)
 }
 
-pub async fn validate_fraud_rule<M>(
-    modules: State<M>,
+pub async fn validate_fraud_rule<App>(
+    app: State<App>,
     AdminSession {
         ..
     }: AdminSession,
     Json(expression): Json<FraudRuleDslExpressionDto>,
 ) -> ApiResult<impl IntoResponse>
 where
-    M: ModulesExt,
+    App: NormalizeDslExpressionUsecase,
 {
     let dsl_expression = expression.parse()?;
 
-    modules
-        .fraud_rule_usecase()
-        .normalize_dsl_expression(dsl_expression)?
+    app.normalize_dsl_expression(&dsl_expression)?
         .pipe(ValidatedFraudRuleDto::from)
         .pipe(Json)
         .pipe(Ok)

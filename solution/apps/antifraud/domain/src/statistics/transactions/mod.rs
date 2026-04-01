@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 
 pub mod filter;
 
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Debug)]
 pub struct TransactionsTimeseriesPoint {
     pub bucket_start: DateTime<Utc>,
     pub tx_count: i64,

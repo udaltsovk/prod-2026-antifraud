@@ -1,4 +1,7 @@
-use application::usecase::user::UserUseCase as _;
+use application::{
+    Application,
+    usecase::user::{CreateUserUsecase, ListUsersUsecase},
+};
 use axum::{
     Router,
     extract::State,
@@ -14,7 +17,6 @@ use lib::{
 };
 
 use crate::{
-    ModulesExt,
     dto::{
         pagination::Paginated,
         user::{CreateUserWithRoleDto, UserDto, filter::UserFilterQuery},
@@ -26,26 +28,27 @@ use crate::{
 pub mod by_id;
 pub mod me;
 
-pub fn router<M>() -> Router<M>
+pub fn router<App>() -> Router<App>
 where
-    M: ModulesExt,
+    App: Application,
 {
     Router::new()
         .route(
             "/me",
-            get(me::get_current_user::<M>).put(me::update_current_user::<M>),
+            get(me::get_current_user::<App>)
+                .put(me::update_current_user::<App>),
         )
         .route(
             "/{user_id}",
-            get(by_id::get_user_by_id::<M>)
-                .put(by_id::update_user_by_id::<M>)
-                .delete(by_id::deactivate_user_by_id::<M>),
+            get(by_id::get_user_by_id::<App>)
+                .put(by_id::update_user_by_id::<App>)
+                .delete(by_id::deactivate_user_by_id::<App>),
         )
-        .route("/", post(register_user::<M>).get(list_users::<M>))
+        .route("/", post(register_user::<App>).get(list_users::<App>))
 }
 
-pub async fn register_user<M>(
-    modules: State<M>,
+pub async fn register_user<App>(
+    app: State<App>,
     AdminSession {
         user_role: creator_role,
         ..
@@ -53,13 +56,11 @@ pub async fn register_user<M>(
     Json(source): Json<CreateUserWithRoleDto>,
 ) -> ApiResult<impl IntoResponse>
 where
-    M: ModulesExt,
+    App: CreateUserUsecase,
 {
     let source = source.parse().map_err(Into::into);
 
-    modules
-        .user_usecase()
-        .create(creator_role.into(), source)
+    app.create_user(creator_role.into(), source)
         .await?
         .pipe(UserDto::from)
         .pipe(Json)
@@ -68,8 +69,8 @@ where
         .pipe(Ok)
 }
 
-pub async fn list_users<M>(
-    modules: State<M>,
+pub async fn list_users<App>(
+    app: State<App>,
     AdminSession {
         user_role: requester_role,
         ..
@@ -77,14 +78,11 @@ pub async fn list_users<M>(
     Query(filter): Query<UserFilterQuery>,
 ) -> ApiResult<impl IntoResponse>
 where
-    M: ModulesExt,
+    App: ListUsersUsecase,
 {
     let input = filter.parse().map_err(Into::into);
 
-    let (users, count) = modules
-        .user_usecase()
-        .list(requester_role, input.clone())
-        .await?;
+    let (users, count) = app.list_users(requester_role, input.clone()).await?;
 
     Paginated::<UserDto>::from_pagination(input?.pagination, users, count)
         .pipe(Json)

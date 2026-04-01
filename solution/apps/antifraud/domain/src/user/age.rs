@@ -18,8 +18,7 @@ use lib::{
 };
 use serde::Serialize;
 
-#[derive(DomainType, PartialEq, Eq)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(DomainType, PartialEq, Eq, Debug)]
 pub struct UserAge(u8);
 
 impl UserAge {

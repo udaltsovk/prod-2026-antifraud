@@ -16,18 +16,20 @@ bon = "3.7"
 chrono = "0.4"
 derive_more = "2.1"
 derive-where = "1.6"
+entrait = "0.7"
 fromenv = "0.1"
 metrics = "0.24"
 mobc = "0.9"
 mobc-redis = "0.9"
 mobc-sqlx = "2.0"
+model-mapper = "0.7"
 opentelemetry = "0.30"
 pastey = "0.2"
 rstest = "0.26"
 serde = "1.0"
 serde_json = "1.0"
 serde-value = "0.7"
-strum = "0.27"
+strum = "0.28"
 tap = "1.0"
 tikv-jemallocator = "0.6"
 thiserror = "2.0"
@@ -40,6 +42,7 @@ uuid = "1.18"
 
 
 [patch.crates-io]
+entrait = { git = "https://github.com/NikSneMC/entrait", branch = "fix/clippy" }
 fromenv = { git = "https://github.com/NikSneMC/fromenv", branch = "main" }
 mobc = { git = "https://github.com/NikSneMC/mobc", branch = "useful" }
 mobc-redis = { git = "https://github.com/NikSneMC/mobc", branch = "useful" }
@@ -341,7 +344,6 @@ clone_on_ref_ptr = "warn"
 naive_bytecount = "warn"
 
 # Function and method conventions
-renamed_function_params = "warn"
 same_name_method = "warn"
 
 # Lint attributes and configuration

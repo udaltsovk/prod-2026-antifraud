@@ -11,8 +11,7 @@ use lib::{
     },
 };
 
-#[derive(DomainType, PartialEq, Eq)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(DomainType, PartialEq, Eq, Debug)]
 pub struct TransactionLocationCity(String);
 
 static CONSTRAINTS: LazyLock<Constraints<String>> = LazyLock::new(|| {

@@ -1,12 +1,11 @@
 use chrono::{DateTime, Utc};
 use domain::statistics::overview::StatsOverview;
-use lib::model_mapper::Mapper;
+use model_mapper::Mapper;
 use sqlx::FromRow;
 
 use crate::entity::statistics::merchant_risk::StoredMerchantRiskStats;
 
-#[derive(Mapper, FromRow)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Mapper, FromRow, Debug)]
 #[mapper(derive(ty = StatsOverview, into))]
 pub struct StoredStatsOverview {
     pub from: DateTime<Utc>,

@@ -6,12 +6,13 @@ edition.workspace = true
 
 
 [dependencies]
-lib = { workspace = true }
+lib = { workspace = true, features = ["infrastructure-services"] }
 dsl.workspace = true
 
 domain = { path = "../../../domain", package = "antifraud-domain" }
 application = { path = "../../../application", package = "antifraud-application" }
 
+entrait.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 

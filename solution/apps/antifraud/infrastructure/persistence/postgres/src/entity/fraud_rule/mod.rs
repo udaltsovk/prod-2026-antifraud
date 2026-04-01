@@ -1,13 +1,10 @@
 use chrono::{DateTime, Utc};
 use domain::fraud_rule::FraudRule;
-use lib::{
-    infrastructure::persistence::entity::DomainTypeFromDb,
-    model_mapper::Mapper, uuid::Uuid,
-};
+use lib::{infrastructure::persistence::entity::DomainTypeFromDb, uuid::Uuid};
+use model_mapper::Mapper;
 use sqlx::FromRow;
 
-#[derive(Mapper, FromRow)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Mapper, FromRow, Debug)]
 #[mapper(derive(ty = FraudRule, into))]
 pub struct StoredFraudRule {
     pub id: Uuid,

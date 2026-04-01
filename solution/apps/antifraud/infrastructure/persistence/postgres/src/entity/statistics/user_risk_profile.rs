@@ -1,10 +1,10 @@
 use chrono::{DateTime, Utc};
 use domain::statistics::users::UserRiskProfile;
-use lib::{model_mapper::Mapper, uuid::Uuid};
+use lib::uuid::Uuid;
+use model_mapper::Mapper;
 use sqlx::FromRow;
 
-#[derive(Mapper, FromRow)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Mapper, FromRow, Debug)]
 #[mapper(derive(ty = UserRiskProfile, into))]
 pub struct StoredUserRiskProfile {
     pub user_id: Uuid,

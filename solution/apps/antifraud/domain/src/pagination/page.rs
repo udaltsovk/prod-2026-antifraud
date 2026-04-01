@@ -11,8 +11,7 @@ use lib::{
     },
 };
 
-#[derive(DomainType, Clone, Copy, Default)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(DomainType, Clone, Copy, Default, Debug)]
 pub struct PaginationPage(i64);
 
 static CONSTRAINTS: LazyLock<Constraints<i64>> = LazyLock::new(|| {

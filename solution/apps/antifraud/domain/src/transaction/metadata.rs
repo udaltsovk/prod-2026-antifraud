@@ -12,8 +12,7 @@ use lib::{
 };
 use serde_value::Value;
 
-#[derive(DomainType, Clone)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(DomainType, Clone, Debug)]
 pub struct TransactionMetadata(Value);
 
 static CONSTRAINTS: LazyLock<Constraints<Value>> =

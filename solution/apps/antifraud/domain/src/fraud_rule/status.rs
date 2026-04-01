@@ -1,8 +1,7 @@
 use lib::domain::impl_try_from_external_input;
 use result_like::BoolLike;
 
-#[derive(BoolLike, PartialEq, Eq, Clone, Copy, Default)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(BoolLike, PartialEq, Eq, Clone, Copy, Default, Debug)]
 pub enum FraudRuleStatus {
     #[default]
     Enabled,

@@ -1,11 +1,14 @@
 use application::service::{
-    ServicesModuleExt, dsl::DslService, hasher::HasherService,
-    token::TokenService,
+    dsl::DslServiceImpl, secret_hasher::SecretHasherServiceImpl,
+    token::TokenServiceImpl,
 };
 use infrastructure::services::{
-    dsl::DslServiceImpl, hasher::argon2::Argon2Service, token::jwt::JwtService,
+    dsl::DslServiceImplementation, hasher::argon2::Argon2Service,
+    token::jwt::JwtService,
 };
+use lib::{application::impl_has, bootstrap::impl_services};
 
+use crate::Modules;
 pub use crate::modules::services::config::ServicesConfig;
 
 mod config;
@@ -14,7 +17,7 @@ mod config;
 pub struct ServicesModule {
     password_hasher: Argon2Service,
     token: JwtService,
-    dsl: DslServiceImpl,
+    dsl: DslServiceImplementation,
 }
 
 impl ServicesModule {
@@ -22,21 +25,21 @@ impl ServicesModule {
         Self {
             password_hasher: Argon2Service::new(),
             token: JwtService::from(&config.jwt),
-            dsl: DslServiceImpl::new(),
+            dsl: DslServiceImplementation::new(),
         }
     }
 }
 
-impl ServicesModuleExt for ServicesModule {
-    fn password_hasher(&self) -> &dyn HasherService {
-        &self.password_hasher
-    }
+impl_has! {
+    struct: Modules,
+    Argon2Service: |s| &s.services.password_hasher,
+    JwtService: |s| &s.services.token,
+    DslServiceImplementation: |s| &s.services.dsl,
+}
 
-    fn token(&self) -> &dyn TokenService {
-        &self.token
-    }
-
-    fn dsl(&self) -> &dyn DslService {
-        &self.dsl
-    }
+impl_services! {
+    struct: Modules,
+    SecretHasherServiceImpl: |s| &s.services.password_hasher,
+    TokenServiceImpl: |s| &s.services.token,
+    DslServiceImpl: |s| &s.services.dsl,
 }

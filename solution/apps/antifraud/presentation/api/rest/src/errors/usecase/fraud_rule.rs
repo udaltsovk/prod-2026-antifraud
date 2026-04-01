@@ -1,4 +1,4 @@
-use application::usecase::fraud_rule::error::FraudRuleUseCaseError;
+use application::usecase::fraud_rule::FraudRuleUseCaseError;
 use axum::http::StatusCode;
 use serde_json::{Value, json};
 

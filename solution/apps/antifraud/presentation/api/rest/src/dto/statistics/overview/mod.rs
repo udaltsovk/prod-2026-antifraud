@@ -1,14 +1,13 @@
 use chrono::{DateTime, Utc};
 use domain::statistics::overview::StatsOverview;
-use lib::model_mapper::Mapper;
+use model_mapper::Mapper;
 use serde::Serialize;
 
 use crate::dto::statistics::merchants::risk::MerchantRiskStatsDto;
 
 pub mod filter;
 
-#[derive(Mapper, Serialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Mapper, Serialize, Debug)]
 #[mapper(ty = StatsOverview, from)]
 #[serde(rename_all = "camelCase")]
 pub struct StatsOverviewDto {

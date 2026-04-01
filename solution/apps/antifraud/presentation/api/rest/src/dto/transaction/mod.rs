@@ -7,7 +7,6 @@ use lib::{
         DomainType, impl_try_from_external_input,
         validation::{Constraints, constraints, error::ValidationErrors},
     },
-    model_mapper::Mapper,
     presentation::api::rest::{
         errors::JsonError,
         into_validators,
@@ -17,6 +16,7 @@ use lib::{
     },
     uuid::Uuid,
 };
+use model_mapper::Mapper;
 use serde::{Deserialize, Serialize};
 
 use crate::dto::transaction::{
@@ -32,8 +32,7 @@ pub mod filter;
 pub mod location;
 pub mod status;
 
-#[derive(Mapper, Serialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Mapper, Serialize, Debug)]
 #[mapper(ty = Transaction, from)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionDto {
@@ -76,8 +75,7 @@ pub struct TransactionDto {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Deserialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateTransactionDto {
     #[serde(default)]
@@ -165,8 +163,7 @@ impl Parseable<CreateTransaction> for CreateTransactionDto {
     }
 }
 
-#[derive(Serialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct BulkTransactionDto {
     pub index: usize,
@@ -176,13 +173,12 @@ pub struct BulkTransactionDto {
     pub error: Option<JsonError>,
 }
 
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Debug)]
 pub struct BulkCreateTransactions {
     pub items: Vec<CreateTransactionDto>,
 }
 
-#[derive(Deserialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct BulkCreateTransactionsDto {
     #[serde(default)]

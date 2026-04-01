@@ -11,8 +11,7 @@ use lib::{
     },
 };
 
-#[derive(DomainType, Clone, Copy, Default)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(DomainType, Clone, Copy, Default, Debug)]
 pub struct TransactionAmount(f64);
 
 static CONSTRAINTS: LazyLock<Constraints<f64>> = LazyLock::new(|| {

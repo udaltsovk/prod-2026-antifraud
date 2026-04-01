@@ -1,10 +1,9 @@
 use domain::user::role::UserRole;
-use lib::model_mapper::Mapper;
+use model_mapper::Mapper;
 use sqlx::Type;
 
-#[derive(Mapper, Type)]
+#[derive(Mapper, Type, Debug)]
 #[mapper(ty = UserRole, from, into)]
-#[cfg_attr(debug_assertions, derive(Debug))]
 #[sqlx(type_name = "user_role", rename_all = "UPPERCASE")]
 pub enum StoredUserRole {
     Admin,

@@ -10,8 +10,7 @@ use serde::{Deserialize, Serialize};
 mod time_based;
 pub use time_based::TimeBasedPaginationQuery;
 
-#[derive(Serialize)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Serialize, Debug)]
 pub struct Paginated<T>
 where
     T: Serialize,
@@ -46,8 +45,7 @@ where
     }
 }
 
-#[derive(Deserialize, Clone, Default)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Deserialize, Clone, Default, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct PaginationQuery {
     #[serde(default)]

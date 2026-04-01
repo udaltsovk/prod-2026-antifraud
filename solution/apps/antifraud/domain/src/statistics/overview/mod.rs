@@ -4,7 +4,7 @@ use crate::statistics::merchants::MerchantRiskStats;
 
 pub mod filter;
 
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Debug)]
 pub struct StatsOverview {
     pub from: DateTime<Utc>,
     pub to: DateTime<Utc>,

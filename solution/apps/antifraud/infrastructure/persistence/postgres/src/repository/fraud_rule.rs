@@ -1,28 +1,36 @@
-use application::repository::fraud_rule::FraudRuleRepository;
+use application::repository::fraud_rule::FraudRuleRepositoryImpl;
 use domain::fraud_rule::{
     CreateFraudRule, FraudRule, description::FraudRuleDescription,
     name::FraudRuleName, status::FraudRuleStatus,
 };
+use entrait::entrait;
 use lib::{
     anyhow::Result,
+    application::di::Has,
     async_trait,
     domain::{DomainType as _, Id},
+    infrastructure::persistence::HasPoolExt as _,
     instrument_all,
     tap::Pipe as _,
 };
-use sqlx::query_file_as;
+use mobc_sqlx::{SqlxConnectionManager, mobc::Pool};
+use sqlx::{Postgres, query_file_as};
 
 use crate::{
     entity::fraud_rule::StoredFraudRule, repository::PostgresRepositoryImpl,
 };
 
+#[entrait(ref)]
 #[async_trait]
 #[instrument_all]
-impl FraudRuleRepository for PostgresRepositoryImpl<FraudRule> {
-    async fn create(
-        &self,
+impl FraudRuleRepositoryImpl for PostgresRepositoryImpl {
+    async fn create_fraud_rule<Deps>(
+        deps: &Deps,
         (id, source): (Id<FraudRule>, CreateFraudRule),
-    ) -> Result<FraudRule> {
+    ) -> Result<FraudRule>
+    where
+        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+    {
         let id = id.value;
         let name = source.name.into_inner();
         let description =
@@ -31,7 +39,7 @@ impl FraudRuleRepository for PostgresRepositoryImpl<FraudRule> {
         let enabled = source.status.unwrap_or_default().to_bool();
         let priority: i64 = source.priority.unwrap_or_default().into_inner();
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = deps.get_connection().await?;
 
         let fraud_rule = query_file_as!(
             StoredFraudRule,
@@ -50,8 +58,14 @@ impl FraudRuleRepository for PostgresRepositoryImpl<FraudRule> {
         Ok(fraud_rule)
     }
 
-    async fn find_by_id(&self, id: Id<FraudRule>) -> Result<Option<FraudRule>> {
-        let mut connection = self.pool.get().await?;
+    async fn find_fraud_rule_by_id<Deps>(
+        deps: &Deps,
+        id: Id<FraudRule>,
+    ) -> Result<Option<FraudRule>>
+    where
+        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+    {
+        let mut connection = deps.get_connection().await?;
 
         query_file_as!(
             StoredFraudRule,
@@ -64,11 +78,14 @@ impl FraudRuleRepository for PostgresRepositoryImpl<FraudRule> {
         .pipe(Ok)
     }
 
-    async fn find_by_name(
-        &self,
+    async fn find_fraud_rule_by_name<Deps>(
+        deps: &Deps,
         name: &FraudRuleName,
-    ) -> Result<Option<FraudRule>> {
-        let mut connection = self.pool.get().await?;
+    ) -> Result<Option<FraudRule>>
+    where
+        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+    {
+        let mut connection = deps.get_connection().await?;
 
         query_file_as!(
             StoredFraudRule,
@@ -81,13 +98,16 @@ impl FraudRuleRepository for PostgresRepositoryImpl<FraudRule> {
         .pipe(Ok)
     }
 
-    async fn list(
-        &self,
+    async fn list_fraud_rules<Deps>(
+        deps: &Deps,
         status: Option<FraudRuleStatus>,
-    ) -> Result<Vec<FraudRule>> {
+    ) -> Result<Vec<FraudRule>>
+    where
+        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+    {
         let enabled = status.map(FraudRuleStatus::to_bool);
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = deps.get_connection().await?;
 
         query_file_as!(StoredFraudRule, "sql/fraud_rule/list.sql", enabled)
             .fetch_all(&mut *connection)
@@ -98,7 +118,13 @@ impl FraudRuleRepository for PostgresRepositoryImpl<FraudRule> {
             .pipe(Ok)
     }
 
-    async fn update(&self, source: FraudRule) -> Result<FraudRule> {
+    async fn update_fraud_rule<Deps>(
+        deps: &Deps,
+        source: FraudRule,
+    ) -> Result<FraudRule>
+    where
+        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+    {
         let id = source.id.value;
         let name = source.name.into_inner();
         let description =
@@ -107,7 +133,7 @@ impl FraudRuleRepository for PostgresRepositoryImpl<FraudRule> {
         let enabled = source.status.to_bool();
         let priority: i64 = source.priority.into_inner();
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = deps.get_connection().await?;
 
         let fraud_rule = query_file_as!(
             StoredFraudRule,

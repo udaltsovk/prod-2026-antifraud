@@ -10,8 +10,7 @@ use lib::presentation::api::rest::{
 };
 use serde::Deserialize;
 
-#[derive(Deserialize, Clone, Default)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Deserialize, Clone, Default, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct TimeBasedPaginationQuery<const MAX_PERIOD_DAYS: u64> {
     #[serde(default)]

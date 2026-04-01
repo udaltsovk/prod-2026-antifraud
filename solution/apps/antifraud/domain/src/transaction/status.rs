@@ -2,8 +2,9 @@ use lib::domain::impl_try_from_string;
 use result_like::BoolLike;
 use strum::{EnumString, VariantNames};
 
-#[derive(BoolLike, EnumString, VariantNames, PartialEq, Eq, Clone, Copy)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(
+    BoolLike, EnumString, VariantNames, PartialEq, Eq, Clone, Copy, Debug,
+)]
 #[strum(serialize_all = "UPPERCASE")]
 pub enum TransactionStatus {
     Approved,

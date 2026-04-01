@@ -4,15 +4,13 @@ pub mod page;
 pub mod size;
 pub mod time_based;
 
-#[derive(Clone, Copy)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Clone, Copy, Debug)]
 pub struct PaginationInput {
     pub page: Option<PaginationPage>,
     pub size: Option<PaginationSize>,
 }
 
-#[derive(Clone, Copy)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Clone, Copy, Debug)]
 pub struct Pagination {
     pub limit: i64,
     pub offset: i64,

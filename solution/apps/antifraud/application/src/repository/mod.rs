@@ -12,16 +12,9 @@ pub mod transaction;
 pub mod user;
 pub mod user_activity;
 
-pub trait RepositoriesModuleExt: Send + Sync {
-    fn user(&self) -> &dyn UserRepository;
-
-    fn fraud_rule(&self) -> &dyn FraudRuleRepository;
-
-    fn transaction(&self) -> &dyn TransactionRepository;
-
-    fn fraud_rule_result(&self) -> &dyn FraudRuleResultRepository;
-
-    fn statistics(&self) -> &dyn StatisticsRepository;
-
-    fn user_activity(&self) -> &dyn UserActivityRepository;
-}
+pub trait Repositories = UserRepository
+    + FraudRuleRepository
+    + TransactionRepository
+    + FraudRuleResultRepository
+    + StatisticsRepository
+    + UserActivityRepository;

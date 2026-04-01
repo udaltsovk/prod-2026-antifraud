@@ -1,20 +1,17 @@
 use application::repository::{
-    RepositoriesModuleExt, fraud_rule::FraudRuleRepository,
-    fraud_rule_result::FraudRuleResultRepository,
-    statistics::StatisticsRepository, transaction::TransactionRepository,
-    user::UserRepository, user_activity::UserActivityRepository,
-};
-use domain::{
-    fraud_rule::{FraudRule, result::FraudRuleResult},
-    statistics::Statistics,
-    transaction::Transaction,
-    user::{User, UserActivity},
+    fraud_rule::FraudRuleRepositoryImpl,
+    fraud_rule_result::FraudRuleResultRepositoryImpl,
+    statistics::StatisticsRepositoryImpl,
+    transaction::TransactionRepositoryImpl, user::UserRepositoryImpl,
+    user_activity::UserActivityRepositoryImpl,
 };
 use infrastructure::persistence::{
     postgres::{POSTGRES_MIGRATOR, repository::PostgresRepositoryImpl},
     redis::repository::RedisRepositoryImpl,
 };
 use lib::{
+    application::impl_has,
+    bootstrap::impl_repositories,
     infrastructure::persistence::mobc_sqlx::MigratorExt as _,
     mobc_redis::{RedisConnectionManager, redis},
     mobc_sqlx::{
@@ -25,43 +22,24 @@ use lib::{
     tap::Pipe as _,
 };
 
-use crate::modules::repositories::config::RedisConfig;
 pub use crate::modules::repositories::config::{
     PostgresConfig, RepositoriesConfig,
 };
+use crate::{Modules, modules::repositories::config::RedisConfig};
 
 mod config;
 
 #[derive(Clone)]
 pub struct RepositoriesModule {
-    user: PostgresRepositoryImpl<User>,
-    fraud_rule: PostgresRepositoryImpl<FraudRule>,
-    transaction: PostgresRepositoryImpl<Transaction>,
-    fraud_rule_result: PostgresRepositoryImpl<FraudRuleResult>,
-    statistics: PostgresRepositoryImpl<Statistics>,
-    user_activity: RedisRepositoryImpl<UserActivity>,
+    postgres: Pool<SqlxConnectionManager<Postgres>>,
+    redis: Pool<RedisConnectionManager>,
 }
 
 impl RepositoriesModule {
     pub(crate) async fn new(config: &RepositoriesConfig) -> Self {
-        let postgres = Self::setup_postgres(&config.postgres).await;
-        let redis = Self::setup_redis(&config.redis);
-
-        let user_repository = PostgresRepositoryImpl::new(&postgres);
-        let fraud_rule_repository = PostgresRepositoryImpl::new(&postgres);
-        let transaction_repository = PostgresRepositoryImpl::new(&postgres);
-        let fraud_rule_result_repository =
-            PostgresRepositoryImpl::new(&postgres);
-        let statistics_repository = PostgresRepositoryImpl::new(&postgres);
-        let user_activity_repository = RedisRepositoryImpl::new(&redis);
-
         Self {
-            user: user_repository,
-            fraud_rule: fraud_rule_repository,
-            transaction: transaction_repository,
-            fraud_rule_result: fraud_rule_result_repository,
-            statistics: statistics_repository,
-            user_activity: user_activity_repository,
+            postgres: Self::setup_postgres(&config.postgres).await,
+            redis: Self::setup_redis(&config.redis),
         }
     }
 
@@ -84,28 +62,18 @@ impl RepositoriesModule {
     }
 }
 
-impl RepositoriesModuleExt for RepositoriesModule {
-    fn user(&self) -> &dyn UserRepository {
-        &self.user
-    }
+impl_has! {
+    struct: Modules,
+    Pool<SqlxConnectionManager<Postgres>>: |s| &s.repositories.postgres,
+    Pool<RedisConnectionManager>: |s| &s.repositories.redis,
+}
 
-    fn fraud_rule(&self) -> &dyn FraudRuleRepository {
-        &self.fraud_rule
-    }
-
-    fn transaction(&self) -> &dyn TransactionRepository {
-        &self.transaction
-    }
-
-    fn fraud_rule_result(&self) -> &dyn FraudRuleResultRepository {
-        &self.fraud_rule_result
-    }
-
-    fn statistics(&self) -> &dyn StatisticsRepository {
-        &self.statistics
-    }
-
-    fn user_activity(&self) -> &dyn UserActivityRepository {
-        &self.user_activity
-    }
+impl_repositories! {
+    struct: Modules,
+    UserRepositoryImpl: |_s| &PostgresRepositoryImpl,
+    FraudRuleRepositoryImpl: |_s| &PostgresRepositoryImpl,
+    TransactionRepositoryImpl: |_s| &PostgresRepositoryImpl,
+    FraudRuleResultRepositoryImpl: |_s| &PostgresRepositoryImpl,
+    StatisticsRepositoryImpl: |_s| &PostgresRepositoryImpl,
+    UserActivityRepositoryImpl: |_s| &RedisRepositoryImpl,
 }

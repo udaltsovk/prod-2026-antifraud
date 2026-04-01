@@ -1,26 +1,64 @@
-use chrono::{DateTime, Utc};
 use domain::{
     email::Email,
-    session::CreateSession,
-    user::{
-        CreateUser, User, UserUpdate, filter::UserFilterInput, role::UserRole,
-    },
+    user::{User, role::UserRole},
 };
 use lib::{
-    async_trait,
-    domain::{
-        Id,
-        validation::{ExternalInput, error::ValidationResultWithFields},
-    },
+    application::application_result,
+    domain::{Id, validation::error::ValidationErrorsWithFields},
 };
 
-use crate::usecase::user::error::UserUseCaseResult;
+mod authorize;
+mod create;
+mod deactivate_by_id;
+mod find_by_email;
+mod find_by_id;
+mod get_by_email;
+mod get_by_id;
+mod list;
+mod record_activity;
+mod update_by_id;
 
-pub mod error;
-pub mod implementation;
+pub use authorize::AuthorizeUserUsecase;
+pub use create::CreateUserUsecase;
+pub use deactivate_by_id::DeactivateUserByIdUsecase;
+pub use find_by_email::FindUserByEmailUsecase;
+pub use find_by_id::FindUserByIdUsecase;
+pub use get_by_email::GetUserByEmailUsecase;
+pub use get_by_id::GetUserByIdUsecase;
+pub use list::ListUsersUsecase;
+pub use record_activity::RecordUserActivityUsecase;
+pub use update_by_id::UpdateUserByIdUsecase;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(thiserror::Error, Debug)]
+pub enum UserUseCaseError {
+    #[error(transparent)]
+    Infrastructure(#[from] lib::anyhow::Error),
+
+    #[error(transparent)]
+    Validation(ValidationErrorsWithFields),
+
+    #[error("Пользователь с таким email уже существует")]
+    EmailAlreadyUsed(Email),
+
+    #[error("Пользователь не найден")]
+    NotFoundByEmail(Email),
+
+    #[error("Пользователь деактивирован")]
+    UserDeactivated,
+
+    #[error("Пользователь не найден")]
+    NotFoundById(Id<User>),
+
+    #[error("Неверный пароль")]
+    InvalidPassword,
+
+    #[error("Недостаточно прав для выполнения операции")]
+    MissingPermissions,
+}
+
+application_result!(UserUseCase);
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum CreateUserSource {
     Registration,
     User(UserRole),
@@ -30,62 +68,4 @@ impl From<UserRole> for CreateUserSource {
     fn from(creator_role: UserRole) -> Self {
         Self::User(creator_role)
     }
-}
-
-#[async_trait]
-pub trait UserUseCase {
-    async fn find_by_email(
-        &self,
-        user_email: &Email,
-    ) -> UserUseCaseResult<Option<User>>;
-
-    async fn get_by_email(&self, user_email: Email) -> UserUseCaseResult<User>;
-
-    async fn create(
-        &self,
-        source: CreateUserSource,
-        input: ValidationResultWithFields<CreateUser>,
-    ) -> UserUseCaseResult<User>;
-
-    async fn authorize(&self, input: CreateSession) -> UserUseCaseResult<User>;
-
-    async fn find_by_id(
-        &self,
-        requester: (Id<User>, UserRole),
-        user_id: Id<User>,
-    ) -> UserUseCaseResult<Option<User>>;
-
-    async fn get_by_id(
-        &self,
-        requester: (Id<User>, UserRole),
-        user_id: Id<User>,
-    ) -> UserUseCaseResult<User>;
-
-    async fn list(
-        &self,
-        requester_role: UserRole,
-        input: ValidationResultWithFields<UserFilterInput>,
-    ) -> UserUseCaseResult<(Vec<User>, u64)>;
-
-    async fn update_by_id(
-        &self,
-        requester: (Id<User>, UserRole),
-        user_id: Id<User>,
-        input: (
-            ValidationResultWithFields<UserUpdate>,
-            ExternalInput<bool>,
-            ExternalInput<String>,
-        ),
-    ) -> UserUseCaseResult<User>;
-
-    async fn deactivate_by_id(
-        &self,
-        requester: (Id<User>, UserRole),
-        user_id: Id<User>,
-    ) -> UserUseCaseResult<User>;
-
-    async fn record_activity(
-        &self,
-        user_id: Id<User>,
-    ) -> UserUseCaseResult<DateTime<Utc>>;
 }

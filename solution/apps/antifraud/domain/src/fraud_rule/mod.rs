@@ -20,7 +20,7 @@ pub mod priority;
 pub mod result;
 pub mod status;
 
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Debug)]
 pub struct FraudRule {
     pub id: Id<Self>,
     pub name: FraudRuleName,
@@ -60,7 +60,7 @@ impl FraudRule {
     }
 }
 
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Debug)]
 pub struct CreateFraudRule {
     pub name: FraudRuleName,
     pub description: Option<FraudRuleDescription>,
@@ -69,7 +69,7 @@ pub struct CreateFraudRule {
     pub priority: Option<FraudRulePriority>,
 }
 
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Debug)]
 pub struct FraudRuleUpdate {
     pub name: FraudRuleName,
     pub description: Option<FraudRuleDescription>,

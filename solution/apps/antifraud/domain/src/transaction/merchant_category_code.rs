@@ -12,8 +12,7 @@ use lib::{
     },
 };
 
-#[derive(DomainType, Clone, PartialEq, Eq)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(DomainType, Clone, PartialEq, Eq, Debug)]
 pub struct TransactionMerchantCategoryCode(String);
 
 static TRANSCTION_MERCHANT_CATEGORY_CODE_REGEX: LazyLock<Regex> =

@@ -21,7 +21,7 @@ pub mod region;
 pub mod role;
 pub mod status;
 
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Debug)]
 pub struct User {
     pub id: Id<Self>,
     pub email: Email,
@@ -37,7 +37,7 @@ pub struct User {
     pub updated_at: DateTime<Utc>,
 }
 
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Debug)]
 pub struct CreateUser {
     pub email: Email,
     pub full_name: UserFullName,
@@ -49,7 +49,7 @@ pub struct CreateUser {
     pub role: UserRole,
 }
 
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Debug)]
 pub struct UserUpdate {
     pub full_name: UserFullName,
     pub age: Option<UserAge>,

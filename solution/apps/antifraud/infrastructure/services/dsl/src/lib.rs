@@ -1,7 +1,7 @@
 use std::{collections::HashMap, sync::Arc};
 
 use application::service::dsl::{
-    DslService, DslServiceErrorExt, DslServiceErrors, DslServiceResult,
+    DslServiceErrorExt, DslServiceErrors, DslServiceImpl, DslServiceResult,
 };
 use domain::{
     fraud_rule::{
@@ -16,6 +16,7 @@ use domain::{
     user::User,
 };
 use dsl::Expression;
+use entrait::entrait;
 use lib::{instrument_all, tap::Pipe as _};
 
 use crate::{context::DslServiceContext, utils::DslExpressionExt as _};
@@ -24,15 +25,16 @@ mod context;
 mod utils;
 
 #[derive(Clone)]
-pub struct DslServiceImpl {
+pub struct DslServiceImplementation {
     _phantom: (),
 }
 
+#[entrait(ref)]
 #[instrument_all]
-impl DslService for DslServiceImpl {
-    fn normalize(
-        &self,
-        expression: FraudRuleDslExpression,
+impl DslServiceImpl for DslServiceImplementation {
+    fn normalize_dsl<App>(
+        _app: &App,
+        expression: &FraudRuleDslExpression,
     ) -> DslServiceResult<FraudRuleDslExpression> {
         let context = DslServiceContext::dummy();
 
@@ -45,8 +47,8 @@ impl DslService for DslServiceImpl {
         Ok(ast.into_domain())
     }
 
-    fn decide(
-        &self,
+    fn decide<App>(
+        _app: &App,
         rules: &[FraudRule],
         input: Vec<(usize, (CreateTransaction, Arc<User>))>,
     ) -> Vec<(usize, TransactionDecision)> {
@@ -129,7 +131,7 @@ impl DslService for DslServiceImpl {
 }
 
 #[instrument_all(level = "trace")]
-impl DslServiceImpl {
+impl DslServiceImplementation {
     pub fn new() -> Self {
         Self {
             _phantom: (),
@@ -137,7 +139,7 @@ impl DslServiceImpl {
     }
 }
 
-impl Default for DslServiceImpl {
+impl Default for DslServiceImplementation {
     fn default() -> Self {
         Self::new()
     }

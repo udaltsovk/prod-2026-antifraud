@@ -9,16 +9,14 @@ use crate::{
 
 pub mod top;
 
-#[derive(Clone)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Clone, Debug)]
 pub struct MerchantsRiskStatsFilterInput {
     pub time_based_pagination: TimeBasedPaginationInput,
     pub merchant_category_code: Option<TransactionMerchantCategoryCode>,
     pub top: Option<MerchantRiskStatsFilterTop>,
 }
 
-#[derive(Clone)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Clone, Debug)]
 pub struct MerchantsRiskStatsFilter {
     pub time_based_pagination: TimeBasedPagination,
     pub merchant_category_code: Option<TransactionMerchantCategoryCode>,

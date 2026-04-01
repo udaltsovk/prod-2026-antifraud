@@ -1,4 +1,6 @@
-use application::usecase::user::UserUseCase as _;
+use application::usecase::user::{
+    DeactivateUserByIdUsecase, GetUserByIdUsecase, UpdateUserByIdUsecase,
+};
 use axum::{extract::State, http::StatusCode, response::IntoResponse};
 use lib::{
     presentation::api::rest::{
@@ -9,7 +11,6 @@ use lib::{
 };
 
 use crate::{
-    ModulesExt,
     dto::user::{UserDto, UserUpdateDto},
     errors::ApiResult,
     extractors::{
@@ -18,17 +19,15 @@ use crate::{
     },
 };
 
-pub async fn get_user_by_id<M>(
-    modules: State<M>,
+pub async fn get_user_by_id<App>(
+    app: State<App>,
     requester: UserSession,
     Path(((), user_id)): Path<((), Uuid)>,
 ) -> ApiResult<impl IntoResponse>
 where
-    M: ModulesExt,
+    App: GetUserByIdUsecase,
 {
-    modules
-        .user_usecase()
-        .get_by_id(requester.into(), user_id.into())
+    app.get_user_by_id(requester.into(), user_id.into())
         .await?
         .pipe(UserDto::from)
         .pipe(Json)
@@ -37,14 +36,14 @@ where
         .pipe(Ok)
 }
 
-pub async fn update_user_by_id<M>(
-    modules: State<M>,
+pub async fn update_user_by_id<App>(
+    app: State<App>,
     requester: UserSession,
     Path(((), user_id)): Path<((), Uuid)>,
     Json(update): Json<UserUpdateDto>,
 ) -> ApiResult<impl IntoResponse>
 where
-    M: ModulesExt,
+    App: UpdateUserByIdUsecase,
 {
     let input = {
         let new_is_active = update.is_active.clone();
@@ -56,9 +55,7 @@ where
         )
     };
 
-    modules
-        .user_usecase()
-        .update_by_id(requester.into(), user_id.into(), input)
+    app.update_user_by_id(requester.into(), user_id.into(), input)
         .await?
         .pipe(UserDto::from)
         .pipe(Json)
@@ -67,17 +64,15 @@ where
         .pipe(Ok)
 }
 
-pub async fn deactivate_user_by_id<M>(
-    modules: State<M>,
+pub async fn deactivate_user_by_id<App>(
+    app: State<App>,
     requester: AdminSession,
     Path(((), user_id)): Path<((), Uuid)>,
 ) -> ApiResult<impl IntoResponse>
 where
-    M: ModulesExt,
+    App: DeactivateUserByIdUsecase,
 {
-    modules
-        .user_usecase()
-        .deactivate_by_id(requester.into(), user_id.into())
+    app.deactivate_user_by_id(requester.into(), user_id.into())
         .await?;
 
     StatusCode::NO_CONTENT.pipe(Ok)

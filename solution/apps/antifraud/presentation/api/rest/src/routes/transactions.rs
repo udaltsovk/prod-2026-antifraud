@@ -1,4 +1,10 @@
-use application::usecase::transaction::TransactionUseCase as _;
+use application::{
+    Application,
+    usecase::transaction::{
+        BulkCreateTransactionsUsecase, CreateTransactionUsecase,
+        GetTransactionByIdUsecase, ListTransactionsUsecase,
+    },
+};
 use axum::{
     Router,
     extract::State,
@@ -17,7 +23,6 @@ use lib::{
 use serde_json::json;
 
 use crate::{
-    ModulesExt,
     dto::{
         pagination::Paginated,
         transaction::{
@@ -30,23 +35,26 @@ use crate::{
     extractors::{Json, Path, Query, session::UserSession},
 };
 
-pub fn router<M: ModulesExt>() -> Router<M> {
+pub fn router<App>() -> Router<App>
+where
+    App: Application,
+{
     Router::new()
         .route(
             "/",
-            post(create_transaction::<M>).get(list_transactions::<M>),
+            post(create_transaction::<App>).get(list_transactions::<App>),
         )
-        .route("/{transaction_id}", get(get_transaction_by_id::<M>))
-        .route("/batch", post(bulk_create_transactions::<M>))
+        .route("/{transaction_id}", get(get_transaction_by_id::<App>))
+        .route("/batch", post(bulk_create_transactions::<App>))
 }
 
-pub async fn create_transaction<M>(
-    modules: State<M>,
+pub async fn create_transaction<App>(
+    app: State<App>,
     creator: UserSession,
     Json(input): Json<CreateTransactionDto>,
 ) -> ApiResult<impl IntoResponse>
 where
-    M: ModulesExt,
+    App: CreateTransactionUsecase,
 {
     let input = {
         let transaction_user_id = input.user_id.clone();
@@ -56,9 +64,7 @@ where
         )
     };
 
-    modules
-        .transaction_usecase()
-        .create(creator.into(), input)
+    app.create_transaction(creator.into(), input)
         .await?
         .pipe(TransactionDecisionDto::from)
         .pipe(Json)
@@ -67,22 +73,21 @@ where
         .pipe(Ok)
 }
 
-pub async fn list_transactions<M>(
-    modules: State<M>,
+pub async fn list_transactions<App>(
+    app: State<App>,
     requester: UserSession,
     Query(filter): Query<TransactionFilterQuery>,
 ) -> ApiResult<impl IntoResponse>
 where
-    M: ModulesExt,
+    App: ListTransactionsUsecase,
 {
     let input = {
         let user_id = filter.user_id.clone();
         (filter.parse().map_err(Into::into), user_id.into())
     };
 
-    let (transactions, count) = modules
-        .transaction_usecase()
-        .list(requester.into(), input.clone())
+    let (transactions, count) = app
+        .list_transactions(requester.into(), input.clone())
         .await?;
 
     Paginated::<TransactionDto>::from_pagination(
@@ -96,17 +101,15 @@ where
     .pipe(Ok)
 }
 
-pub async fn get_transaction_by_id<M>(
-    modules: State<M>,
+pub async fn get_transaction_by_id<App>(
+    app: State<App>,
     requester: UserSession,
     Path(((), transaction_id)): Path<((), Uuid)>,
 ) -> ApiResult<impl IntoResponse>
 where
-    M: ModulesExt,
+    App: GetTransactionByIdUsecase,
 {
-    modules
-        .transaction_usecase()
-        .get_by_id(requester.into(), transaction_id.into())
+    app.get_transaction_by_id(requester.into(), transaction_id.into())
         .await?
         .pipe(TransactionDecisionDto::from)
         .pipe(Json)
@@ -114,13 +117,13 @@ where
         .pipe(Ok)
 }
 
-pub async fn bulk_create_transactions<M>(
-    modules: State<M>,
+pub async fn bulk_create_transactions<App>(
+    app: State<App>,
     creator: UserSession,
     Json(input): Json<BulkCreateTransactionsDto>,
 ) -> ApiResult<impl IntoResponse>
 where
-    M: ModulesExt,
+    App: BulkCreateTransactionsUsecase,
 {
     let input: Vec<_> = input
         .parse()?
@@ -137,9 +140,8 @@ where
 
     let mut success = true;
 
-    let items: Vec<_> = modules
-        .transaction_usecase()
-        .bulk_create(creator.into(), input)
+    let items: Vec<_> = app
+        .bulk_create_transactions(creator.into(), input)
         .await?
         .into_iter()
         .map(|(index, result)| {

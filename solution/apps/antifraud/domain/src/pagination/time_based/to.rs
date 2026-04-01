@@ -12,8 +12,7 @@ use lib::{
     },
 };
 
-#[derive(DomainType, Clone)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(DomainType, Clone, Debug)]
 pub struct TimeBasedPaginationTo(DateTime<Utc>);
 
 static CONSTRAINTS: LazyLock<Constraints<DateTime<Utc>>> =

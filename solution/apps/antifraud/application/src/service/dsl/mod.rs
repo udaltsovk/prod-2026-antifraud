@@ -5,6 +5,7 @@ use domain::{
     transaction::{CreateTransaction, decision::TransactionDecision},
     user::User,
 };
+use entrait::entrait;
 
 pub use crate::service::dsl::error::{
     DslServiceError, DslServiceErrorExt, DslServiceErrorKind, DslServiceErrors,
@@ -13,10 +14,11 @@ pub use crate::service::dsl::error::{
 
 mod error;
 
+#[entrait(DslServiceImpl, delegate_by=ref)]
 pub trait DslService {
-    fn normalize(
+    fn normalize_dsl(
         &self,
-        expression: FraudRuleDslExpression,
+        expression: &FraudRuleDslExpression,
     ) -> DslServiceResult<FraudRuleDslExpression>;
 
     fn decide(

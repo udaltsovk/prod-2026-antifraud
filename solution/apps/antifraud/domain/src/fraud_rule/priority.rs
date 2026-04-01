@@ -11,8 +11,7 @@ use lib::{
     },
 };
 
-#[derive(DomainType, Clone, Copy, PartialEq, Eq)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(DomainType, Clone, Copy, PartialEq, Eq, Debug)]
 pub struct FraudRulePriority(i64);
 
 static CONSTRAINTS: LazyLock<Constraints<i64>> = LazyLock::new(|| {

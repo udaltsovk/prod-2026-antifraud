@@ -1,15 +1,9 @@
 use crate::service::{
-    dsl::DslService, hasher::HasherService, token::TokenService,
+    dsl::DslService, secret_hasher::SecretHasherService, token::TokenService,
 };
 
 pub mod dsl;
-pub mod hasher;
+pub mod secret_hasher;
 pub mod token;
 
-pub trait ServicesModuleExt: Send + Sync {
-    fn password_hasher(&self) -> &dyn HasherService;
-
-    fn token(&self) -> &dyn TokenService;
-
-    fn dsl(&self) -> &dyn DslService;
-}
+pub trait Services = SecretHasherService + TokenService + DslService;

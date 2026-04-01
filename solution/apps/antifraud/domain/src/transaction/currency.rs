@@ -12,8 +12,7 @@ use lib::{
     },
 };
 
-#[derive(DomainType)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(DomainType, Debug)]
 pub struct TransactionCurrency(String);
 
 static TRANSACTION_CURRENCY_REGEX: LazyLock<Regex> = LazyLock::new(|| {

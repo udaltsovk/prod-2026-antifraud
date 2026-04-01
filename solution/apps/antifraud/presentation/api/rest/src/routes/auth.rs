@@ -1,6 +1,9 @@
-use application::usecase::{
-    session::SessionUseCase as _,
-    user::{CreateUserSource, UserUseCase as _},
+use application::{
+    Application,
+    usecase::{
+        session::CreateSessionUsecase,
+        user::{AuthorizeUserUsecase, CreateUserSource, CreateUserUsecase},
+    },
 };
 use axum::{
     Router, extract::State, http::StatusCode, response::IntoResponse,
@@ -14,7 +17,6 @@ use lib::{
 };
 
 use crate::{
-    ModulesExt,
     dto::{
         session::{CreateSessionDto, UserSessionDto},
         user::CreateUserDto,
@@ -23,24 +25,29 @@ use crate::{
     extractors::Json,
 };
 
-pub fn router<M: ModulesExt>() -> Router<M> {
+pub fn router<App>() -> Router<App>
+where
+    App: Application,
+{
     Router::new()
-        .route("/register", post(register::<M>))
-        .route("/login", post(login::<M>))
+        .route("/register", post(register::<App>))
+        .route("/login", post(login::<App>))
 }
 
-pub async fn register<M: ModulesExt>(
-    modules: State<M>,
+pub async fn register<App>(
+    app: State<App>,
     Json(source): Json<CreateUserDto>,
-) -> ApiResult<impl IntoResponse> {
+) -> ApiResult<impl IntoResponse>
+where
+    App: CreateUserUsecase + CreateSessionUsecase,
+{
     let user = source.parse().map_err(Into::into);
 
-    let user = modules
-        .user_usecase()
-        .create(CreateUserSource::Registration, user)
+    let user = app
+        .create_user(CreateUserSource::Registration, user)
         .await?;
 
-    let token = modules.session_usecase().create(user.id, user.role)?;
+    let token = app.create_session(user.id, user.role)?;
 
     UserSessionDto::from((token, user.into()))
         .pipe(Json)
@@ -49,15 +56,18 @@ pub async fn register<M: ModulesExt>(
         .pipe(Ok)
 }
 
-pub async fn login<M: ModulesExt>(
-    modules: State<M>,
+pub async fn login<App>(
+    app: State<App>,
     Json(source): Json<CreateSessionDto>,
-) -> ApiResult<impl IntoResponse> {
+) -> ApiResult<impl IntoResponse>
+where
+    App: AuthorizeUserUsecase + CreateSessionUsecase,
+{
     let credentials = source.parse()?;
 
-    let user = modules.user_usecase().authorize(credentials).await?;
+    let user = app.authorize_user(credentials).await?;
 
-    let token = modules.session_usecase().create(user.id, user.role)?;
+    let token = app.create_session(user.id, user.role)?;
 
     UserSessionDto::from((token, user.into()))
         .pipe(Json)

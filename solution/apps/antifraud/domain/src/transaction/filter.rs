@@ -12,8 +12,7 @@ use crate::{
     user::{User, role::UserRole},
 };
 
-#[derive(Clone)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Clone, Debug)]
 pub struct TransactionFilterInput {
     pub user_id: Option<TransactionUserId>,
     pub status: Option<TransactionStatus>,
@@ -21,8 +20,7 @@ pub struct TransactionFilterInput {
     pub pagination: PaginationInput,
 }
 
-#[derive(Clone, Copy)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Clone, Copy, Debug)]
 pub struct TransactionFilter {
     pub requester_id: Option<Id<User>>,
     pub status: Option<TransactionStatus>,

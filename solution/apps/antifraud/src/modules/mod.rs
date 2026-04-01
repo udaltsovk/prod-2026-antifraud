@@ -1,14 +1,3 @@
-use application::usecase::{
-    UseCase, fraud_rule::FraudRuleUseCase, session::SessionUseCase,
-    statistics::StatisticsUseCase, transaction::TransactionUseCase,
-    user::UserUseCase,
-};
-use domain::{
-    fraud_rule::FraudRule, session::Session, statistics::Statistics,
-    transaction::Transaction, user::User,
-};
-use presentation::api::rest::ModulesExt;
-
 pub use crate::modules::config::ModulesConfig;
 use crate::modules::{
     repositories::RepositoriesModule, services::ServicesModule,
@@ -20,63 +9,15 @@ mod services;
 
 #[derive(Clone)]
 pub struct Modules {
-    #[expect(dead_code, reason = "We might need that in the future")]
-    repositories_module: RepositoriesModule,
-    #[expect(dead_code, reason = "We might need that in the future")]
-    services_module: ServicesModule,
-    user_usecase: UseCase<User>,
-    session_usecase: UseCase<Session>,
-    fraud_rule_usecase: UseCase<FraudRule>,
-    transaction_usecase: UseCase<Transaction>,
-    statistics_usecase: UseCase<Statistics>,
-}
-
-impl ModulesExt for Modules {
-    fn user_usecase(&self) -> &impl UserUseCase {
-        &self.user_usecase
-    }
-
-    fn session_usecase(&self) -> &impl SessionUseCase {
-        &self.session_usecase
-    }
-
-    fn fraud_rule_usecase(&self) -> &impl FraudRuleUseCase {
-        &self.fraud_rule_usecase
-    }
-
-    fn transaction_usecase(&self) -> &impl TransactionUseCase {
-        &self.transaction_usecase
-    }
-
-    fn statistics_usecase(&self) -> &impl StatisticsUseCase {
-        &self.statistics_usecase
-    }
+    repositories: RepositoriesModule,
+    services: ServicesModule,
 }
 
 impl Modules {
     pub async fn init(config: &ModulesConfig) -> Self {
-        let repositories_module =
-            RepositoriesModule::new(&config.repositories).await;
-        let services_module = ServicesModule::new(&config.services);
-
-        let user_usecase = UseCase::new(&repositories_module, &services_module);
-        let session_usecase =
-            UseCase::new(&repositories_module, &services_module);
-        let fraud_rule_usecase =
-            UseCase::new(&repositories_module, &services_module);
-        let transaction_usecase =
-            UseCase::new(&repositories_module, &services_module);
-        let statistics_usecase =
-            UseCase::new(&repositories_module, &services_module);
-
         Self {
-            repositories_module,
-            services_module,
-            user_usecase,
-            session_usecase,
-            fraud_rule_usecase,
-            transaction_usecase,
-            statistics_usecase,
+            repositories: RepositoriesModule::new(&config.repositories).await,
+            services: ServicesModule::new(&config.services),
         }
     }
 }

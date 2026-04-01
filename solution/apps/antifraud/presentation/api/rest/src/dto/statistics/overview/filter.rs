@@ -7,8 +7,7 @@ use serde::Deserialize;
 
 use crate::dto::pagination::TimeBasedPaginationQuery;
 
-#[derive(Deserialize, Clone, Default)]
-#[cfg_attr(debug_assertions, derive(Debug))]
+#[derive(Deserialize, Clone, Default, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct StatsOverviewFilterQuery {
     #[serde(default, flatten)]

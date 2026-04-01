@@ -1,5 +1,6 @@
 use domain::{session::Session, user::role::UserRole};
-use lib::{chrono::Utc, model_mapper::Mapper, uuid::Uuid};
+use lib::{chrono::Utc, uuid::Uuid};
+use model_mapper::Mapper;
 use serde::{Deserialize, Serialize};
 
 #[derive(Mapper, Serialize, Deserialize)]
