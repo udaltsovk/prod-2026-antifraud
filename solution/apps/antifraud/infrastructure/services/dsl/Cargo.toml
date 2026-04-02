@@ -16,5 +16,7 @@ entrait.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 
+rayon = "1.11"
+
 [lints]
 workspace = true

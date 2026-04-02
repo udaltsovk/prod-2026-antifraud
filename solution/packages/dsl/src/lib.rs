@@ -5,7 +5,7 @@ use strum::{Display, EnumString};
 pub use crate::{
     context::{Context, ContextBuilder},
     parser::ParserError,
-    validator::ValidatorError,
+    validator::{ValidationConfirmation, ValidatorError},
 };
 
 mod context;

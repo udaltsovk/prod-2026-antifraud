@@ -1,3 +1,5 @@
+#![feature(try_blocks)]
+
 use std::{collections::HashMap, sync::Arc};
 
 use application::service::dsl::{
@@ -8,16 +10,20 @@ use domain::{
         FraudRule,
         dsl_expression::FraudRuleDslExpression,
         result::{
-            description::FraudRuleResultDescription,
+            FraudRuleResult, description::FraudRuleResultDescription,
             status::FraudRuleResultStatus,
         },
     },
     transaction::{CreateTransaction, decision::TransactionDecision},
     user::User,
 };
-use dsl::Expression;
+use dsl::{Expression, ValidationConfirmation};
 use entrait::entrait;
-use lib::{instrument_all, tap::Pipe as _};
+use lib::{domain::Id, instrument_all, tap::Pipe as _};
+use rayon::iter::{
+    IntoParallelIterator as _, IntoParallelRefIterator as _,
+    ParallelIterator as _,
+};
 
 use crate::{context::DslServiceContext, utils::DslExpressionExt as _};
 
@@ -52,81 +58,97 @@ impl DslServiceImpl for DslServiceImplementation {
         rules: &[FraudRule],
         input: Vec<(usize, (CreateTransaction, Arc<User>))>,
     ) -> Vec<(usize, TransactionDecision)> {
-        let dsl_expressions: HashMap<_, _> = rules
-            .iter()
-            .map(|rule| {
-                let res: Result<_, DslServiceErrors> = (|| {
-                    let context = DslServiceContext::dummy();
-
-                    let ast = Expression::parse(rule.dsl_expression.as_ref())
-                        .map_err(
-                        DslServiceErrorExt::into_dsl_service_errors,
-                    )?;
-
-                    let confirmation = ast
-                        .validate(&context.0)
-                        .map_err(DslServiceErrorExt::into_dsl_service_errors)?
-                        .clone();
-
-                    Ok((ast, confirmation))
-                })();
-
-                (rule.id, res)
-            })
-            .collect();
+        let dsl_expressions: HashMap<_, _> =
+            rules.par_iter().map(FraudRuleExt::parse).collect();
 
         input
-            .into_iter()
+            .into_par_iter()
             .map(|(index, (transaction, user))| {
                 let context = DslServiceContext::from((&transaction, &user));
+
                 let rule_results: Vec<_> = rules
-                    .iter()
-                    .map(|rule| {
-                        let expression_res = dsl_expressions
-                            .get(&rule.id)
-                            .expect(
-                                "we've created that map using every rule so result should exist"
-                            );
-
-                        rule.apply(|_| {
-                            match expression_res {
-                                Ok((ast, confirmation)) => {
-                                    let status: FraudRuleResultStatus = ast
-                                        .evaluate(&context.0, confirmation)
-                                        .into();
-
-                                    let matched = if status.eq(&FraudRuleResultStatus::Unmatched) {
-                                        "не "
-                                    } else {
-                                        ""
-                                    };
-
-                                    let description = format!("{ast}, правило {matched}сработало")
-                                        .pipe(FraudRuleResultDescription);
-
-                                    (status, description)
-                                },
-                                Err(_err) => (
-                                    FraudRuleResultStatus::Unmatched,
-                                    "Fraud rule DSL expression is not valid"
-                                        .to_string()
-                                        .pipe(FraudRuleResultDescription)
-                                )
-                            }
-
-                        })
-                    })
+                    .par_iter()
+                    .map(|rule| rule.decide(&dsl_expressions, &context))
                     .collect();
 
-                    (
-                        index,
-                        TransactionDecision {
-                            transaction: transaction.commit(&rule_results),
-                            rule_results,
-                        }
-                    )
-                })
+                (
+                    index,
+                    TransactionDecision {
+                        transaction: transaction.commit(&rule_results),
+                        rule_results,
+                    },
+                )
+            })
             .collect()
+    }
+}
+
+type FraudRuleId = Id<FraudRule>;
+
+type RawFraudRuleResult<'src> =
+    Result<(Expression<'src>, ValidationConfirmation), DslServiceErrors>;
+
+trait FraudRuleExt {
+    fn parse(&self) -> (FraudRuleId, RawFraudRuleResult<'_>);
+
+    fn decide<'src>(
+        &self,
+        dsl_expressions: &HashMap<FraudRuleId, RawFraudRuleResult<'src>>,
+        context: &DslServiceContext<'src>,
+    ) -> FraudRuleResult;
+}
+
+impl FraudRuleExt for FraudRule {
+    fn parse(&self) -> (FraudRuleId, RawFraudRuleResult<'_>) {
+        let res = try {
+            let context = DslServiceContext::dummy();
+
+            let ast = Expression::parse(self.dsl_expression.as_ref())
+                .map_err(DslServiceErrorExt::into_dsl_service_errors)?;
+
+            let confirmation = ast
+                .validate(&context.0)
+                .map_err(DslServiceErrorExt::into_dsl_service_errors)?
+                .clone();
+
+            (ast, confirmation)
+        };
+
+        (self.id, res)
+    }
+
+    fn decide<'src>(
+        &self,
+        dsl_expressions: &HashMap<FraudRuleId, RawFraudRuleResult<'src>>,
+        context: &DslServiceContext<'src>,
+    ) -> FraudRuleResult {
+        let expression_res = dsl_expressions.get(&self.id).expect(
+            "we've created that map using every rule so result should exist",
+        );
+
+        self.apply(|_| match expression_res {
+            Ok((ast, confirmation)) => {
+                let status: FraudRuleResultStatus =
+                    ast.evaluate(&context.0, confirmation).into();
+
+                let matched = if status.eq(&FraudRuleResultStatus::Unmatched) {
+                    "не "
+                } else {
+                    ""
+                };
+
+                let description = format!("{ast}, правило {matched}сработало")
+                    .pipe(FraudRuleResultDescription);
+
+                (status, description)
+            },
+            Err(_err) => (
+                FraudRuleResultStatus::Unmatched,
+                "Fraud rule DSL expression is not valid"
+                    .to_string()
+                    .pipe(FraudRuleResultDescription),
+            ),
+        })
     }
 }
 
