@@ -114,6 +114,7 @@ where
         .collect();
 
     results.extend(errors);
+    results.sort_by_key(|(index, _)| *index);
 
     Ok(results)
 }

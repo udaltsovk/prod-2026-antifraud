@@ -9,12 +9,11 @@ use lib::{
     application::di::Has,
     async_trait,
     domain::{DomainType, Id},
-    infrastructure::persistence::HasPoolExt as _,
+    infrastructure::persistence::{HasPoolExt as _, sqlx::SqlxPool},
     instrument_all,
     tap::Pipe as _,
     uuid::Uuid,
 };
-use mobc_sqlx::{SqlxConnectionManager, mobc::Pool};
 use serde_json::Value;
 use sqlx::{
     Acquire as _, Executor, Postgres, query_file_as, query_file_scalar,
@@ -28,7 +27,7 @@ use crate::{
     repository::PostgresRepositoryImpl,
 };
 
-#[entrait(ref)]
+#[entrait]
 #[async_trait]
 #[instrument_all]
 impl TransactionRepositoryImpl for PostgresRepositoryImpl {
@@ -37,7 +36,7 @@ impl TransactionRepositoryImpl for PostgresRepositoryImpl {
         source: Transaction,
     ) -> Result<Transaction>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let mut connection = deps.get_connection().await?;
 
@@ -49,7 +48,7 @@ impl TransactionRepositoryImpl for PostgresRepositoryImpl {
         sources: Vec<Transaction>,
     ) -> Result<Vec<Transaction>>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let mut transactions = Vec::new();
 
@@ -72,7 +71,7 @@ impl TransactionRepositoryImpl for PostgresRepositoryImpl {
         transaction_id: Id<Transaction>,
     ) -> Result<Option<Transaction>>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let transaction_id = transaction_id.value;
 
@@ -107,7 +106,7 @@ impl TransactionRepositoryImpl for PostgresRepositoryImpl {
         }: TransactionFilter,
     ) -> Result<Vec<Transaction>>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let requester_id = requester_id.map(Uuid::from);
         let verdict = status.map(StoredTransactionVerdict::from);
@@ -146,7 +145,7 @@ impl TransactionRepositoryImpl for PostgresRepositoryImpl {
         }: TransactionFilter,
     ) -> Result<i64>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let requester_id = requester_id.map(Uuid::from);
         let verdict = status.map(StoredTransactionVerdict::from);

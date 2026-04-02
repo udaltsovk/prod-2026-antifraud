@@ -14,7 +14,10 @@ use domain::{
 use entrait::entrait;
 use lib::{anyhow::Result, async_trait, domain::Id};
 
-#[entrait(StatisticsRepositoryImpl, delegate_by=ref)]
+#[entrait(
+    StatisticsRepositoryImpl,
+    delegate_by=DelegateStatisticsRepository
+)]
 #[async_trait]
 pub trait StatisticsRepository {
     async fn statistics_overview(

@@ -11,11 +11,10 @@ use lib::{
     application::di::Has,
     async_trait,
     domain::{DomainType as _, Id},
-    infrastructure::persistence::HasPoolExt as _,
+    infrastructure::persistence::{HasPoolExt as _, sqlx::SqlxPool},
     instrument_all,
     tap::Pipe as _,
 };
-use mobc_sqlx::{SqlxConnectionManager, mobc::Pool};
 use sqlx::{Postgres, query_file_as, query_file_scalar};
 
 use crate::{
@@ -26,7 +25,7 @@ use crate::{
     repository::PostgresRepositoryImpl,
 };
 
-#[entrait(ref)]
+#[entrait]
 #[async_trait]
 #[instrument_all]
 impl UserRepositoryImpl for PostgresRepositoryImpl {
@@ -35,7 +34,7 @@ impl UserRepositoryImpl for PostgresRepositoryImpl {
         (id, source, password_hash): (Id<User>, CreateUser, PasswordHash),
     ) -> Result<User>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let id = id.value;
         let email = source.email.into_inner();
@@ -75,7 +74,7 @@ impl UserRepositoryImpl for PostgresRepositoryImpl {
         id: Id<User>,
     ) -> Result<Option<User>>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let mut connection = deps.get_connection().await?;
 
@@ -91,7 +90,7 @@ impl UserRepositoryImpl for PostgresRepositoryImpl {
         email: &Email,
     ) -> Result<Option<User>>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let mut connection = deps.get_connection().await?;
 
@@ -113,7 +112,7 @@ impl UserRepositoryImpl for PostgresRepositoryImpl {
         }: UserFilter,
     ) -> Result<Vec<User>>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let mut connection = deps.get_connection().await?;
 
@@ -133,7 +132,7 @@ impl UserRepositoryImpl for PostgresRepositoryImpl {
         }: UserFilter,
     ) -> Result<i64>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let mut connection = deps.get_connection().await?;
 
@@ -146,7 +145,7 @@ impl UserRepositoryImpl for PostgresRepositoryImpl {
 
     async fn update_user<Deps>(deps: &Deps, source: User) -> Result<User>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let id = source.id.value;
         let full_name = source.full_name.into_inner();

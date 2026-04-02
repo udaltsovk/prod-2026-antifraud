@@ -1,4 +1,4 @@
-use std::fmt::{self, Write as _};
+use std::fmt::Write as _;
 
 use fromenv::FromEnv;
 use lib::{mobc_redis::redis, mobc_sqlx::sqlx::postgres::PgConnectOptions};
@@ -43,15 +43,15 @@ pub struct RedisConfig {
 
 impl From<&RedisConfig> for redis::Client {
     fn from(config: &RedisConfig) -> Self {
-        let url = (|| {
+        let url = try {
             let mut url = format!("redis://{}", config.host);
 
             if let Some(port) = &config.port {
                 write!(url, ":{port}")?;
             }
 
-            Ok::<_, fmt::Error>(url)
-        })()
+            url
+        }
         .expect("url formatting should finish successfully");
 
         Self::open(url).expect("redis client should open successfully")

@@ -4,7 +4,10 @@ use domain::fraud_rule::{
 use entrait::entrait;
 use lib::{anyhow::Result, async_trait, domain::Id};
 
-#[entrait(FraudRuleRepositoryImpl, delegate_by=ref)]
+#[entrait(
+    FraudRuleRepositoryImpl,
+    delegate_by=DelegateFraudRuleRepository
+)]
 #[async_trait]
 pub trait FraudRuleRepository {
     async fn create_fraud_rule(

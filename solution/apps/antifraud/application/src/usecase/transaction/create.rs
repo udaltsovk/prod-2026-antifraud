@@ -8,6 +8,7 @@ use domain::{
 use entrait::entrait;
 use futures::future;
 use lib::{
+    anyhow::Context as _,
     domain::{
         Id,
         validation::{ExternalInput, error::ValidationResultWithFields},
@@ -63,19 +64,16 @@ where
     )
     .await?;
 
-    let decisions =
-        DslService::decide(deps, &fraud_rules, vec![(0, decision_tuple)])
-            .into_iter()
-            .map(|(_index, decision)| {
-                SaveTransactionDecisionUsecase::save_transaction_decision(
-                    deps, decision,
-                )
-            })
-            .pipe(future::join_all)
-            .await;
-
-    decisions
+    DslService::decide(deps, &fraud_rules, vec![(0, decision_tuple)])
+        .into_iter()
+        .map(|(_index, decision)| {
+            SaveTransactionDecisionUsecase::save_transaction_decision(
+                deps, decision,
+            )
+        })
+        .pipe(future::join_all)
+        .await
         .into_iter()
         .next()
-        .expect("we've passed one transaction, so we should get it back")
+        .context("we've passed one transaction, so we should get it back")?
 }

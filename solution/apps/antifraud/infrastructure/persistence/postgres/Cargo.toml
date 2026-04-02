@@ -5,14 +5,13 @@ authors.workspace = true
 edition.workspace = true
 
 [dependencies]
-lib = { workspace = true, features = ["infrastructure-persistence-postgres"] }
+lib = { workspace = true, features = ["infrastructure-persistence-sqlx"] }
 domain = { path = "../../../domain", package = "antifraud-domain" }
 application = { path = "../../../application", package = "antifraud-application" }
 
 chrono.workspace = true
 derive-where.workspace = true
 entrait.workspace = true
-mobc-sqlx.workspace = true
 model-mapper.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

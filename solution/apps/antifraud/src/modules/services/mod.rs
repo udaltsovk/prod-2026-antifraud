@@ -1,6 +1,6 @@
 use application::service::{
-    dsl::DslServiceImpl, secret_hasher::SecretHasherServiceImpl,
-    token::TokenServiceImpl,
+    dsl::DelegateDslService, secret_hasher::DelegateSecretHasherService,
+    token::DelegateTokenService,
 };
 use infrastructure::services::{
     dsl::DslServiceImplementation, hasher::argon2::Argon2Service,
@@ -39,7 +39,7 @@ impl_has! {
 
 impl_services! {
     struct: Modules,
-    SecretHasherServiceImpl: |s| &s.services.password_hasher,
-    TokenServiceImpl: |s| &s.services.token,
-    DslServiceImpl: |s| &s.services.dsl,
+    DelegateSecretHasherService: Argon2Service,
+    DelegateTokenService: JwtService,
+    DelegateDslService: DslServiceImplementation,
 }

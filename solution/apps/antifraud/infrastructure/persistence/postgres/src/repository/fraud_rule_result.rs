@@ -6,12 +6,11 @@ use lib::{
     application::di::Has,
     async_trait,
     domain::{DomainType as _, Id},
-    infrastructure::persistence::HasPoolExt as _,
+    infrastructure::persistence::{HasPoolExt as _, sqlx::SqlxPool},
     instrument_all,
     tap::Pipe as _,
     uuid::Uuid,
 };
-use mobc_sqlx::{SqlxConnectionManager, mobc::Pool};
 use sqlx::{Acquire as _, Executor, Postgres, query_file_as};
 
 use crate::{
@@ -19,7 +18,7 @@ use crate::{
     repository::PostgresRepositoryImpl,
 };
 
-#[entrait(ref)]
+#[entrait]
 #[async_trait]
 #[instrument_all]
 impl FraudRuleResultRepositoryImpl for PostgresRepositoryImpl {
@@ -28,7 +27,7 @@ impl FraudRuleResultRepositoryImpl for PostgresRepositoryImpl {
         (transaction_id, sources): (Id<Transaction>, Vec<FraudRuleResult>),
     ) -> Result<Vec<FraudRuleResult>>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let transaction_id = transaction_id.value;
 
@@ -53,7 +52,7 @@ impl FraudRuleResultRepositoryImpl for PostgresRepositoryImpl {
         transaction_id: Id<Transaction>,
     ) -> Result<Vec<FraudRuleResult>>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let transaction_id = transaction_id.value;
 

@@ -2,7 +2,10 @@ use domain::transaction::{Transaction, filter::TransactionFilter};
 use entrait::entrait;
 use lib::{anyhow::Result, async_trait, domain::Id};
 
-#[entrait(TransactionRepositoryImpl, delegate_by=ref)]
+#[entrait(
+    TransactionRepositoryImpl,
+    delegate_by=DelegateTransactionRepository
+)]
 #[async_trait]
 pub trait TransactionRepository {
     async fn save_transaction(

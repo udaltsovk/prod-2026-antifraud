@@ -35,7 +35,7 @@ pub struct DslServiceImplementation {
     _phantom: (),
 }
 
-#[entrait(ref)]
+#[entrait]
 #[instrument_all]
 impl DslServiceImpl for DslServiceImplementation {
     fn normalize_dsl<App>(

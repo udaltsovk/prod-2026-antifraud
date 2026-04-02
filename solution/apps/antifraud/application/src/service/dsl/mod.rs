@@ -14,7 +14,10 @@ pub use crate::service::dsl::error::{
 
 mod error;
 
-#[entrait(DslServiceImpl, delegate_by=ref)]
+#[entrait(
+    DslServiceImpl,
+    delegate_by=DelegateDslService
+)]
 pub trait DslService {
     fn normalize_dsl(
         &self,

@@ -9,18 +9,17 @@ use lib::{
     application::di::Has,
     async_trait,
     domain::{DomainType as _, Id},
-    infrastructure::persistence::HasPoolExt as _,
+    infrastructure::persistence::{HasPoolExt as _, sqlx::SqlxPool},
     instrument_all,
     tap::Pipe as _,
 };
-use mobc_sqlx::{SqlxConnectionManager, mobc::Pool};
 use sqlx::{Postgres, query_file_as};
 
 use crate::{
     entity::fraud_rule::StoredFraudRule, repository::PostgresRepositoryImpl,
 };
 
-#[entrait(ref)]
+#[entrait]
 #[async_trait]
 #[instrument_all]
 impl FraudRuleRepositoryImpl for PostgresRepositoryImpl {
@@ -29,7 +28,7 @@ impl FraudRuleRepositoryImpl for PostgresRepositoryImpl {
         (id, source): (Id<FraudRule>, CreateFraudRule),
     ) -> Result<FraudRule>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let id = id.value;
         let name = source.name.into_inner();
@@ -63,7 +62,7 @@ impl FraudRuleRepositoryImpl for PostgresRepositoryImpl {
         id: Id<FraudRule>,
     ) -> Result<Option<FraudRule>>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let mut connection = deps.get_connection().await?;
 
@@ -83,7 +82,7 @@ impl FraudRuleRepositoryImpl for PostgresRepositoryImpl {
         name: &FraudRuleName,
     ) -> Result<Option<FraudRule>>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let mut connection = deps.get_connection().await?;
 
@@ -103,7 +102,7 @@ impl FraudRuleRepositoryImpl for PostgresRepositoryImpl {
         status: Option<FraudRuleStatus>,
     ) -> Result<Vec<FraudRule>>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let enabled = status.map(FraudRuleStatus::to_bool);
 
@@ -123,7 +122,7 @@ impl FraudRuleRepositoryImpl for PostgresRepositoryImpl {
         source: FraudRule,
     ) -> Result<FraudRule>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let id = source.id.value;
         let name = source.name.into_inner();

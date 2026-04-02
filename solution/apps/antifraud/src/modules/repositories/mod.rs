@@ -1,9 +1,11 @@
+use std::sync::OnceLock;
+
 use application::repository::{
-    fraud_rule::FraudRuleRepositoryImpl,
-    fraud_rule_result::FraudRuleResultRepositoryImpl,
-    statistics::StatisticsRepositoryImpl,
-    transaction::TransactionRepositoryImpl, user::UserRepositoryImpl,
-    user_activity::UserActivityRepositoryImpl,
+    fraud_rule::DelegateFraudRuleRepository,
+    fraud_rule_result::DelegateFraudRuleResultRepository,
+    statistics::DelegateStatisticsRepository,
+    transaction::DelegateTransactionRepository, user::DelegateUserRepository,
+    user_activity::DelegateUserActivityRepository,
 };
 use infrastructure::persistence::{
     postgres::{POSTGRES_MIGRATOR, repository::PostgresRepositoryImpl},
@@ -12,7 +14,11 @@ use infrastructure::persistence::{
 use lib::{
     application::impl_has,
     bootstrap::impl_repositories,
-    infrastructure::persistence::mobc_sqlx::MigratorExt as _,
+    infrastructure::persistence::{
+        mobc_sqlx::MigratorExt as _,
+        redis::{Namespace, RedisPool},
+        sqlx::SqlxPool,
+    },
     mobc_redis::{RedisConnectionManager, redis},
     mobc_sqlx::{
         SqlxConnectionManager,
@@ -31,8 +37,8 @@ mod config;
 
 #[derive(Clone)]
 pub struct RepositoriesModule {
-    postgres: Pool<SqlxConnectionManager<Postgres>>,
-    redis: Pool<RedisConnectionManager>,
+    postgres: SqlxPool<Postgres>,
+    redis: RedisPool,
 }
 
 impl RepositoriesModule {
@@ -43,9 +49,7 @@ impl RepositoriesModule {
         }
     }
 
-    async fn setup_postgres(
-        config: &PostgresConfig,
-    ) -> Pool<SqlxConnectionManager<Postgres>> {
+    async fn setup_postgres(config: &PostgresConfig) -> SqlxPool<Postgres> {
         let postgres = PgConnectOptions::from(config)
             .pipe(SqlxConnectionManager::new)
             .pipe(Pool::new);
@@ -55,7 +59,7 @@ impl RepositoriesModule {
         postgres
     }
 
-    fn setup_redis(config: &RedisConfig) -> Pool<RedisConnectionManager> {
+    fn setup_redis(config: &RedisConfig) -> RedisPool {
         redis::Client::from(config)
             .pipe(RedisConnectionManager::new)
             .pipe(Pool::new)
@@ -64,16 +68,22 @@ impl RepositoriesModule {
 
 impl_has! {
     struct: Modules,
-    Pool<SqlxConnectionManager<Postgres>>: |s| &s.repositories.postgres,
-    Pool<RedisConnectionManager>: |s| &s.repositories.redis,
+    SqlxPool<Postgres>: |s| &s.repositories.postgres,
+    RedisPool: |s| &s.repositories.redis,
+    Namespace: |_s| {
+        static NAMESPACE: OnceLock<Namespace> = OnceLock::new();
+        NAMESPACE.get_or_init(|| {
+            Namespace::new("antifraud").nest("monolyth")
+        })
+    }
 }
 
 impl_repositories! {
     struct: Modules,
-    UserRepositoryImpl: |_s| &PostgresRepositoryImpl,
-    FraudRuleRepositoryImpl: |_s| &PostgresRepositoryImpl,
-    TransactionRepositoryImpl: |_s| &PostgresRepositoryImpl,
-    FraudRuleResultRepositoryImpl: |_s| &PostgresRepositoryImpl,
-    StatisticsRepositoryImpl: |_s| &PostgresRepositoryImpl,
-    UserActivityRepositoryImpl: |_s| &RedisRepositoryImpl,
+    DelegateUserRepository: PostgresRepositoryImpl,
+    DelegateFraudRuleRepository: PostgresRepositoryImpl,
+    DelegateTransactionRepository: PostgresRepositoryImpl,
+    DelegateFraudRuleResultRepository: PostgresRepositoryImpl,
+    DelegateStatisticsRepository: PostgresRepositoryImpl,
+    DelegateUserActivityRepository: RedisRepositoryImpl,
 }

@@ -3,7 +3,10 @@ use domain::user::User;
 use entrait::entrait;
 use lib::{anyhow::Result, async_trait, domain::Id};
 
-#[entrait(UserActivityRepositoryImpl, delegate_by=ref)]
+#[entrait(
+    UserActivityRepositoryImpl,
+    delegate_by=DelegateUserActivityRepository
+)]
 #[async_trait]
 pub trait UserActivityRepository {
     async fn record_activity(&self, user_id: Id<User>)

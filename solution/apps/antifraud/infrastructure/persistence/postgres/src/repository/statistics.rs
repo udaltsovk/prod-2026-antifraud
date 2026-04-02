@@ -19,11 +19,10 @@ use lib::{
     application::di::Has,
     async_trait,
     domain::{DomainType, Id},
-    infrastructure::persistence::HasPoolExt as _,
+    infrastructure::persistence::{HasPoolExt as _, sqlx::SqlxPool},
     instrument_all,
     tap::Pipe as _,
 };
-use mobc_sqlx::{SqlxConnectionManager, mobc::Pool};
 use sqlx::{Postgres, query_file_as};
 
 use crate::{
@@ -40,7 +39,7 @@ use crate::{
     repository::PostgresRepositoryImpl,
 };
 
-#[entrait(ref)]
+#[entrait]
 #[async_trait]
 #[instrument_all]
 impl StatisticsRepositoryImpl for PostgresRepositoryImpl {
@@ -55,7 +54,7 @@ impl StatisticsRepositoryImpl for PostgresRepositoryImpl {
         }: StatsOverviewFilter,
     ) -> Result<StatsOverview>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let mut connection = deps.get_connection().await?;
 
@@ -85,7 +84,7 @@ impl StatisticsRepositoryImpl for PostgresRepositoryImpl {
         }: TransactionsTimeseriesPointFilter,
     ) -> Result<Vec<TransactionsTimeseriesPoint>>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let group_by = group_by.to_string();
         let timezone = timezone.into_inner().name();
@@ -122,7 +121,7 @@ impl StatisticsRepositoryImpl for PostgresRepositoryImpl {
         }: RulesMatchesStatsFilter,
     ) -> Result<Vec<RuleMatchesStats>>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let top: i64 = top.into();
 
@@ -156,7 +155,7 @@ impl StatisticsRepositoryImpl for PostgresRepositoryImpl {
         }: MerchantsRiskStatsFilter,
     ) -> Result<Vec<MerchantRiskStats>>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let merchant_category_code =
             merchant_category_code.map(DomainType::into_inner);
@@ -185,7 +184,7 @@ impl StatisticsRepositoryImpl for PostgresRepositoryImpl {
         user_id: Id<User>,
     ) -> Result<UserRiskProfile>
     where
-        Deps: Has<Pool<SqlxConnectionManager<Postgres>>>,
+        Deps: Has<SqlxPool<Postgres>>,
     {
         let mut connection = deps.get_connection().await?;
 

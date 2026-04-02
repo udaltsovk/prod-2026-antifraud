@@ -17,7 +17,6 @@ lib = { workspace = true, features = [
   "bootstrap-redis",
   "bootstrap-sqlx",
   "bootstrap-instrumentation-stdout",
-  "infrastructure-persistence-postgres",
 ] }
 domain = { path = "./domain", package = "antifraud-domain" }
 application = { path = "./application", package = "antifraud-application" }
